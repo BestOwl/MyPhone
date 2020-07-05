@@ -1,0 +1,61 @@
+﻿<Page
+    x:Class="GoodTimeStudio.MyPhone.TestPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:GoodTimeStudio.MyPhone"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:call="using:Windows.ApplicationModel.Calls"
+    xmlns:device="using:Windows.Devices.Enumeration"
+    xmlns:model="using:GoodTimeStudio.MyPhone.Models"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.DataContext>
+        <model:TestPageViewModel x:Name="ViewModel" />
+    </Page.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <StackPanel Padding="10" Spacing="10">
+            <ListView ItemsSource="{x:Bind ViewModel.PhoneLines}" 
+                      x:Name="_PhoneLineList" Height="300">
+            </ListView>
+
+            <TextBlock Text="Dail" Style="{StaticResource TitleTextBlockStyle}"/>
+            <TextBox x:Name="PhoneNumberBox"/>
+            <Button Content="Call" Click="Button_Click_Call" />
+
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Padding="10" Spacing="10">
+            <ListView ItemsSource="{x:Bind ViewModel.PLTDevices}" 
+                      SelectedItem="{x:Bind ViewModel.SelectedDevice, Mode=TwoWay}"
+                      SelectionChanged="_PLTDList_SelectionChanged"
+                      x:Name="_PLTDList" Height="300">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="device:DeviceInformation">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{x:Bind Name}" Style="{StaticResource TitleTextBlockStyle}" />
+                            <TextBlock Text="{x:Bind Id}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <TextBlock Text="Current status" Style="{StaticResource TitleTextBlockStyle}" />
+            <TextBlock Text="{x:Bind ViewModel.RegistrationStatus, Mode=OneWay}" />
+            <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}" />
+            <ProgressRing IsActive="{x:Bind ViewModel.IsWorking, Mode=OneWay}" HorizontalAlignment="Left"/>
+
+            <Button Content="Connect to a PhoneLineTransportDevice" Click="Button_Click_ConnectDevice" 
+                    IsEnabled="{x:Bind ViewModel.IsNotWorking, Mode=OneWay}"/>
+            <Button Content="UnregisterApp" Click="Button_Click_UnregisterApp"
+                    IsEnabled="{x:Bind ViewModel.IsNotWorking, Mode=OneWay}"/>
+            <Button Content="RegisterApp" Click="Button_Click_RegisterApp"
+                    IsEnabled="{x:Bind Mode=OneWay, Path=ViewModel.IsNotWorking}"/>
+            <Button Content="GetRfcommServices" Click="Button_Click_GetRfcommServices" />
+        </StackPanel>
+    </Grid>
+</Page>
