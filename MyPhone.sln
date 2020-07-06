@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyPhoneCLI", "MyPhoneCLI\My
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyPhone", "MyPhone\MyPhone.csproj", "{9CB1EC4F-CD1D-4895-AF85-A82C9A8892FD}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyPhone.TrayApp", "MyPhone.TrayApp\MyPhone.TrayApp.vcxproj", "{BA1802FA-AE32-40D0-8100-78A4F98373EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,20 @@ Global
 		{9CB1EC4F-CD1D-4895-AF85-A82C9A8892FD}.Release|x86.ActiveCfg = Release|x86
 		{9CB1EC4F-CD1D-4895-AF85-A82C9A8892FD}.Release|x86.Build.0 = Release|x86
 		{9CB1EC4F-CD1D-4895-AF85-A82C9A8892FD}.Release|x86.Deploy.0 = Release|x86
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Debug|ARM.ActiveCfg = Debug|Win32
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Debug|x64.ActiveCfg = Debug|x64
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Debug|x64.Build.0 = Debug|x64
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Debug|x86.ActiveCfg = Debug|Win32
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Debug|x86.Build.0 = Debug|Win32
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Release|Any CPU.ActiveCfg = Release|Win32
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Release|ARM.ActiveCfg = Release|Win32
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Release|ARM64.ActiveCfg = Release|Win32
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Release|x64.ActiveCfg = Release|x64
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Release|x64.Build.0 = Release|x64
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Release|x86.ActiveCfg = Release|Win32
+		{BA1802FA-AE32-40D0-8100-78A4F98373EC}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
