@@ -44,6 +44,11 @@
         <desktop:Extension Category="windows.startupTask" Executable="MyPhone.TrayApp\MyPhone.TrayApp.exe" EntryPoint="Windows.FullTrustApplication">
           <desktop:StartupTask TaskId="MyPhone.TrayApp" Enabled="true" DisplayName="My Phone" />
         </desktop:Extension>
+        <uap:Extension Category="windows.protocol" Executable="MyPhone.exe" EntryPoint="GoodTimeStudio.MyPhone.App">
+          <uap:Protocol Name="goodtimestudio.myphone-launch">
+            <uap:DisplayName>My Phone</uap:DisplayName>
+          </uap:Protocol>
+        </uap:Extension>
       </Extensions>
     </Application>
   </Applications>

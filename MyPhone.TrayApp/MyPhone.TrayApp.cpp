@@ -1,30 +1,23 @@
-﻿#include "resource.h"
-
-#include <windows.h>
-#include <windowsx.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <winrt/Windows.system.h>
-#include <winrt/windows.ui.xaml.hosting.h>
-#include <windows.ui.xaml.hosting.desktopwindowxamlsource.h>
-#include <winrt/Windows.UI.Xaml.Controls.h>
-#include <winrt/Windows.UI.Xaml.Controls.Primitives.h>
-#include <winrt/Windows.ui.xaml.media.h>
-#include <winrt/Windows.Foundation.Collections.h>
-#include <winrt\impl\Windows.UI.Xaml.Markup.0.h>
-
+﻿#include "pch.h"
+#include "resource.h"
+#include "BackgroundServer.h"
 using namespace winrt;
 using namespace Windows::UI;
 using namespace Windows::UI::Composition;
 using namespace Windows::UI::Xaml;
 using namespace Windows::UI::Xaml::Controls;
 using namespace Windows::UI::Xaml::Controls::Primitives;
+using namespace Microsoft::UI::Xaml::Controls;
+using namespace Microsoft::UI::Xaml::Controls::Primitives;
+
 using namespace Windows::UI::Xaml::Hosting;
 using namespace Windows::Foundation;
 using namespace Windows::Foundation::Numerics;
+using namespace Windows::ApplicationModel;
+using namespace Windows::ApplicationModel::AppService;
 
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
+void LaunchMainApp();
 
 HWND _hWnd;
 HWND _childhWnd;
@@ -80,32 +73,11 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		return 0;
 	}
 
-	// Init NotifyIcon
-	_nid.cbSize = sizeof(_nid);
-	_nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_SHOWTIP | NIF_GUID;
-	_nid.uCallbackMessage = WM_NOTIFYICON;
-	_nid.uVersion = NOTIFYICON_VERSION_4;
-	_nid.hIcon = windowClass.hIconSm;
-	_nid.hWnd = _hWnd;
-	_nid.guidItem = _ContextMenuGuid;
-	wcscpy_s(_nid.szTip, L"My Phone");
-
-	_niid.cbSize = sizeof(_niid);
-	_niid.guidItem = _ContextMenuGuid;
-
-	Shell_NotifyIcon(NIM_ADD, &_nid);
-	// Set the behaviour version, opt-in WM_CONTEXTMENU message
-	Shell_NotifyIcon(NIM_SETVERSION, &_nid); 
-
-
 #pragma region XAMLIsland
 	//https://docs.microsoft.com/en-us/windows/apps/desktop/modernize/host-standard-control-with-xaml-islands-cpp
 
 	// The call to winrt::init_apartment initializes COM; by default, in a multithreaded apartment.
 	winrt::init_apartment(apartment_type::single_threaded);
-
-	// Initialize the Xaml Framework's corewindow for current thread
-	WindowsXamlManager winxamlmanager = WindowsXamlManager::InitializeForCurrentThread();
 
 	DesktopWindowXamlSource desktopSource;
 	auto interop = desktopSource.as<IDesktopWindowXamlSourceNative>();
@@ -134,6 +106,10 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 	MenuFlyoutItem openAppItem;
 	openAppItem.Text(L"Open App");
+	openAppItem.Click([](auto sender, auto args) 
+	{
+		LaunchMainApp();
+	});
 
 	MenuFlyout menu;
 	menu.Items().Append(openAppItem);
@@ -163,6 +139,35 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 	ShowWindow(_hWnd, nCmdShow);
 	UpdateWindow(_hWnd);
+
+	// Init NotifyIcon
+	_nid.cbSize = sizeof(_nid);
+	_nid.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_SHOWTIP;
+	_nid.uCallbackMessage = WM_NOTIFYICON;
+	_nid.uVersion = NOTIFYICON_VERSION_4;
+	_nid.hIcon = windowClass.hIconSm;
+	_nid.hWnd = _hWnd;
+	_nid.uID = 0;
+	//_nid.guidItem = _ContextMenuGuid;
+	wcscpy_s(_nid.szTip, L"My Phone");
+
+	_niid.cbSize = sizeof(_niid);
+	_niid.hWnd = _hWnd;
+	_niid.uID = 0;
+
+	if (!Shell_NotifyIcon(NIM_ADD, &_nid))
+	{
+		MessageBox(NULL, L"Call to Shell_NotifyIcon NIM_ADD failed!", L"Error", NULL);
+		return 0;
+	}
+	// Set the behaviour version, opt-in WM_CONTEXTMENU message
+	if (!Shell_NotifyIcon(NIM_SETVERSION, &_nid))
+	{
+		MessageBox(NULL, L"Call to Shell_NotifyIcon NIM_SETVERSION failed!", L"Error", NULL);
+		return 0;
+	}
+
+	InitBridge();
 
 	//Message loop:
 	MSG msg = { };
@@ -212,4 +217,9 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT messageCode, WPARAM wParam, LPARAM l
 	}
 
 	return 0;
+}
+
+void LaunchMainApp()
+{
+	Windows::System::Launcher::LaunchUriAsync(Uri(L"goodtimestudio.myphone-launch://"));
 }
