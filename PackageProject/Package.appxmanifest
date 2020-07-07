@@ -4,16 +4,17 @@
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap rescap">
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  IgnorableNamespaces="uap rescap desktop">
 
   <Identity
-    Name="ee6ca40f-fb8d-4afd-ab43-df4d3ebffc94"
-    Publisher="CN=besto"
+    Name="11602GoodTimeStudio.MyPhoneAssistant"
+    Publisher="CN=26FBF7DF-0382-4C02-8985-D8DE01CEF4A3"
     Version="1.0.0.0" />
 
   <Properties>
-    <DisplayName>PackageProject</DisplayName>
-    <PublisherDisplayName>besto</PublisherDisplayName>
+    <DisplayName>My Phone Assistant</DisplayName>
+    <PublisherDisplayName>GoodTime Studio</PublisherDisplayName>
     <Logo>Images\StoreLogo.png</Logo>
   </Properties>
 
@@ -39,6 +40,11 @@
         <uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png"  Square71x71Logo="Images\SmallTile.png" Square310x310Logo="Images\LargeTile.png"/>
         <uap:SplashScreen Image="Images\SplashScreen.png" />
       </uap:VisualElements>
+      <Extensions>
+        <desktop:Extension Category="windows.startupTask" Executable="MyPhone.TrayApp\MyPhone.TrayApp.exe" EntryPoint="Windows.FullTrustApplication">
+          <desktop:StartupTask TaskId="MyPhone.TrayApp" Enabled="true" DisplayName="My Phone" />
+        </desktop:Extension>
+      </Extensions>
     </Application>
   </Applications>
 
