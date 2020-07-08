@@ -7,14 +7,13 @@ using namespace Windows::UI::Composition;
 using namespace Windows::UI::Xaml;
 using namespace Windows::UI::Xaml::Controls;
 using namespace Windows::UI::Xaml::Controls::Primitives;
-using namespace Microsoft::UI::Xaml::Controls;
-using namespace Microsoft::UI::Xaml::Controls::Primitives;
-
 using namespace Windows::UI::Xaml::Hosting;
 using namespace Windows::Foundation;
 using namespace Windows::Foundation::Numerics;
 using namespace Windows::ApplicationModel;
 using namespace Windows::ApplicationModel::AppService;
+
+using namespace MyPhone_TrayApp_XamlHost;
 
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 void LaunchMainApp();
@@ -22,6 +21,9 @@ void LaunchMainApp();
 HWND _hWnd;
 HWND _childhWnd;
 HINSTANCE _hInstance;
+
+App hostApp{ nullptr };
+DesktopWindowXamlSource _desktopWindowXamlSource{ nullptr };
 
 Canvas _Root = nullptr;
 MenuFlyout _ContextMenu = nullptr;
@@ -37,6 +39,15 @@ constexpr UINT WM_NOTIFYICON = WM_APP + 1;
 
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
 {
+#pragma region XAML Island Init
+
+	// The call to winrt::init_apartment initializes COM; by default, in a multithreaded apartment.
+	winrt::init_apartment(apartment_type::single_threaded);
+	hostApp = App{};
+	_desktopWindowXamlSource = DesktopWindowXamlSource{};
+
+#pragma endregion XAML Island Init
+
 	_hInstance = hInstance;
 
 	// The main window class name.
@@ -73,69 +84,65 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		return 0;
 	}
 
-#pragma region XAMLIsland
-	//https://docs.microsoft.com/en-us/windows/apps/desktop/modernize/host-standard-control-with-xaml-islands-cpp
-
-	// The call to winrt::init_apartment initializes COM; by default, in a multithreaded apartment.
-	winrt::init_apartment(apartment_type::single_threaded);
-
-	DesktopWindowXamlSource desktopSource;
-	auto interop = desktopSource.as<IDesktopWindowXamlSourceNative>();
-	check_hresult(interop->AttachToWindow(_hWnd));
-
-	// This Hwnd will be the window handler for the Xaml Island: A child window that contains Xaml.  
-	HWND hWndXamlIsland = nullptr;
-	interop->get_WindowHandle(&hWndXamlIsland);
-	// Update the xaml island window size becuase initially is 0,0
-	SetWindowPos(hWndXamlIsland, 0, 0, 0, 1, 1, SWP_SHOWWINDOW);
-
-	//Creating the Xaml content
-	Canvas xamlContainer;
-	xamlContainer.Background(Windows::UI::Xaml::Media::SolidColorBrush{ Windows::UI::Colors::LightGray() });
-
-	FontIcon closeIcon;
-	closeIcon.Glyph(L"\xE8BB");
-
-	MenuFlyoutItem exitItem;
-	exitItem.Text(L"Exit");
-	exitItem.Icon(closeIcon);
-	exitItem.Click([](auto sender, auto args)
+#pragma region XAML Island 
+	if (_desktopWindowXamlSource != nullptr)
 	{
-		PostMessage(_hWnd, WM_CLOSE, 0, 0);
-	});
+		auto interop = _desktopWindowXamlSource.as<IDesktopWindowXamlSourceNative>();
+		check_hresult(interop->AttachToWindow(_hWnd));
+		HWND hWndXamlIsland = nullptr;
+		interop->get_WindowHandle(&hWndXamlIsland);
+		RECT windowRect;
+		::GetWindowRect(_hWnd, &windowRect);
+		// Update the xaml island window size because initially is 0,0
+		::SetWindowPos(hWndXamlIsland, NULL, 0, 0, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, SWP_SHOWWINDOW);
+		
+		//Creating the Xaml content
+		Canvas xamlContainer;
+		xamlContainer.Background(Windows::UI::Xaml::Media::SolidColorBrush{ Windows::UI::Colors::LightGray() });
 
-	MenuFlyoutItem openAppItem;
-	openAppItem.Text(L"Open App");
-	openAppItem.Click([](auto sender, auto args) 
-	{
-		LaunchMainApp();
-	});
+		FontIcon closeIcon;
+		closeIcon.Glyph(L"\xE8BB");
 
-	MenuFlyout menu;
-	menu.Items().Append(openAppItem);
-	menu.Items().Append(exitItem);
-	menu.Opened([](auto sender, auto args) 
-	{
-		int i = _ContextMenu.Items().Size();
-		if (i > 0)
-		{
-			if (_ContextMenuMouseClick)
+		MenuFlyoutItem exitItem;
+		exitItem.Text(L"Exit");
+		exitItem.Icon(closeIcon);
+		exitItem.Click([](auto sender, auto args)
 			{
-				_ContextMenu.Items().GetAt(i - 1).Focus(FocusState::Pointer);
-			}
-		}
-		_ContextMenuMouseClick = false;
-	});
-	menu.Closed([](auto sender, auto args)
-	{
-		ShowWindow(_hWnd, SW_HIDE);
-	});
-	_ContextMenu = menu;
+				PostMessage(_hWnd, WM_CLOSE, 0, 0);
+			});
 
-	desktopSource.Content(xamlContainer);
-	_Root = xamlContainer;
+		MenuFlyoutItem openAppItem;
+		openAppItem.Text(L"Open App");
+		openAppItem.Click([](auto sender, auto args)
+			{
+				LaunchMainApp();
+			});
 
-#pragma endregion XAMLIsland
+		MenuFlyout menu;
+		menu.Items().Append(openAppItem);
+		menu.Items().Append(exitItem);
+		menu.Opened([](auto sender, auto args)
+			{
+				int i = _ContextMenu.Items().Size();
+				if (i > 0)
+				{
+					if (_ContextMenuMouseClick)
+					{
+						_ContextMenu.Items().GetAt(i - 1).Focus(FocusState::Pointer);
+					}
+				}
+				_ContextMenuMouseClick = false;
+			});
+		menu.Closed([](auto sender, auto args)
+			{
+				ShowWindow(_hWnd, SW_HIDE);
+			});
+		_ContextMenu = menu;
+
+		_desktopWindowXamlSource.Content(xamlContainer);
+		_Root = xamlContainer;
+	}
+#pragma endregion Xaml Island
 
 	ShowWindow(_hWnd, nCmdShow);
 	UpdateWindow(_hWnd);
