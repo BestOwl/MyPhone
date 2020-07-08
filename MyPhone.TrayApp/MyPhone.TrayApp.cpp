@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include "resource.h"
 #include "BackgroundServer.h"
+
 using namespace winrt;
 using namespace Windows::UI;
 using namespace Windows::UI::Composition;
@@ -19,26 +20,46 @@ LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 void LaunchMainApp();
 
 HWND _hWnd;
-HWND _childhWnd;
 HINSTANCE _hInstance;
+NOTIFYICONDATAW _nid;
+NOTIFYICONIDENTIFIER _niid;
+
+constexpr UINT WM_NOTIFYICON = WM_APP + 1;
+constexpr UINT WM_OPENBRIDGE = WM_APP + 2;
+
+const wchar_t szWindowClass[] = L"GOODTIMESTUDIO-MYPHONETRAYAPP";
+const wchar_t szWindowTitle[] = L"MyPhone.TrayApp";
 
 App hostApp{ nullptr };
 DesktopWindowXamlSource _desktopWindowXamlSource{ nullptr };
 
 Canvas _Root = nullptr;
 MenuFlyout _ContextMenu = nullptr;
-// {E7F3B498-BDDC-4343-AF8E-D8AB405C1232}
-static const GUID _ContextMenuGuid =
-{ 0xe7f3b498, 0xbddc, 0x4343, { 0xaf, 0x8e, 0xd8, 0xab, 0x40, 0x5c, 0x12, 0x32 } };
 bool _ContextMenuMouseClick;
 
+bool _OpenBridgeConnection;
 
-NOTIFYICONDATAW _nid;
-NOTIFYICONIDENTIFIER _niid;
-constexpr UINT WM_NOTIFYICON = WM_APP + 1;
-
-int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
+int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
+	_OpenBridgeConnection = false;
+	Uri uri(lpCmdLine);
+	if (uri.Host() == L"open-appservice")
+	{
+		_OpenBridgeConnection = true;
+	}
+
+	// Prevent multiple tray app instance
+	HWND preHwnd = FindWindow(szWindowClass, szWindowTitle);
+	if (preHwnd != nullptr)
+	{
+		if (_OpenBridgeConnection)
+		{
+			PostMessage(preHwnd, WM_OPENBRIDGE, 0, 0);
+		}
+
+		return 0;
+	}
+
 #pragma region XAML Island Init
 
 	// The call to winrt::init_apartment initializes COM; by default, in a multithreaded apartment.
@@ -50,8 +71,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 	_hInstance = hInstance;
 
-	// The main window class name.
-	const wchar_t szWindowClass[] = L"MYPHONETRAYAPP";
+	
 	WNDCLASSEX windowClass = { };
 
 	windowClass.cbSize = sizeof(WNDCLASSEX);
@@ -70,7 +90,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	_hWnd = CreateWindowEx(
 		WS_EX_NOACTIVATE | WS_EX_LAYERED | WS_EX_TOPMOST,
 		szWindowClass,
-		L"MyPhone.TrayApp",
+		szWindowTitle,
 		WS_POPUP,
 		0, 0, 0, 0,
 		NULL,
@@ -108,6 +128,7 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		exitItem.Icon(closeIcon);
 		exitItem.Click([](auto sender, auto args)
 			{
+				auto async{ BackgroundServer::PushCommandAsync(L"exit") };
 				PostMessage(_hWnd, WM_CLOSE, 0, 0);
 			});
 
@@ -174,7 +195,11 @@ int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 		return 0;
 	}
 
-	InitBridge();
+	BackgroundServer::InitBridge();
+	if (_OpenBridgeConnection)
+	{
+		auto async {BackgroundServer::OpenBridgeAsync()};
+	}
 
 	//Message loop:
 	MSG msg = { };
@@ -218,6 +243,12 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT messageCode, WPARAM wParam, LPARAM l
 		default:
 			break;
 		}
+		break;
+	case WM_OPENBRIDGE:
+	{
+		auto async{ BackgroundServer::OpenBridgeAsync() };
+		break;
+	}
 	default:
 		return DefWindowProc(hWnd, messageCode, wParam, lParam);
 		break;

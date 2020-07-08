@@ -5,10 +5,12 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.ApplicationModel.AppService;
 using Windows.ApplicationModel.Core;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
+using Windows.System;
 using Windows.UI;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
@@ -52,7 +54,30 @@ namespace GoodTimeStudio.MyPhone
         /// 将在启动应用程序以打开特定文件等情况下使用。
         /// </summary>
         /// <param name="e">有关启动请求和过程的详细信息。</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected override async void OnLaunched(LaunchActivatedEventArgs e)
+        {
+            InitAppPage(e);
+            SetupTitleBar();
+
+            // Launch Tray App
+            await Launcher.LaunchUriAsync(new Uri("goodtimestudio.myphone.trayapp-launch://open-appservice"));
+        }
+
+        protected override void OnActivated(IActivatedEventArgs e)
+        {
+            if (e.Kind == ActivationKind.Protocol)
+            {
+                ProtocolActivatedEventArgs protocolArgs = (ProtocolActivatedEventArgs)e;
+                Uri uri = protocolArgs.Uri;
+                if (uri.Scheme == "goodtimestudio.myphone-launch")
+                {
+                    InitAppPage(e);
+                    SetupTitleBar();
+                }
+            }
+        }
+
+        private void InitAppPage(IActivatedEventArgs e)
         {
             rootFrame = Window.Current.Content as Frame;
 
@@ -74,38 +99,40 @@ namespace GoodTimeStudio.MyPhone
                 Window.Current.Content = rootFrame;
             }
 
-            if (e.PrelaunchActivated == false)
-            {
-                if (rootFrame.Content == null)
-                {
-                    // 当导航堆栈尚未还原时，导航到第一页，
-                    // 并通过将所需信息作为导航参数传入来配置
-                    // 参数
-                    var settings = ApplicationData.Current.LocalSettings.Values;
-                    bool oobe = true;
-                    if (settings.TryGetValue("OOBE", out object obj))
-                    {
-                        if (obj is bool && !(bool)obj)
-                        {
-                            oobe = false;
-                        }
-                    }
-                    
-                    if (oobe)
-                    {
-                        //rootFrame.Navigate(typeof(TestPage), e.Arguments);
-                        rootFrame.Navigate(typeof(OOBEPage), e.Arguments);
-                    }
-                    else
-                    {
-                        rootFrame.Navigate(typeof(MainPage), e.Arguments);
-                    }
+            // Ignore Prelaunch event since this app does not support prelaunch 
 
+            if (rootFrame.Content == null)
+            {
+                // 当导航堆栈尚未还原时，导航到第一页，
+                // 并通过将所需信息作为导航参数传入来配置
+                // 参数
+                var settings = ApplicationData.Current.LocalSettings.Values;
+                bool oobe = true;
+                if (settings.TryGetValue("OOBE", out object obj))
+                {
+                    if (obj is bool && !(bool)obj)
+                    {
+                        oobe = false;
+                    }
                 }
-                // 确保当前窗口处于活动状态
-                Window.Current.Activate();
+                    
+                if (oobe)
+                {
+                    //rootFrame.Navigate(typeof(TestPage), e.Arguments);
+                    rootFrame.Navigate(typeof(OOBEPage), null);
+                }
+                else
+                {
+                    rootFrame.Navigate(typeof(MainPage), null);
+                }
             }
 
+            // 确保当前窗口处于活动状态
+            Window.Current.Activate();
+        }
+
+        private void SetupTitleBar()
+        {
             //draw into the title bar
             CoreApplication.GetCurrentView().TitleBar.ExtendViewIntoTitleBar = true;
 
@@ -116,10 +143,10 @@ namespace GoodTimeStudio.MyPhone
 
             var uiSettings = new UISettings();
             uiSettings.ColorValuesChanged += UiSettings_ColorValuesChanged;
-            setupSystemCaptionColor(uiSettings);
+            SetupSystemCaptionColor(uiSettings);
         }
 
-        private void setupSystemCaptionColor(UISettings settings)
+        private void SetupSystemCaptionColor(UISettings settings)
         {
             var color = settings.GetColorValue(UIColorType.Background);
             if (color == Colors.White)
@@ -134,7 +161,16 @@ namespace GoodTimeStudio.MyPhone
 
         private void UiSettings_ColorValuesChanged(UISettings sender, object args)
         {
-            setupSystemCaptionColor(sender);
+            SetupSystemCaptionColor(sender);
+        }
+
+        protected override void OnBackgroundActivated(BackgroundActivatedEventArgs args)
+        {
+            base.OnBackgroundActivated(args);
+            if (args.TaskInstance.TriggerDetails is AppServiceTriggerDetails)
+            {
+                AppServiceManager.OnAppServiceActivated(args);
+            }
         }
 
         /// <summary>

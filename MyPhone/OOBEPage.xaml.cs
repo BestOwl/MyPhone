@@ -51,8 +51,7 @@ namespace GoodTimeStudio.MyPhone
 
         private async void Button_Connect_Click(object sender, RoutedEventArgs e)
         {
-            //await ViewModel.Connect();
-            _ContextMenu.ShowAt(grid);
+            await ViewModel.Connect();
         }
     }
 }
