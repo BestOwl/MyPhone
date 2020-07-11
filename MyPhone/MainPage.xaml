@@ -26,7 +26,7 @@
 
         <muxc:NavigationView IsTitleBarAutoPaddingEnabled="False"
                              Canvas.ZIndex="0"
-                             ItemInvoked="NavigationViewControl_ItemInvoked"
+                             SelectionChanged="NavigationViewControl_SelectionChanged"
                              x:Name="NavigationViewControl">
             <muxc:NavigationView.PaneCustomContent>
                 <Grid Padding="20">
@@ -54,9 +54,11 @@
                 </Grid>
             </muxc:NavigationView.PaneCustomContent>
             <muxc:NavigationView.MenuItems>
-                <muxc:NavigationViewItem Content="Call" Icon="CellPhone" x:Name="_Tab_Call" />
+                <muxc:NavigationViewItem Content="Call" Icon="Phone" x:Name="_Tab_Call" />
                 <muxc:NavigationViewItem Content="Message" Icon="Message" x:Name="_Tab_Message" />
             </muxc:NavigationView.MenuItems>
+
+            <Frame x:Name="contentFrame"/>
         </muxc:NavigationView>
     </Grid>
 </Page>

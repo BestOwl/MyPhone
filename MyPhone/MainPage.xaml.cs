@@ -46,19 +46,15 @@ namespace GoodTimeStudio.MyPhone
             AppTitleBar.Margin = new Thickness(currMargin.Left, currMargin.Top, coreTitleBar.SystemOverlayRightInset, currMargin.Bottom);
         }
 
-        private void NavigationViewControl_ItemInvoked(MUXC.NavigationView sender, MUXC.NavigationViewItemInvokedEventArgs args)
+        private void NavigationViewControl_SelectionChanged(MUXC.NavigationView sender, MUXC.NavigationViewSelectionChangedEventArgs args)
         {
-            if(args.InvokedItem == _Tab_Call)
+            if (args.IsSettingsSelected)
             {
 
             }
-            else if (args.InvokedItem == _Tab_Message)
+            else if (args.SelectedItem == _Tab_Call)
             {
-
-            }
-            else if (args.IsSettingsInvoked)
-            {
-
+                contentFrame.Navigate(typeof(CallPage));
             }
         }
     }

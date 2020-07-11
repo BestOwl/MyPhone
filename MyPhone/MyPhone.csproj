@@ -122,12 +122,16 @@
     <Compile Include="BluetoothDeviceListView.xaml.cs">
       <DependentUpon>BluetoothDeviceListView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CallPage.xaml.cs">
+      <DependentUpon>CallPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DeviceManager.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Models\BindableBase.cs" />
     <Compile Include="Models\BluetoothDeviceListViewModel.cs" />
+    <Compile Include="Models\CallPageViewModel.cs" />
     <Compile Include="Models\OOBEPageViewModel.cs" />
     <Compile Include="OOBEPage.xaml.cs">
       <DependentUpon>OOBEPage.xaml</DependentUpon>
@@ -160,6 +164,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Page Include="BluetoothDeviceListView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CallPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
