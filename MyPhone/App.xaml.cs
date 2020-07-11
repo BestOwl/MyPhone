@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.AppService;
@@ -33,6 +35,11 @@ namespace GoodTimeStudio.MyPhone
         
         private static App Instance;
 
+        // Protocol communication
+        private static string _result;
+        private static SemaphoreSlim _signal = new SemaphoreSlim(0, 1);
+        private static SemaphoreSlim _locker = new SemaphoreSlim(1, 1);
+
         public static bool Navigate(Type sourcePageType)
         {
             return Instance.rootFrame.Navigate(sourcePageType);
@@ -58,23 +65,37 @@ namespace GoodTimeStudio.MyPhone
         {
             InitAppPage(e);
             SetupTitleBar();
-
-            // Launch Tray App
-            await Launcher.LaunchUriAsync(new Uri("goodtimestudio.myphone.trayapp-launch://open-appservice"));
+            await EnsureTrayAppIsRunning();
         }
 
-        protected override void OnActivated(IActivatedEventArgs e)
+        protected override async void OnActivated(IActivatedEventArgs e)
         {
             if (e.Kind == ActivationKind.Protocol)
             {
                 ProtocolActivatedEventArgs protocolArgs = (ProtocolActivatedEventArgs)e;
                 Uri uri = protocolArgs.Uri;
-                if (uri.Scheme == "goodtimestudio.myphone-launch")
+                if (uri.Scheme == "goodtimestudio.myphone")
                 {
+                    if (uri.Host == "exit")
+                    {
+                        Exit();
+                    }
+                    if (!string.IsNullOrEmpty(uri.Host))
+                    {
+                        _result = uri.OriginalString;
+                        _signal.Release();
+                        return;
+                    }
                     InitAppPage(e);
                     SetupTitleBar();
+                    await EnsureTrayAppIsRunning();
                 }
             }
+        }
+
+        private async Task EnsureTrayAppIsRunning()
+        {
+            await Launcher.LaunchUriAsync(new Uri("goodtimestudio.myphone.trayapp://"));
         }
 
         private void InitAppPage(IActivatedEventArgs e)
@@ -164,15 +185,6 @@ namespace GoodTimeStudio.MyPhone
             SetupSystemCaptionColor(sender);
         }
 
-        protected override void OnBackgroundActivated(BackgroundActivatedEventArgs args)
-        {
-            base.OnBackgroundActivated(args);
-            if (args.TaskInstance.TriggerDetails is AppServiceTriggerDetails)
-            {
-                AppServiceManager.OnAppServiceActivated(args);
-            }
-        }
-
         /// <summary>
         /// 导航到特定页失败时调用
         /// </summary>
@@ -195,6 +207,25 @@ namespace GoodTimeStudio.MyPhone
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: 保存应用程序状态并停止任何后台活动
             deferral.Complete();
+        }
+
+        public static async Task<string> SendRequest(string protocolCommand)
+        {
+            await _locker.WaitAsync();
+
+            await Launcher.LaunchUriAsync(new Uri(protocolCommand));
+            await _signal.WaitAsync();
+
+            if (string.IsNullOrEmpty(_result))
+            {
+                return string.Empty;
+            }
+
+            string ret = string.Copy(_result);
+            _result = string.Empty;
+
+            _locker.Release();
+            return ret;
         }
     }
 }

@@ -21,14 +21,17 @@
                        Style="{StaticResource BaseTextBlockStyle}"
                        TextAlignment="Center"/>
 
-            <TextBlock Text="Before we get started, we need to pair up with your phone"
+            <TextBlock Text="Before we get started, we need to connect to your phone"
                        TextAlignment="Center"
-                       Style="{StaticResource TitleTextBlockStyle}" Margin="0,30,0,0"/>
-            <local:BluetoothDeviceListView MaxHeight="300" x:Name="_List"/>
+                       Style="{StaticResource TitleTextBlockStyle}" Margin="0,20,0,0"/>
+            <local:BluetoothDeviceListView MaxHeight="250" x:Name="_List"/>
             
             <Button Content="Connect" Width="150" Margin="0,10,0,0"
                     Style="{StaticResource AccentButtonStyle}"
-                    HorizontalAlignment="Center" Click="Button_Connect_Click" />
+                    HorizontalAlignment="Center" Click="Button_Connect_Click"
+                    IsEnabled="{x:Bind ViewModel.IsNotWorking, Mode=OneWay}"/>
+
+            <ProgressBar IsIndeterminate="True" Visibility="{x:Bind ViewModel.IsWorking, Mode=OneWay}" />
         </StackPanel>
     </Grid>
 </Page>

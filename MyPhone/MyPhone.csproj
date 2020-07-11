@@ -119,7 +119,6 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="AppServiceManager.cs" />
     <Compile Include="BluetoothDeviceListView.xaml.cs">
       <DependentUpon>BluetoothDeviceListView.xaml</DependentUpon>
     </Compile>

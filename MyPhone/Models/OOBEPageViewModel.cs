@@ -13,6 +13,22 @@ namespace GoodTimeStudio.MyPhone.Models
 
         public event EventHandler OOBECompletedEvent;
 
+        private bool _IsWorking;
+        public bool IsWorking
+        {
+            get => _IsWorking;
+            set 
+            {
+                SetProperty(ref _IsWorking, value);
+                OnPropertyChanged(nameof(IsNotWorking));
+            }
+        }
+
+        public bool IsNotWorking
+        {
+            get => !IsWorking;
+        }
+
         public OOBEPageViewModel(BluetoothDeviceListViewModel listModel)
         {
             DListModel = listModel;
@@ -20,6 +36,8 @@ namespace GoodTimeStudio.MyPhone.Models
 
         public async Task Connect()
         {
+            IsWorking = true;
+
             if (await DeviceManager.ConnectTo(DListModel.SelectedDevice))
             {
                 var settings = ApplicationData.Current.LocalSettings.Values;
@@ -30,6 +48,8 @@ namespace GoodTimeStudio.MyPhone.Models
             {
                 //TODO: Notify user fail to connect
             }
+
+            IsWorking = false;
         }
     }
 }

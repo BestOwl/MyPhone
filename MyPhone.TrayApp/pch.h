@@ -7,12 +7,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pplawait.h>
+#include <ppltasks.h>
+#include <sstream>
 
 #include <winrt/Windows.System.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.ApplicationModel.h>
 #include <winrt/Windows.ApplicationModel.AppService.h>
+#include <winrt/Windows.Devices.Enumeration.h>
+#include <winrt/Windows.Devices.Bluetooth.h>
+#include <winrt/Windows.ApplicationModel.Calls.h>
 
 #include <winrt/Windows.UI.Core.h>
 #include <winrt/Windows.UI.Xaml.Controls.h>

@@ -2,6 +2,8 @@
 #include "resource.h"
 #include "BackgroundServer.h"
 
+using namespace std;
+
 using namespace winrt;
 using namespace Windows::UI;
 using namespace Windows::UI::Composition;
@@ -13,11 +15,16 @@ using namespace Windows::Foundation;
 using namespace Windows::Foundation::Numerics;
 using namespace Windows::ApplicationModel;
 using namespace Windows::ApplicationModel::AppService;
+using namespace Windows::System;
 
 using namespace MyPhone_TrayApp_XamlHost;
 
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
+void OnActivated(LPWSTR lpCmdLine, HWND handle);
+IAsyncAction Connect();
 void LaunchMainApp();
+void UserExit();
+void DebugBox(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType);
 
 HWND _hWnd;
 HINSTANCE _hInstance;
@@ -25,7 +32,10 @@ NOTIFYICONDATAW _nid;
 NOTIFYICONIDENTIFIER _niid;
 
 constexpr UINT WM_NOTIFYICON = WM_APP + 1;
-constexpr UINT WM_OPENBRIDGE = WM_APP + 2;
+constexpr UINT WM_CONNECT = WM_APP + 2;
+
+COPYDATASTRUCT _cds;
+hstring _Data;
 
 const wchar_t szWindowClass[] = L"GOODTIMESTUDIO-MYPHONETRAYAPP";
 const wchar_t szWindowTitle[] = L"MyPhone.TrayApp";
@@ -37,33 +47,19 @@ Canvas _Root = nullptr;
 MenuFlyout _ContextMenu = nullptr;
 bool _ContextMenuMouseClick;
 
-bool _OpenBridgeConnection;
-
 int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
-	_OpenBridgeConnection = false;
-	Uri uri(lpCmdLine);
-	if (uri.Host() == L"open-appservice")
-	{
-		_OpenBridgeConnection = true;
-	}
-
 	// Prevent multiple tray app instance
 	HWND preHwnd = FindWindow(szWindowClass, szWindowTitle);
 	if (preHwnd != nullptr)
 	{
-		if (_OpenBridgeConnection)
-		{
-			PostMessage(preHwnd, WM_OPENBRIDGE, 0, 0);
-		}
-
+		OnActivated(lpCmdLine, preHwnd);
 		return 0;
 	}
 
 #pragma region XAML Island Init
 
-	// The call to winrt::init_apartment initializes COM; by default, in a multithreaded apartment.
-	winrt::init_apartment(apartment_type::single_threaded);
+	winrt::init_apartment(winrt::apartment_type::single_threaded);
 	hostApp = App{};
 	_desktopWindowXamlSource = DesktopWindowXamlSource{};
 
@@ -71,7 +67,6 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	_hInstance = hInstance;
 
-	
 	WNDCLASSEX windowClass = { };
 
 	windowClass.cbSize = sizeof(WNDCLASSEX);
@@ -128,8 +123,7 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		exitItem.Icon(closeIcon);
 		exitItem.Click([](auto sender, auto args)
 			{
-				auto async{ BackgroundServer::PushCommandAsync(L"exit") };
-				PostMessage(_hWnd, WM_CLOSE, 0, 0);
+				UserExit();
 			});
 
 		MenuFlyoutItem openAppItem;
@@ -195,11 +189,7 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		return 0;
 	}
 
-	BackgroundServer::InitBridge();
-	if (_OpenBridgeConnection)
-	{
-		auto async {BackgroundServer::OpenBridgeAsync()};
-	}
+	OnActivated(lpCmdLine, _hWnd);
 
 	//Message loop:
 	MSG msg = { };
@@ -244,9 +234,18 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT messageCode, WPARAM wParam, LPARAM l
 			break;
 		}
 		break;
-	case WM_OPENBRIDGE:
+	case WM_COPYDATA:
 	{
-		auto async{ BackgroundServer::OpenBridgeAsync() };
+		DebugBox(_hWnd, L"COPYDATA_Recieved", L"DEBUG", NULL);
+		PCOPYDATASTRUCT data = (PCOPYDATASTRUCT)lParam;
+		LPCTSTR lpszString = (LPCTSTR)(data->lpData);
+		_Data = hstring(lpszString); //copy
+		break;
+	}
+	case WM_CONNECT:
+	{
+		DebugBox(_hWnd, L"CONNECT_Recieved", L"DEBUG", NULL);
+		auto async{ Connect() };
 		break;
 	}
 	default:
@@ -259,5 +258,67 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT messageCode, WPARAM wParam, LPARAM l
 
 void LaunchMainApp()
 {
-	Windows::System::Launcher::LaunchUriAsync(Uri(L"goodtimestudio.myphone-launch://"));
+	Launcher::LaunchUriAsync(Uri(L"goodtimestudio.myphone://"));
+}
+
+IAsyncAction Connect() 
+{
+	DeviceInformation devInfo = co_await DeviceInformation::CreateFromIdAsync(_Data);
+	bool result = co_await BackgroundServer::ConnectTo(devInfo);
+	wostringstream  ss;
+	ss << L"goodtimestudio.myphone://connect/";
+	if (result)
+	{
+		ss << L"true";
+	}
+	else
+	{
+		ss << L"false";
+	}
+	co_await Launcher::LaunchUriAsync(Uri(ss.str()));
+}
+
+void UserExit()
+{
+	Launcher::LaunchUriAsync(Uri(L"goodtimestudio.myphone://exit"));
+	PostMessage(_hWnd, WM_CLOSE, 0, 0);
+}
+
+void OnActivated(LPWSTR lpCmdLine, HWND handle)
+{
+	DebugBox(NULL, lpCmdLine, L"DEBUG: cmdlind args", NULL);
+	wstring args = wstring(lpCmdLine);
+	if (args.rfind(L"goodtimestudio.myphone.trayapp://", 0) == wstring::npos) //starts with
+	{
+		DebugBox(NULL, L"OnActivated return", L"DEBUG", NULL);
+		return;
+	}
+	args = args.substr(33);
+	if (args.rfind(L"connect/", 0) == 0)
+	{
+		args = args.substr(8);
+		DebugBox(NULL, args.c_str(), L"DEBUG", NULL);
+		if (handle == _hWnd)
+		{
+			_Data = args;
+		}
+		else
+		{
+			LPCTSTR str = args.c_str();
+			_cds.dwData = 1;
+			_cds.lpData = (PVOID)str;
+			_cds.cbData = sizeof(wchar_t) * (wcslen(str) + 1);
+			DebugBox(_hWnd, L"Ready to send message", L"DEBUG", NULL);
+			SendMessage(handle, WM_COPYDATA, (WPARAM)handle, (LPARAM)&_cds);
+		}
+		PostMessage(handle, WM_CONNECT, 0, 0);
+	}
+}
+
+void DebugBox(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType)
+{
+//#define __VerboseDebug
+#ifdef __VerboseDebug
+	MessageBox(hWnd, lpText, lpCaption, uType);
+#endif
 }

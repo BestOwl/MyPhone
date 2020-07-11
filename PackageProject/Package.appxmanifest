@@ -45,15 +45,12 @@
           <desktop:StartupTask TaskId="MyPhone.TrayApp" Enabled="true" DisplayName="My Phone" />
         </desktop:Extension>
         <uap:Extension Category="windows.protocol" Executable="MyPhone.exe" EntryPoint="GoodTimeStudio.MyPhone.App">
-          <uap:Protocol Name="goodtimestudio.myphone-launch">
+          <uap:Protocol Name="goodtimestudio.myphone">
             <uap:DisplayName>My Phone</uap:DisplayName>
           </uap:Protocol>
         </uap:Extension>
         <uap:Extension Category="windows.protocol" Executable="MyPhone.TrayApp/MyPhone.TrayApp.exe" EntryPoint="Windows.FullTrustApplication">
-          <uap:Protocol Name="goodtimestudio.myphone.trayapp-launch" />
-        </uap:Extension>
-        <uap:Extension Category="windows.appService">
-          <uap:AppService Name="GoodTimeStudio.MyPhoneBridge"/>
+          <uap:Protocol Name="goodtimestudio.myphone.trayapp" />
         </uap:Extension>
       </Extensions>
     </Application>
