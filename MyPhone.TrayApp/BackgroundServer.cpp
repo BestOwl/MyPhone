@@ -7,6 +7,20 @@ static BluetoothDevice BthDevice{nullptr};
 
 static DeviceState _State = DeviceState::Disconnected;
 
+IAsyncAction BackgroundServer::Init()
+{
+    auto settings = ApplicationData::Current().LocalSettings().Values();
+    if (settings.HasKey(L"deviceId"))
+    {
+        hstring id = unbox_value_or(settings.Lookup(L"deviceId"), L"");
+        if (!id.empty())
+        {
+            DeviceInformation info = co_await DeviceInformation::CreateFromIdAsync(id);
+            co_await ConnectTo(info);;
+        }
+    }
+}
+
 task<bool> BackgroundServer::ConnectTo(DeviceInformation deviceInfo)
 {
     CallDevice = PhoneLineTransportDevice::FromId(deviceInfo.Id());

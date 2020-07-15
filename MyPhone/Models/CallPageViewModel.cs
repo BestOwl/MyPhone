@@ -31,8 +31,9 @@ namespace GoodTimeStudio.MyPhone.Models
             set => SetProperty(ref _SelectionLength, value);
         }
 
-        public async void ButtonCall_Click(object sender, RoutedEventArgs e)
+        public void ButtonCall_Click(object sender, RoutedEventArgs e)
         {
+            DeviceManager.Call(PhoneNumber);
         }
         
     }

@@ -116,20 +116,20 @@ namespace GoodTimeStudio.MyPhone
 
         private async void Button_Click_Call(object sender, RoutedEventArgs e)
         {
-            //if (PhoneLineList.SelectedItem == null)
-            //{
-            //    return;
-            //}
+            if (_PhoneLineList.SelectedItem == null)
+            {
+                return;
+            }
 
-            //PhoneLine line = await PhoneLine.FromIdAsync((Guid)PhoneLineList.SelectedItem);
-            //if (line == null)
-            //{
-            //    return;
-            //}
-            //if (line.CanDial)
-            //{
-            //    line.Dial(PhoneNumberBox.Text, PhoneNumberBox.Text);
-            //}
+            PhoneLine line = await PhoneLine.FromIdAsync((Guid)_PhoneLineList.SelectedItem);
+            if (line == null)
+            {
+                return;
+            }
+            if (line.CanDial)
+            {
+                line.Dial(PhoneNumberBox.Text, PhoneNumberBox.Text);
+            }
         }
 
         private async void Button_Click_ConnectDevice(object sender, RoutedEventArgs e)

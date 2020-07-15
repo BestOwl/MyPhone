@@ -8,6 +8,7 @@ using namespace Windows::Foundation::Collections;
 using namespace Windows::Devices::Enumeration;
 using namespace Windows::Devices::Bluetooth;
 using namespace Windows::ApplicationModel::Calls;
+using namespace Windows::Storage;
 
 using namespace concurrency;
 
@@ -15,6 +16,7 @@ class BackgroundServer
 {
 public:
 	static task<bool> ConnectTo(DeviceInformation deviceInfo);
+	static IAsyncAction Init();
 	static enum DeviceState CurrentState();
 };
 

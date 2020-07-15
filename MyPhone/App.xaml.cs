@@ -63,9 +63,7 @@ namespace GoodTimeStudio.MyPhone
         /// <param name="e">有关启动请求和过程的详细信息。</param>
         protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
-            InitAppPage(e);
-            SetupTitleBar();
-            await EnsureTrayAppIsRunning();
+            await InitApp(e);
         }
 
         protected override async void OnActivated(IActivatedEventArgs e)
@@ -86,11 +84,18 @@ namespace GoodTimeStudio.MyPhone
                         _signal.Release();
                         return;
                     }
-                    InitAppPage(e);
-                    SetupTitleBar();
-                    await EnsureTrayAppIsRunning();
+
+                    await InitApp(e);
                 }
             }
+        }
+
+        private async Task InitApp(IActivatedEventArgs e)
+        {
+            InitAppPage(e);
+            SetupTitleBar();
+            await DeviceManager.Init();
+            await EnsureTrayAppIsRunning();
         }
 
         private async Task EnsureTrayAppIsRunning()

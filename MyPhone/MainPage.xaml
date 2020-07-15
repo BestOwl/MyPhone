@@ -56,6 +56,7 @@
             <muxc:NavigationView.MenuItems>
                 <muxc:NavigationViewItem Content="Call" Icon="Phone" x:Name="_Tab_Call" />
                 <muxc:NavigationViewItem Content="Message" Icon="Message" x:Name="_Tab_Message" />
+                <muxc:NavigationViewItem Content="Debug" x:Name="_Tab_Debug" />
             </muxc:NavigationView.MenuItems>
 
             <Frame x:Name="contentFrame"/>

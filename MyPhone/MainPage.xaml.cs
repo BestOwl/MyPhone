@@ -34,6 +34,12 @@ namespace GoodTimeStudio.MyPhone
             CoreApplication.GetCurrentView().TitleBar.LayoutMetricsChanged += (s, e) => UpdateAppTitle(s);
         }
 
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            NavigationViewControl.SelectedItem = _Tab_Call;
+        }
+
         public string GetAppTitleFromSystem()
         {
             return Windows.ApplicationModel.Package.Current.DisplayName;
@@ -55,6 +61,10 @@ namespace GoodTimeStudio.MyPhone
             else if (args.SelectedItem == _Tab_Call)
             {
                 contentFrame.Navigate(typeof(CallPage));
+            }
+            else if (args.SelectedItem == _Tab_Debug)
+            {
+                contentFrame.Navigate(typeof(TestPage));
             }
         }
     }
