@@ -19,6 +19,7 @@
 #include <winrt/Windows.Devices.Bluetooth.h>
 #include <winrt/Windows.ApplicationModel.Calls.h>
 #include <winrt/Windows.Storage.h>
+#include <winrt/Windows.System.Threading.h>
 
 #include <winrt/Windows.UI.Core.h>
 #include <winrt/Windows.UI.Xaml.Controls.h>

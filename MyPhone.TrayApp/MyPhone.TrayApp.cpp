@@ -67,6 +67,8 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
 	_hInstance = hInstance;
 
+#pragma region Create window
+
 	WNDCLASSEX windowClass = { };
 
 	windowClass.cbSize = sizeof(WNDCLASSEX);
@@ -98,6 +100,8 @@ int CALLBACK wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		MessageBox(NULL, L"Call to CreateWindow failed!", L"Error", NULL);
 		return 0;
 	}
+
+#pragma endregion Create window
 
 #pragma region XAML Island 
 	if (_desktopWindowXamlSource != nullptr)
