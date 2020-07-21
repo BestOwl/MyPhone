@@ -216,6 +216,11 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT messageCode, WPARAM wParam, LPARAM l
 		PostQuitMessage(0);
 		break;
 	case WM_NOTIFYICON:
+	{
+		if (BackgroundServer::CurrentState() == DeviceState::Registered)
+		{
+
+		}
 		switch (LOWORD(lParam))
 		{
 		case WM_RBUTTONUP:
@@ -226,7 +231,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT messageCode, WPARAM wParam, LPARAM l
 
 			RECT rect;
 			Shell_NotifyIconGetRect(&_niid, &rect);
-			
+
 			Point point
 			{
 				static_cast<float>(rect.left),
@@ -239,6 +244,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT messageCode, WPARAM wParam, LPARAM l
 			break;
 		}
 		break;
+	}
 	case WM_COPYDATA:
 	{
 		DebugBox(_hWnd, L"COPYDATA_Recieved", L"DEBUG", NULL);

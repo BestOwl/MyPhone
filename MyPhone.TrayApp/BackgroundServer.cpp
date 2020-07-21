@@ -23,7 +23,7 @@ void OnTimer(ThreadPoolTimer timer)
         timer.Cancel();
         return;
     }
-    if (CallDevice.ConnectAsync().get())
+    if (BackgroundServer::Reconnect().get())
     {
         _count = 0;
         timer.Cancel();
