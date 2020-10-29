@@ -41,7 +41,7 @@ Keep in mind that **My Phone** was built only because Microsoft *Your Phone* doe
 
 ## Implementation 
 
-#### Project structure
+### Project structure
 
 | Project                    | Type                             | Description                                                  |
 | -------------------------- | -------------------------------- | ------------------------------------------------------------ |
@@ -50,7 +50,7 @@ Keep in mind that **My Phone** was built only because Microsoft *Your Phone* doe
 | *MyPhone*                  | C# UWP Project                   | Main app UI                                                  |
 | *PackageProject*           | Desktop Bridge Packaging Project | Generate MSIX app package                                    |
 
-#### Bluetooth HFP
+### Bluetooth HFP
 
 This app use Windows Runtime APIs: `Windows.ApplicationModel.Calls` , `Windows.Devices.Bluetooth` and `Windows.Devices.Enumeration` to make the HFP works.
 
@@ -60,13 +60,11 @@ This app use Windows Runtime APIs: `Windows.ApplicationModel.Calls` , `Windows.D
 
 Note that *Your Phone* use the same APIs mentioned above.
 
-#### Self-implemented HFP stack?
+### Self-implemented HFP stack?
 
-Self-implementing a HFP stack is a little bit problematic because the only way to establish a SCO audio connection I found was to write a **kernel-mode** driver and let the end-user to install it. That's quite inconvenient for end-users to use this app, and a **kernel-mode** driver has to be signed by a trusted code signing certificate before the end-user can install it.
+Self-implementing a HFP stack is a little bit problematic because the only way to establish a SCO audio connection and transfer audio is to write a custom **kernel-mode** driver and let the end-user to install it. That's quite inconvenient for end-users to use this app, and a **kernel-mode** driver has to be signed by a trusted code signing certificate before the end-user can install it.
 
-Actually, I tried to self-implement HFP before. I managed to establish the HFP Service Level Connection (SLC) and successfully make the phone call via SLC, but failed to establish SCO audio connection and transfer any audio without implementing a custom **kernel-mode** driver. 
-
-If you're interested in how to establish HFP Service Level Connection, you may find the demo project `MyPhone.CLI` in `legacy` branch.  
+Actually, I tried to self-implement HFP before. I managed to establish the HFP Service Level Connection (SLC) and successfully make the phone call via SLC, but failed to establish SCO audio connection and transfer any audio due to the reason above. If you're interested in how to establish HFP Service Level Connection, you may find the demo project `MyPhone.CLI` in `legacy` branch.  
 
 
 
