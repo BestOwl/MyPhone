@@ -73,7 +73,19 @@ namespace MyPhone.Demo
             try
             {
                 BTDevice = await BluetoothDevice.FromIdAsync(deviceId);
-                var result = await BTDevice.GetRfcommServicesForIdAsync(RfcommServiceId.FromUuid(guid));
+
+                var result = await BTDevice.GetRfcommServicesAsync();
+                Console.WriteLine();
+                Console.WriteLine("Available RFComm services for this devices: ");
+                foreach (var ser in result.Services)
+                {
+                    Console.WriteLine(ser.ConnectionServiceName);
+                }
+                Console.WriteLine("Press any key to proceed");
+                Console.WriteLine();
+                Console.ReadKey();
+
+                result = await BTDevice.GetRfcommServicesForIdAsync(RfcommServiceId.FromUuid(guid));
                 if (result.Services.Count > 0)
                 {
                     BTService = result.Services[0];
