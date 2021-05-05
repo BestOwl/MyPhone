@@ -307,17 +307,57 @@ namespace MyPhone.Demo
                     Console.WriteLine("MNS: Failed.");
                     return;
                 }
-                Console.WriteLine("MNS: Op Code: " + reader.ReadByte().ToString());
-                len = reader.ReadUInt16();
-                await reader.LoadAsync((uint)(len - 3));
+                byte opCode = reader.ReadByte();
+                Console.WriteLine("MNS: Op Code: " + opCode.ToString());
 
-                bytesBuf = new byte[len - 3];
-                reader.ReadBytes(bytesBuf);
-                Console.WriteLine("MNS: " + BitConverter.ToString(bytesBuf));
+                if (opCode == 0x02 || opCode == 0x82)
+                {
+                    len = reader.ReadUInt16();
+                    await reader.LoadAsync((uint)(len - 3));
 
-                writer.WriteByte(0xA0);
-                writer.WriteUInt16(3);
-                await writer.StoreAsync();
+                    Console.WriteLine("MNS: Received SendEvent");
+                    Console.WriteLine("****************************");
+
+                    // TODO: DO NOT DO THIS (DO NOT SKIP HI)
+                    reader.ReadByte();  // skip HI: 0xCB
+
+                    uint connectionId = reader.ReadUInt32();
+                    Console.WriteLine("Connection Id: " + connectionId);
+
+                    reader.ReadByte(); // skip HI: 0x42
+                    ushort ulen = reader.ReadUInt16();
+                    byte[] buf = new byte[ulen];
+                    reader.ReadBytes(buf);
+                    string type = Encoding.ASCII.GetString(buf);
+                    Console.WriteLine("Type: " + type);
+
+                    reader.ReadByte(); // skip HI: 0x4C (app. para.)
+                    reader.ReadByte(); // skip app. para. len
+                    byte _MAS_InstanceId = reader.ReadByte();
+                    Console.WriteLine("MASInstanceID: " + _MAS_InstanceId);
+
+                    reader.ReadByte(); // skip HI: 0x48 (Body)
+                    ulen = (ushort)(reader.ReadUInt16() - 3);
+                    buf = new byte[ulen];
+                    reader.ReadBytes(buf);
+                    Console.WriteLine("Body: ");
+                    Console.WriteLine(Encoding.UTF8.GetString(buf));
+
+                    //bytesBuf = new byte[len - 3];
+                    //reader.ReadBytes(bytesBuf);
+                    //Console.WriteLine("MNS: " + BitConverter.ToString(bytesBuf));
+
+                    writer.WriteByte(0xA0);
+                    writer.WriteUInt16(3);
+                    await writer.StoreAsync();
+                }
+                else
+                {
+                    _writer.WriteByte(0xC6);
+                    _writer.WriteUInt16(3);
+                    await _writer.StoreAsync();
+                }
+                
             }
             
         }
