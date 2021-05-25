@@ -62,9 +62,9 @@ Note that *Your Phone* use the same APIs mentioned above.
 
 ### Self-implemented HFP stack?
 
-Self-implementing a HFP stack is a little bit problematic because the only way to establish a SCO audio connection and transfer audio is to write a custom **kernel-mode** driver and let the end-user to install it. That's quite inconvenient for end-users to use this app, and a **kernel-mode** driver has to be signed by a trusted code signing certificate before the end-user can install it.
+Self-implementing a HFP stack is a little bit problematic because the only way to establish a SCO audio connection and transfer audio is to write a custom **user-mode** profile driver and let the end-user to install it. That's quite inconvenient for end-users to use this app.
 
-Actually, I tried to self-implement HFP before. I managed to establish the HFP Service Level Connection (SLC) and successfully make the phone call via SLC, but failed to establish SCO audio connection and transfer any audio due to the reason above. If you're interested in how to establish HFP Service Level Connection, you may find the demo project `MyPhone.CLI` in `legacy` branch.  
+Actually, I did try to implement HFP stack before. I managed to establish the HFP Service Level Connection (SLC) and successfully make the phone call via SLC, but failed to establish SCO audio connection and transfer any audio due to the reason above. If you're interested in how to establish HFP Service Level Connection, you may find the demo project `MyPhone.CLI` in `legacy` branch.  
 
 
 
