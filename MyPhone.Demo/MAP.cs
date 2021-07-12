@@ -8,6 +8,7 @@ using Windows.Devices.Enumeration;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 using System.Runtime.InteropServices.WindowsRuntime;
+using MyPhone.OBEX;
 
 namespace MyPhone.Demo
 {
@@ -70,9 +71,10 @@ namespace MyPhone.Demo
                 goto select;
             }
 
-            await MAP_Init();
-
-            await MNS_Init();
+            if (await MAP_Init())
+            {
+                await MNS_Init();
+            }
 
             Console.WriteLine("Enter any key to exit...");
             Console.ReadLine();
@@ -95,6 +97,7 @@ namespace MyPhone.Demo
                 Console.WriteLine("Press any key to proceed");
                 Console.WriteLine();
                 Console.ReadKey();
+                Console.WriteLine("Connecting...");
 
                 result = await BTDevice.GetRfcommServicesForIdAsync(RfcommServiceId.FromUuid(guid));
                 if (result.Services.Count > 0)
@@ -134,60 +137,20 @@ namespace MyPhone.Demo
             }
         }
 
-        public async static Task MAP_Init()
+        public async static Task<bool> MAP_Init()
         {
-            _writer.WriteByte(0x80);
-            _writer.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf16BE;
-            _reader.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf16BE;
-
-            DataWriter appWriter = new DataWriter();
-            appWriter.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf16BE;
-            appWriter.WriteByte(0x10);                  //version code 1.0
-            appWriter.WriteByte(0);                       //flag
-            appWriter.WriteUInt16(0xFFFF);          // max packet length
-            
-            appWriter.WriteByte(0x46);                 // Header: target
-            appWriter.WriteUInt16(19);                // length
-            appWriter.WriteBytes(MAS_UUID);    
-
-            IBuffer buffer = appWriter.DetachBuffer();
-
-            _writer.WriteUInt16((ushort)(buffer.Length + 3));
-            _writer.WriteBuffer(buffer);
+            MASConnectPacket mASInitPacket = new MASConnectPacket();
+            _writer.WriteBuffer(mASInitPacket.ToBuffer());
             await _writer.StoreAsync();
 
-            uint loaded = await _reader.LoadAsync(1);
-            if (loaded <= 0)
+            OBEXPacket packet = await OBEXPacket.ReadFromStream(_reader);
+            if (packet == null || packet.Opcode != Opcode.Success)
             {
-                Console.WriteLine("Failed.");
-                return;
+                Console.WriteLine("Failed");
+                return false;
             }
 
-            byte responseOpCode = _reader.ReadByte();
-            Console.WriteLine("Response OpCode: " + responseOpCode.ToString());
-            if (responseOpCode == 160)
-            {
-                Console.WriteLine("Connection established successfully!");
-            }
-
-            loaded = await _reader.LoadAsync(2);
-            if (loaded <= 0)
-            {
-                Console.WriteLine("Failed.");
-                return;
-            }
-            ushort responseLen = _reader.ReadUInt16();
-            Console.WriteLine("Response length: " + responseLen);
-
-            loaded = await _reader.LoadAsync((uint)(responseLen - 3));
-            if (loaded < 1)
-            {
-                Console.WriteLine("Failed.");
-                return;
-            }
-            byte[] bytesBuf = new byte[responseLen - 3];
-            _reader.ReadBytes(bytesBuf);
-            Console.WriteLine(BitConverter.ToString(bytesBuf));
+            return true;
         }
 
         public async static Task MNS_Init()
@@ -224,36 +187,17 @@ namespace MyPhone.Demo
             Console.WriteLine("Wait for 1 seconds");
             await Task.Delay(1000);
 
-            DataWriter appWriter = new DataWriter();
+            OBEXPacket packet = new OBEXPacket(new Int32ValueHeader(HeaderId.ConnectionId, 1), //TODO: read from MAS
+                new StringValueHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration"),
+                new AppParamHeader(AppParamTagId.NotificationStatus, 1),
+                new BytesHeader(HeaderId.Body, 0x30)); // Filler-Byte 0x30
+            packet.Opcode = Opcode.PutAlter;
 
-            //appWriter.WriteByte(0xCB);         // Header: Connection Id
-            //appWriter.WriteUInt32(1);           // Connection Id //TODO: read from MAS
-
-            string type = "x-bt/MAP-NotificationRegistration";
-            byte[] typeBytes = Encoding.ASCII.GetBytes(type);
-
-            appWriter.WriteByte(0x42);         // Header: Type
-            appWriter.WriteUInt16((ushort)(typeBytes.Length + 1 +3));
-            appWriter.WriteBytes(typeBytes);
-            appWriter.WriteByte(0);          // \0 terminating
-
-            appWriter.WriteByte(0x4C);         // Header: App. para
-            appWriter.WriteUInt16(6);
-            appWriter.WriteByte(0x0E);         // App. para: NotificationStatus
-            appWriter.WriteByte(1);
-            appWriter.WriteByte(1);
-            
-            appWriter.WriteByte(0x48);         // Header: Body
-            appWriter.WriteInt16(4);
-            appWriter.WriteByte(0x30);         // Filler-Byte 0x30
-
-            IBuffer buffer = appWriter.DetachBuffer();
             Console.WriteLine("MNS: Sending");
-            Console.WriteLine(BitConverter.ToString(buffer.ToArray()));
+            IBuffer buf = packet.ToBuffer();
+            Console.WriteLine(BitConverter.ToString(buf.ToArray()));
 
-            _writer.WriteByte(0x82);               // Put Op
-            _writer.WriteUInt16((ushort)(buffer.Length + 3));
-            _writer.WriteBuffer(buffer);
+            _writer.WriteBuffer(buf);
             await _writer.StoreAsync();
 
             uint loaded = await _reader.LoadAsync(1);
@@ -361,5 +305,6 @@ namespace MyPhone.Demo
             }
             
         }
+
     }
 }

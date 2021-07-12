@@ -14,6 +14,7 @@ namespace MyPhone.OBEX
         GetAlter = 0x83,
         SetPath = 0x85,
         Session = 0x87,
-        Abort = 0xFF
+        Abort = 0xFF,
+        Success = 0xA0
     }
 }

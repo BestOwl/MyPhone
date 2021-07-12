@@ -10,4 +10,8 @@
     <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.18362.2005" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MyPhone.OBEX\MyPhone.OBEX.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -50,6 +50,28 @@ namespace MyPhone.OBEX
         public abstract T FromBytes(byte[] bytes);
     }
 
+    public class Int32ValueHeader : OBEXHeader<int>
+    {
+        public Int32ValueHeader(HeaderId headerId, int value) : base(headerId, value)
+        {
+        }
+
+        public override int FromBytes(byte[] bytes)
+        {
+            return BitConverter.ToInt32(bytes);
+        }
+
+        public override byte[] ToBytes()
+        {
+            byte[] ret = BitConverter.GetBytes(Value);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(ret);
+            }
+            return ret;
+        }
+    }
+
     public class StringValueHeader : OBEXHeader<string>, ILengthRequiredHeader
     {
         public StringValueHeader(HeaderId headerId, string value) : base(headerId, value)
@@ -63,7 +85,7 @@ namespace MyPhone.OBEX
 
         public ushort GetValueLength()
         {
-            return (ushort)(Value.Length + 0);
+            return (ushort)(Value.Length + 1);
         }
 
         public override byte[] ToBytes()
@@ -80,6 +102,8 @@ namespace MyPhone.OBEX
         public BytesHeader(HeaderId headerId, byte[] value) : base(headerId, value)
         {
         }
+
+        public BytesHeader(HeaderId headerId, byte value) : this(headerId, new byte[] { value }) { }
 
         public override byte[] FromBytes(byte[] bytes)
         {

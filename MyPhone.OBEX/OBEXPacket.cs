@@ -22,6 +22,14 @@ namespace MyPhone.OBEX
             Headers = new LinkedList<OBEXHeader>();
         }
 
+        public OBEXPacket(params OBEXHeader[] headers) : this()
+        {
+            foreach (OBEXHeader h in headers)
+            {
+                Headers.AddLast(h);
+            }
+        }
+
         protected virtual void WriteExtraField(DataWriter writer) 
         { 
         }
@@ -74,7 +82,6 @@ namespace MyPhone.OBEX
             return ret;
 
             fail:
-            Console.WriteLine("Failed.");
             return null;
         }
 
