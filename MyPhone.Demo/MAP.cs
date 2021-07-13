@@ -74,11 +74,11 @@ namespace MyPhone.Demo
             if (await MAP_Init())
             {
                 await MNS_Init();
-            }
 
-            Console.WriteLine("Enter any key to exit...");
-            Console.ReadLine();
-            BT_MNS_Provider.StopAdvertising();
+                Console.WriteLine("Enter any key to exit...");
+                Console.ReadLine();
+                BT_MNS_Provider.StopAdvertising();
+            }
         }
 
         public static async Task<bool> SocketConnect(string deviceId, Guid guid)
@@ -139,11 +139,13 @@ namespace MyPhone.Demo
 
         public async static Task<bool> MAP_Init()
         {
-            MASConnectPacket mASInitPacket = new MASConnectPacket();
-            _writer.WriteBuffer(mASInitPacket.ToBuffer());
+            OBEXConnectPacket mASConnectPacket = new OBEXConnectPacket();
+            var buf = mASConnectPacket.ToBuffer();
+            Console.WriteLine(BitConverter.ToString(buf.ToArray()));
+            _writer.WriteBuffer(buf);
             await _writer.StoreAsync();
 
-            OBEXPacket packet = await OBEXPacket.ReadFromStream(_reader);
+            OBEXPacket packet = await OBEXPacket.ReadFromStream(_reader, mASConnectPacket);
             if (packet == null || packet.Opcode != Opcode.Success)
             {
                 Console.WriteLine("Failed");
@@ -189,24 +191,23 @@ namespace MyPhone.Demo
 
             OBEXPacket packet = new OBEXPacket(new Int32ValueHeader(HeaderId.ConnectionId, 1), //TODO: read from MAS
                 new StringValueHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration"),
-                new AppParamHeader(AppParamTagId.NotificationStatus, 1),
+                new AppParamHeader(new AppParameter(AppParamTagId.NotificationStatus, 1)),
                 new BytesHeader(HeaderId.Body, 0x30)); // Filler-Byte 0x30
             packet.Opcode = Opcode.PutAlter;
 
             Console.WriteLine("MNS: Sending");
-            IBuffer buf = packet.ToBuffer();
-            Console.WriteLine(BitConverter.ToString(buf.ToArray()));
 
+            var buf = packet.ToBuffer();
+            Console.WriteLine(BitConverter.ToString(buf.ToArray()));
             _writer.WriteBuffer(buf);
             await _writer.StoreAsync();
 
-            uint loaded = await _reader.LoadAsync(1);
-            if (loaded < 1)
+            packet = await OBEXPacket.ReadFromStream(_reader);
+            if (packet == null || (packet.Opcode != Opcode.Success && packet.Opcode != Opcode.SuccessAlt && packet.Opcode != Opcode.Continue && packet.Opcode != Opcode.ContinueAlt))
             {
                 Console.WriteLine("MNS: Failed to call SetNotificationRegistration");
                 return;
             }
-            Console.WriteLine(_reader.ReadByte().ToString());
         }
 
         private async static void MNS_Listener_ConnectionReceived(StreamSocketListener sender, StreamSocketListenerConnectionReceivedEventArgs args)
@@ -218,88 +219,41 @@ namespace MyPhone.Demo
             DataReader reader = new DataReader(socket.InputStream);
             DataWriter writer = new DataWriter(socket.OutputStream);
 
-            uint loaded = await reader.LoadAsync(3);
-            if (loaded < 1)
+            OBEXPacket packet = await OBEXPacket.ReadFromStream(reader, new OBEXConnectPacket());
+            if (packet == null)
             {
                 Console.WriteLine("MNS: Failed.");
                 return;
             }
-            Console.WriteLine("MNS: Op Code: " + reader.ReadByte().ToString());
-            ushort len = reader.ReadUInt16();
-            await reader.LoadAsync((uint)(len - 3));
+            
+            if (packet.Opcode != Opcode.Connect)
+            {
+                Console.WriteLine("Not support operation code: " + packet.Opcode);
+                Console.WriteLine("MSE should send Connect request first");
+                return;
+            }
 
-            byte[] bytesBuf = new byte[len - 3];
-            reader.ReadBytes(bytesBuf);
-            Console.WriteLine("MNS: " + BitConverter.ToString(bytesBuf));
-
-            DataWriter appWriter = new DataWriter();
-            appWriter.WriteBytes(new byte[] { 0x10, 0x00, 0xFF, 0xFE, 0xCB, 0x00, 0x00, 0x00, 0x01, 0x4A, 0x00, 0x13 });
-            appWriter.WriteBytes(MNS_UUID);
-
-            IBuffer buffer = appWriter.DetachBuffer();
-
-            writer.WriteByte(0xA0);
-            writer.WriteUInt16((ushort)(buffer.Length + 3));
-            writer.WriteBuffer(buffer);
+            packet.Opcode = Opcode.Success;
+            writer.WriteBuffer(packet.ToBuffer());
             await writer.StoreAsync();
 
             while (true)
             {
-                loaded = await reader.LoadAsync(3);
-                if (loaded < 1)
+                packet = await OBEXPacket.ReadFromStream(reader);
+                if (packet != null)
                 {
-                    Console.WriteLine("MNS: Failed.");
-                    return;
-                }
-                byte opCode = reader.ReadByte();
-                Console.WriteLine("MNS: Op Code: " + opCode.ToString());
-
-                if (opCode == 0x02 || opCode == 0x82)
-                {
-                    len = reader.ReadUInt16();
-                    await reader.LoadAsync((uint)(len - 3));
-
-                    Console.WriteLine("MNS: Received SendEvent");
-                    Console.WriteLine("****************************");
-
-                    // TODO: DO NOT DO THIS (DO NOT SKIP HI)
-                    reader.ReadByte();  // skip HI: 0xCB
-
-                    uint connectionId = reader.ReadUInt32();
-                    Console.WriteLine("Connection Id: " + connectionId);
-
-                    reader.ReadByte(); // skip HI: 0x42
-                    ushort ulen = reader.ReadUInt16();
-                    byte[] buf = new byte[ulen];
-                    reader.ReadBytes(buf);
-                    string type = Encoding.ASCII.GetString(buf);
-                    Console.WriteLine("Type: " + type);
-
-                    reader.ReadByte(); // skip HI: 0x4C (app. para.)
-                    reader.ReadByte(); // skip app. para. len
-                    byte _MAS_InstanceId = reader.ReadByte();
-                    Console.WriteLine("MASInstanceID: " + _MAS_InstanceId);
-
-                    reader.ReadByte(); // skip HI: 0x48 (Body)
-                    ulen = (ushort)(reader.ReadUInt16() - 3);
-                    buf = new byte[ulen];
-                    reader.ReadBytes(buf);
-                    Console.WriteLine("Body: ");
-                    Console.WriteLine(Encoding.UTF8.GetString(buf));
-
-                    //bytesBuf = new byte[len - 3];
-                    //reader.ReadBytes(bytesBuf);
-                    //Console.WriteLine("MNS: " + BitConverter.ToString(bytesBuf));
-
-                    writer.WriteByte(0xA0);
-                    writer.WriteUInt16(3);
-                    await writer.StoreAsync();
-                }
-                else
-                {
-                    _writer.WriteByte(0xC6);
-                    _writer.WriteUInt16(3);
-                    await _writer.StoreAsync();
+                    if (packet.Opcode == Opcode.Put || packet.Opcode == Opcode.PutAlter)
+                    {
+                        writer.WriteByte(0xA0); // Success
+                        writer.WriteUInt16(3);
+                        await writer.StoreAsync();
+                    }
+                    else
+                    {
+                        _writer.WriteByte(0xC6); // Not Acceptable
+                        _writer.WriteUInt16(3);
+                        await _writer.StoreAsync();
+                    }
                 }
                 
             }

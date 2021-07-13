@@ -14,51 +14,51 @@ namespace MyPhone.OBEX
         /// </summary>
         /// <returns></returns>
         byte[] ToBytes();
+
+        void FromBytes(byte[] bytes);
+
+        /// <summary>
+        /// Get the length if this header is a fixed length header, otherwise return 0
+        /// </summary>
+        /// <returns></returns>
+        ushort GetFixedLength();
     }
 
-    public interface ILengthRequiredHeader
-    {
-        ushort GetValueLength();
-
-        ushort GetHeaderLength()
-        {
-            return (ushort)(GetValueLength() + sizeof(HeaderId) + sizeof(ushort));
-        }
-    }
-
-    public abstract class OBEXHeader : IOBEXHeader
+    public abstract class OBEXHeader<T> : IOBEXHeader
     {
         public HeaderId HeaderId { get; protected set; }
 
-        public OBEXHeader(HeaderId headerId)
+        protected OBEXHeader(HeaderId headerId) 
         {
             HeaderId = headerId;
         }
 
-        public abstract byte[] ToBytes();
-    }
-
-    public abstract class OBEXHeader<T> : OBEXHeader
-    {
-        protected OBEXHeader(HeaderId headerId, T value) : base(headerId)
+        protected OBEXHeader(HeaderId headerId, T value) : this(headerId)
         {
             Value = value;
         }
 
         public T Value { get; set; }
 
-        public abstract T FromBytes(byte[] bytes);
+        public abstract byte[] ToBytes();
+
+        public abstract void FromBytes(byte[] bytes);
+
+        public virtual ushort GetFixedLength()
+        {
+            return 0;
+        }
     }
 
     public class Int32ValueHeader : OBEXHeader<int>
     {
-        public Int32ValueHeader(HeaderId headerId, int value) : base(headerId, value)
-        {
-        }
+        public Int32ValueHeader(HeaderId headerId) : base(headerId) { }
 
-        public override int FromBytes(byte[] bytes)
+        public Int32ValueHeader(HeaderId headerId, int value) : base(headerId, value) { }
+
+        public override void FromBytes(byte[] bytes)
         {
-            return BitConverter.ToInt32(bytes);
+            Value = BitConverter.ToInt32(bytes);
         }
 
         public override byte[] ToBytes()
@@ -70,22 +70,22 @@ namespace MyPhone.OBEX
             }
             return ret;
         }
+
+        public override ushort GetFixedLength()
+        {
+            return sizeof(int);
+        }
     }
 
-    public class StringValueHeader : OBEXHeader<string>, ILengthRequiredHeader
+    public class StringValueHeader : OBEXHeader<string>
     {
-        public StringValueHeader(HeaderId headerId, string value) : base(headerId, value)
-        {
-        }
+        public StringValueHeader(HeaderId headerId) : base(headerId) { }
 
-        public override string FromBytes(byte[] bytes)
-        {
-            return Encoding.ASCII.GetString(bytes, 0, bytes.Length - 1); //Remove \0 null terminator
-        }
+        public StringValueHeader(HeaderId headerId, string value) : base(headerId, value) { }
 
-        public ushort GetValueLength()
+        public override void FromBytes(byte[] bytes)
         {
-            return (ushort)(Value.Length + 1);
+            Value = Encoding.ASCII.GetString(bytes, 0, bytes.Length - 1); //Remove \0 null terminator
         }
 
         public override byte[] ToBytes()
@@ -97,17 +97,19 @@ namespace MyPhone.OBEX
         }
     }
 
-    public class BytesHeader : OBEXHeader<byte[]>, ILengthRequiredHeader
+    public class BytesHeader : OBEXHeader<byte[]>
     {
+        public BytesHeader(HeaderId headerId) : base(headerId) { }
+
         public BytesHeader(HeaderId headerId, byte[] value) : base(headerId, value)
         {
         }
 
         public BytesHeader(HeaderId headerId, byte value) : this(headerId, new byte[] { value }) { }
 
-        public override byte[] FromBytes(byte[] bytes)
+        public override void FromBytes(byte[] bytes)
         {
-            return bytes;
+            Value = bytes;
         }
 
         public override byte[] ToBytes()
@@ -115,9 +117,5 @@ namespace MyPhone.OBEX
             return Value;
         }
 
-        public ushort GetValueLength()
-        {
-            return (ushort)Value.Length;
-        }
     }
 }

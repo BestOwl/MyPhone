@@ -1,63 +1,101 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
+using Windows.Storage.Streams;
 
 namespace MyPhone.OBEX
 {
-    public class AppParamHeader : OBEXHeader, ILengthRequiredHeader
+    public class AppParamHeader : IOBEXHeader
     {
-        private static readonly int TAG_LEN_BITS = 2;
+
+        public HeaderId HeaderId => HeaderId.ApplicationParameters;
+
+        public LinkedList<AppParameter> AppParameters;
+
+        public AppParamHeader() 
+        {
+            AppParameters = new LinkedList<AppParameter>();
+        }
+
+        public AppParamHeader(params AppParameter[] parameters) : this()
+        {
+            foreach (AppParameter param in parameters)
+            {
+                AppParameters.AddLast(param);
+            }
+        }
+
+        public byte[] ToBytes()
+        {
+            DataWriter writer = new DataWriter();
+            foreach (AppParameter param in AppParameters)
+            {
+                param.ToBytes(writer);
+            }
+            return writer.DetachBuffer().ToArray();
+        }
+
+        public void FromBytes(byte[] bytes)
+        {
+            for (int i = 0; i < bytes.Length; )
+            {
+                AppParameter param = new AppParameter((AppParamTagId)bytes[i++]);
+                param.Length = bytes[i++];
+                param.Content = new byte[param.Length];
+                Array.Copy(bytes, i, param.Content, 0, param.Length);
+                i += param.Length;
+                AppParameters.AddLast(param);
+            }
+        }
+
+        public ushort GetFixedLength()
+        {
+            return 0;
+        }
+    }
+
+    public class AppParameter
+    {
+        private static readonly byte _MAX_LEN = 255;
 
         public AppParamTagId TagId { get; set; }
 
-        public byte[] Value;
+        public byte Length { get; set; }
 
-        public AppParamHeader(AppParamTagId tagId) : base(HeaderId.ApplicationParameters) 
+        public byte[] Content;
+
+        public AppParameter(AppParamTagId tagId)
         {
             TagId = tagId;
         }
 
-        /// <summary>
-        /// Construct a UTF-8 string valued app param header
-        /// </summary>
-        /// <param name="tagId"></param>
-        /// <param name="value"></param>
-        public AppParamHeader(AppParamTagId tagId, string value) : this(tagId)
+        public AppParameter(AppParamTagId tagId, string text) : this(tagId)
         {
-            int count = Encoding.UTF8.GetByteCount(value);
-            if (count > 128)
+            int count = Encoding.UTF8.GetByteCount(text);
+            if (count > _MAX_LEN)
             {
                 throw new NotSupportedException("String more that 126 bytes is not allowed");
             }
-            Value = new byte[TAG_LEN_BITS + count + 1];
-            Value[0] = (byte)TagId;
-            Value[1] = (byte) count;
-            Encoding.UTF8.GetBytes(value, Value.AsSpan().Slice(TAG_LEN_BITS));
-            Value[count] = 0; // null terminator
+            Content = Encoding.UTF8.GetBytes(text);
         }
 
-        public AppParamHeader(AppParamTagId tagId, byte[] value) : this(tagId)
+        public AppParameter(AppParamTagId tagId, byte[] value) : this(tagId)
         {
-            Value = new byte[value.Length + TAG_LEN_BITS];
             if (value.Length > 128)
             {
                 throw new NotSupportedException("Array more that 126 bytes is not allowed");
             }
-            Value[0] = (byte) TagId;
-            Value[1] = (byte) value.Length;
-            Array.Copy(value, 0, Value, 2, value.Length);
+            Content = value;
         }
 
-        public AppParamHeader(AppParamTagId tagId, byte value) : this(tagId, new byte[] { value }) { }
+        public AppParameter(AppParamTagId tagId, byte value) : this(tagId, new byte[] { value }) { }
 
-        public ushort GetValueLength()
+        public void ToBytes(DataWriter writer)
         {
-            return (ushort)(Value.Length);
-        }
-
-        public override byte[] ToBytes()
-        {
-            return Value;
+            writer.WriteByte((byte)TagId);
+            writer.WriteByte((byte)Content.Length);
+            writer.WriteBytes(Content);
         }
     }
 

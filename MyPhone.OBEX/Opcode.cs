@@ -15,6 +15,9 @@ namespace MyPhone.OBEX
         SetPath = 0x85,
         Session = 0x87,
         Abort = 0xFF,
-        Success = 0xA0
+        Success = 0xA0,
+        SuccessAlt = 0x20,
+        Continue = 0x90,
+        ContinueAlt = 0x10
     }
 }
