@@ -82,36 +82,39 @@ namespace MyPhone.OBEX
             uint loaded = await reader.LoadAsync(1);
             if (loaded <= 0)
             {
-                goto fail;
+                Console.WriteLine("No data returned for 1 unint read.");
+                return null;
             }
 
             packet.Opcode = (Opcode)reader.ReadByte();
 
+            Console.WriteLine($"Opcode: {packet.Opcode}");
+
             loaded = await reader.LoadAsync(2);
             if (loaded <= 0)
             {
-                goto fail;
+                Console.WriteLine("No data returned for 2 unint read.");
+                return null;
             }
             packet.PacketLength = reader.ReadUInt16();
             uint extraFieldBits = await packet.ReadExtraField(reader);
             uint size = packet.PacketLength - (uint)sizeof(Opcode) - sizeof(ushort) - extraFieldBits;
             await packet.ParseHeader(reader, size);
             return packet;
-
-        fail:
-            return null;
         }
 
         private async Task ParseHeader(DataReader reader, uint headerSize)
         {
             if (headerSize <= 0)
             {
+                Console.WriteLine("Header size to read is zero.");
                 return;
             }
 
             uint loaded = await reader.LoadAsync(headerSize);
             if (loaded <= 0)
             {
+                Console.WriteLine($"No data returned for {headerSize} unint read.");
                 return;
             }
 
@@ -132,18 +135,20 @@ namespace MyPhone.OBEX
                     case HeaderId.ApplicationParameters:
                         header = new AppParamHeader();
                         break;
-                    case HeaderId.Type:
-                    case HeaderId.Name:
-                    case HeaderId.EndOfBody:
-                    case HeaderId.Body:
-                        header = new StringValueHeader(headerId);
-                        break;
+                    //case HeaderId.Type:
+                    //case HeaderId.Name:
+                    //case HeaderId.EndOfBody:
+                    //case HeaderId.Body:
+                    //    header = new StringValueHeader(headerId);
+                    //    break;
                     case HeaderId.Who:
                     case HeaderId.Target:
                         header = new BytesHeader(headerId);
                         break;
                     default:
-                        throw new NotSupportedException("Not supprted header id: " + headerId);
+                        //throw new NotSupportedException("Not supprted header id: " + headerId);
+                        header = new StringValueHeader(headerId);
+                        break;
                 }
 
                 ushort len = header.GetFixedLength();
