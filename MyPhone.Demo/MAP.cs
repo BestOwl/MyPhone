@@ -52,7 +52,7 @@ namespace MyPhone.Demo
 
             Console.WriteLine("Enter any key to exit...");
             
-            Console.ReadLine();
+            Console.ReadKey();
 
             if(mapClient.BT_MNS_Provider!=null)                
                 mapClient.BT_MNS_Provider.StopAdvertising();

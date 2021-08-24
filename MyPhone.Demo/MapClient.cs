@@ -61,6 +61,7 @@ namespace MyPhone.Demo
 
         private DataReader _reader;
 
+        public Int32ValueHeader ConnectionHeader { get; set; } = new Int32ValueHeader(HeaderId.ConnectionId, 1);
 
         public async Task<bool> MapClientConnect(string deviceId)
         {
@@ -108,7 +109,7 @@ namespace MyPhone.Demo
                     try
                     {
                         await BTSocket.ConnectAsync(BTService.ConnectionHostName, BTService.ConnectionServiceName
-                            //SocketProtectionLevel.BluetoothEncryptionAllowNullAuthentication
+                            ,SocketProtectionLevel.BluetoothEncryptionAllowNullAuthentication
                             );                            
                         _writer = new DataWriter(BTSocket.OutputStream);
                         _reader = new DataReader(BTSocket.InputStream);
@@ -221,25 +222,47 @@ namespace MyPhone.Demo
             if (_writer == null)
                 return false;
 
-            OBEXConnectPacket mASConnectPacket = new OBEXConnectPacket();
+            //OBEXConnectPacket mASConnectPacket = new OBEXConnectPacket();
+            //Console.WriteLine("Sending Connect Request packet:");
+            //bool status = await RunObexRequest(mASConnectPacket);            
+            //return status;
 
-            Console.WriteLine("Sending Connect Request packet:");
-            bool status = await RunObexRequest(mASConnectPacket);            
-            return status;
+            OBEXConnectPacket mASConnectPacket = new OBEXConnectPacket();
+            var buf = mASConnectPacket.ToBuffer();
+            Console.WriteLine(BitConverter.ToString(buf.ToArray()));
+            _writer.WriteBuffer(buf);
+            await _writer.StoreAsync();
+
+            OBEXPacket packet = await OBEXPacket.ReadFromStream(_reader, mASConnectPacket);
+            if (packet == null || packet.Opcode != Opcode.Success)
+            {
+                Console.WriteLine("Failed");
+                return false;
+            }
+
+            foreach (var header in packet.Headers)
+            {
+                if (header.HeaderId.Equals(HeaderId.ConnectionId))
+                {
+                    ConnectionHeader = (Int32ValueHeader)header;
+                    Console.WriteLine($"ConnectionId: {ConnectionHeader.Value}");
+                    break;
+                }                    
+            }
+            return true;
         }
 
 
         public async Task<bool> RemoteNotificationRegister()
         {
             OBEXPacket packet = new OBEXPacket(
-                //HeaderConnectionId, //TODO: read from MAS
-                new Int32ValueHeader(HeaderId.ConnectionId, 1),
+                ConnectionHeader,
                 new StringValueHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration"),
                 new AppParamHeader(new AppParameter(AppParamTagId.NotificationStatus, 1)),
                 new BytesHeader(HeaderId.Body, 0x30),
                 new BytesHeader(HeaderId.Target, MAS_UUID)
                 );
-            packet.Opcode = Opcode.PutAlter;
+            packet.Opcode = Opcode.Put;
 
             Console.WriteLine("Sending Connect Request packet:");
             bool status = await RunObexRequest(packet);
@@ -356,6 +379,10 @@ namespace MyPhone.Demo
             catch (Exception ex) when ((uint)ex.HResult == 0x80072745)
             {
                 Console.WriteLine("Remote side disconnect: " + ex.HResult.ToString() + " - " + ex.Message);
+                return false;
+            } catch(Exception ex)
+            {
+                Console.WriteLine($"Remote side disconnect: : {ex.Message}");
                 return false;
             }
 
