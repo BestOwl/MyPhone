@@ -47,7 +47,7 @@ namespace MyPhone.OBEX
         public virtual ushort GetFixedLength()
         {
             return 0;
-        }
+        }       
     }
 
     public class Int32ValueHeader : OBEXHeader<int>
@@ -64,10 +64,10 @@ namespace MyPhone.OBEX
         public override byte[] ToBytes()
         {
             byte[] ret = BitConverter.GetBytes(Value);
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(ret);
-            }
+            //if (BitConverter.IsLittleEndian)
+            //{
+            //    Array.Reverse(ret);
+            //}
             return ret;
         }
 

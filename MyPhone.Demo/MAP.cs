@@ -24,6 +24,7 @@ namespace MyPhone.Demo
         {
 
         select:
+            Console.Clear();
             var deviceId = await SelectDevice();
 
             if(string.IsNullOrEmpty(deviceId)) 
@@ -33,31 +34,78 @@ namespace MyPhone.Demo
 
 
             MapClient mapClient = new MapClient();
+            bool success;
 
-            bool flag = await mapClient.MapClientConnect(deviceId);
-            if (!flag)
+
+            DrawLine();            
+            success = await mapClient.ClientBTConnect(deviceId);
+            Console.WriteLine($"ClientBTConnect success is: {success}");
+            if (!success)
             {
                 Console.WriteLine("Not able to locally connect to the selected device BT hardware id.");
-                goto select;
+                goto restart;
             }
 
-            bool MapInit = await mapClient.MapRemoteConnect();
-            if (!MapInit)
+            DrawLine();
+            success = await mapClient.MasObexConnect();
+            Console.WriteLine($"MasObexConnect success is: {success}");
+            if (!success)
             {
                 Console.WriteLine("Not able to remotely connect to the selected device based on MAS protocol.");
-                goto select;
+                goto restart;
             }
 
-            await mapClient.RemoteNotificationRegister();
+            DrawLine();
+            success = await mapClient.GetMessages();
+            Console.WriteLine($"GetMessages success is: {success}");
 
-            Console.WriteLine("Enter any key to exit...");
-            
-            Console.ReadKey();
+            DrawLine();
+            success = await mapClient.GetMASInstanceInformation();
+            Console.WriteLine($"GetMASInstanceInformation success is: {success}");
 
-            if(mapClient.BT_MNS_Provider!=null)                
+
+
+            //DrawLine();
+            //success = await mapClient.PushMessage();
+            //Console.WriteLine($"PushMessage success is: {success}");
+
+
+            //DrawLine();
+            //success = await mapClient.GetFolderList();
+            //Console.WriteLine($"GetFolderList success is: {success}");
+
+
+            DrawLine();
+            success = await mapClient.RemoteNotificationRegister();
+            Console.WriteLine($"RemoteNotificationRegister success is: {success}");
+
+            if (success)
+            {
+                DrawLine();
+                await mapClient.BuildPcMns();
+            }
+
+        restart:
+
+            Console.WriteLine("Enter q to exit or other keys to try again...");
+            var c= Console.ReadKey();
+
+            if (mapClient.BT_MNS_Provider != null)
                 mapClient.BT_MNS_Provider.StopAdvertising();
 
-            return;
+            if (c.KeyChar.Equals('q'))
+            {
+                return;
+            }
+            else
+            {
+                goto select;
+            }
+        }
+
+        private static void DrawLine()
+        {
+            Console.WriteLine(new string('*', 50));
         }
 
         private static async Task<string> SelectDevice()
@@ -79,7 +127,7 @@ namespace MyPhone.Demo
 
                 if (int.TryParse(ent, out int s))
                 {
-                    if (s > 0 && s < devices.Count)
+                    if (s >= 0 && s < devices.Count)
                     {
                         Console.WriteLine("Selected: " + devices[s].Name + "    " + devices[s].Id);
                         return devices[s].Id;

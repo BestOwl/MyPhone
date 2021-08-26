@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.Rfcomm;
+using Windows.Devices.Enumeration;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 
@@ -15,12 +16,12 @@ namespace MyPhone.Demo
     {
         public static readonly Guid MAP_Id = new Guid("00001132-0000-1000-8000-00805f9b34fb");
         public static readonly Guid MAP_MNS_Id = new Guid("00001133-0000-1000-8000-00805f9b34fb");
-
+        public static readonly Guid PHONE_BOOK_ACCESS_ID = new Guid("0000112f-0000-1000-8000-00805f9b34fb");
 
         // PC hardware id for MAS
         // BTHENUM\{00001132-0000-1000-8000-00805f9b34fb}_VID&0001004c_PID&730d
         // BTHENUM\{00001132-0000-1000-8000-00805f9b34fb}_LOCALMFG&0002
-        // 
+
 
 
         // MAP_Specification
@@ -62,45 +63,72 @@ namespace MyPhone.Demo
         private DataReader _reader;
 
         public Int32ValueHeader ConnectionHeader { get; set; } = new Int32ValueHeader(HeaderId.ConnectionId, 1);
+        
 
-        public async Task<bool> MapClientConnect(string deviceId)
+        public async Task<bool> ClientBTConnect(string deviceId)
         {
             try
             {
                 BTDevice = await BluetoothDevice.FromIdAsync(deviceId);
 
-                Console.WriteLine("Connecting...");
+                Console.WriteLine("Connecting to phone BT client...");
+
+                var svcresults = await BTDevice.GetRfcommServicesAsync();
+                if (svcresults.Services.Count > 0)
+                {
+                    foreach (var svc in svcresults.Services)
+                    {
+                        Console.WriteLine($"Host: {svc.ConnectionHostName}, ServiceId: {svc.ServiceId}, Service: {svc.ConnectionServiceName}, Access: {svc.DeviceAccessInformation.CurrentStatus} ");
+                    }
+                }
 
                 // This should return a list of uncached Bluetooth services 
                 // (so if the server was not active when paired, it will still be detected by this call
                 RfcommDeviceServicesResult result = await BTDevice.GetRfcommServicesForIdAsync(
-                    RfcommServiceId.FromUuid(MAP_Id),
-                    BluetoothCacheMode.Uncached);
+                    RfcommServiceId.FromUuid(MAP_Id)
+                    , BluetoothCacheMode.Uncached
+                );
 
                 if (result.Services.Count > 0)
                 {
                     BTService = result.Services[0];
 
-                    // Do various checks of the SDP record to make sure you are talking to a device that actually supports the Bluetooth Rfcomm Chat Service
-                    var attributes = await BTService.GetSdpRawAttributesAsync();
-                    if (!attributes.ContainsKey(SdpServiceNameAttributeId))
-                    {
-                        Console.WriteLine("The Chat service is not advertising the Service Name attribute (attribute id=0x100). " +
-                            "Please verify that you are running the BluetoothRfcommChat server.");
-                        return false;
-                    }
-                    var attributeReader = DataReader.FromBuffer(attributes[SdpServiceNameAttributeId]);
-                    var attributeType = attributeReader.ReadByte();
-                    if (attributeType != SdpServiceNameAttributeType)
-                    {
-                        Console.WriteLine("The Chat service is using an unexpected format for the Service Name attribute. " +
-                            "Please verify that you are running the BluetoothRfcommChat server.");
-                        return false;
-                    }
-                    var serviceNameLength = attributeReader.ReadByte();
 
-                    // The Service Name attribute requires UTF-8 encoding.
-                    attributeReader.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf8;
+                    var accessStatus = await BTService.RequestAccessAsync();
+                    if (accessStatus == DeviceAccessStatus.Allowed)
+                    {
+
+                        Console.WriteLine("SDP Attributes");
+
+                        // Do various checks of the SDP record to make sure you are talking to a device that actually supports the Bluetooth Rfcomm Chat Service
+                        var attributes = await BTService.GetSdpRawAttributesAsync();
+                        foreach (var item in attributes)
+                        {
+                            Console.WriteLine($"{item.Key}: {item.Value}");
+                        }
+                        if (!attributes.ContainsKey(SdpServiceNameAttributeId))
+                        {
+                            Console.WriteLine("The Phone BT service is not advertising the Service Name attribute (attribute id=0x100). " +
+                                "Please verify that you are running the BluetoothRfcommChat server.");
+                            return false;
+                        }
+                        var attributeReader = DataReader.FromBuffer(attributes[SdpServiceNameAttributeId]);
+                        var attributeType = attributeReader.ReadByte();
+                        if (attributeType != SdpServiceNameAttributeType)
+                        {
+                            Console.WriteLine("The Phone BT service is using an unexpected format for the Service Name attribute. " +
+                                "Please verify that you are running the BluetoothRfcommChat server.");
+                            return false;
+                        }
+                        var serviceNameLength = attributeReader.ReadByte();
+
+                        // The Service Name attribute requires UTF-8 encoding.
+                        attributeReader.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf8;
+
+                        var serviceName = attributeReader.ReadString(serviceNameLength);
+                        Console.WriteLine($"Service: {serviceName},  Device: {BTDevice.Name}");
+
+                    }
 
                     lock (this)
                     {
@@ -109,8 +137,8 @@ namespace MyPhone.Demo
                     try
                     {
                         await BTSocket.ConnectAsync(BTService.ConnectionHostName, BTService.ConnectionServiceName
-                            ,SocketProtectionLevel.BluetoothEncryptionAllowNullAuthentication
-                            );                            
+                            , SocketProtectionLevel.BluetoothEncryptionAllowNullAuthentication
+                            );
                         _writer = new DataWriter(BTSocket.OutputStream);
                         _reader = new DataReader(BTSocket.InputStream);
                         //ReceiveStringLoop(_reader);
@@ -164,7 +192,7 @@ namespace MyPhone.Demo
                     return;
                 }
 
-                
+
                 MessageList.Add("Received: " + reader.ReadString(stringLength));
 
                 ReceiveStringLoop(reader);
@@ -212,65 +240,125 @@ namespace MyPhone.Demo
                 }
             }
 
-            Console.WriteLine(disconnectReason);           
-            
+            Console.WriteLine(disconnectReason);
+
         }
 
-        
-        public async Task<bool> MapRemoteConnect()
+
+        public async Task<bool> MasObexConnect()
         {
             if (_writer == null)
                 return false;
 
-            //OBEXConnectPacket mASConnectPacket = new OBEXConnectPacket();
-            //Console.WriteLine("Sending Connect Request packet:");
-            //bool status = await RunObexRequest(mASConnectPacket);            
-            //return status;
 
-            OBEXConnectPacket mASConnectPacket = new OBEXConnectPacket();
-            var buf = mASConnectPacket.ToBuffer();
-            Console.WriteLine(BitConverter.ToString(buf.ToArray()));
-            _writer.WriteBuffer(buf);
-            await _writer.StoreAsync();
-
-            OBEXPacket packet = await OBEXPacket.ReadFromStream(_reader, mASConnectPacket);
-            if (packet == null || packet.Opcode != Opcode.Success)
+            try
             {
-                Console.WriteLine("Failed");
-                return false;
-            }
+                OBEXConnectPacket packet = new OBEXConnectPacket();
+                var buf = packet.ToBuffer();
 
-            foreach (var header in packet.Headers)
-            {
-                if (header.HeaderId.Equals(HeaderId.ConnectionId))
+                Console.WriteLine("Sending OBEX Connection request to Phone MAP server:");
+                Console.WriteLine(BitConverter.ToString(buf.ToArray()));
+                Console.WriteLine("Opcode: " + packet.Opcode);
+                _writer.WriteBuffer(buf);
+                await _writer.StoreAsync();
+
+                Console.WriteLine("Waiting reply packet...");
+                OBEXPacket retPacket = await OBEXPacket.ReadFromStream(_reader, packet);
+
+                if (retPacket != null)
                 {
-                    ConnectionHeader = (Int32ValueHeader)header;
-                    Console.WriteLine($"ConnectionId: {ConnectionHeader.Value}");
-                    break;
-                }                    
+                    var bytes = retPacket.ToBuffer().ToArray();
+                    Console.WriteLine("Reply packet:");
+                    Console.WriteLine(BitConverter.ToString(bytes));
+                    Console.WriteLine($"ResponseCode: {retPacket.Opcode}");
+
+                    foreach (var header in retPacket.Headers)
+                    {
+                        Console.WriteLine($"{header.HeaderId}: {BitConverter.ToString(header.ToBytes())}");
+
+                        if (header.HeaderId.Equals(HeaderId.ConnectionId))
+                        {
+                            ConnectionHeader = new Int32ValueHeader(HeaderId.ConnectionId, ((Int32ValueHeader)header).Value);
+                        }
+                    }
+                }
+
+                if (retPacket == null ||
+                    (retPacket.Opcode != Opcode.Success
+                    && retPacket.Opcode != Opcode.SuccessAlt
+                    && retPacket.Opcode != Opcode.Continue
+                    && retPacket.Opcode != Opcode.ContinueAlt
+                ))
+                {
+                    Console.WriteLine("Remote request failed.");
+                    return false;
+                }
+
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw ex;
+            }
+
+
+
             return true;
         }
 
 
+        public async Task<bool> GetMessages()
+        {
+            OBEXPacket packet = new OBEXPacket(
+                Opcode.Get
+                , ConnectionHeader
+                //, new Int32ValueHeader(HeaderId.SingleResponseMode, 0x01)
+                , new StringValueHeader(HeaderId.Type, "x-bt/MAP-msg-listing")
+                , new StringValueHeader(HeaderId.Name, "telecom/msg/inbox")
+                , new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, 10))
+                );
+
+            Console.WriteLine($"Sending GetMessage request ");
+            Opcode status = status = await RunObexRequest(packet);
+            return status.Equals(Opcode.Success) || status.Equals(Opcode.SuccessAlt);
+        }
+
         public async Task<bool> RemoteNotificationRegister()
         {
             OBEXPacket packet = new OBEXPacket(
-                ConnectionHeader,
-                new StringValueHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration"),
-                new AppParamHeader(new AppParameter(AppParamTagId.NotificationStatus, 1)),
-                new BytesHeader(HeaderId.Body, 0x30),
-                new BytesHeader(HeaderId.Target, MAS_UUID)
+                Opcode.Put
+                , ConnectionHeader
+                , new StringValueHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration")
+                , new AppParamHeader(new AppParameter(AppParamTagId.NotificationStatus, 1))
+                //, new BytesHeader(HeaderId.Body, 0x30)
+                //, new BytesHeader(HeaderId.EndOfBody, 0x30)
+                ,new BytesHeader(HeaderId.Target, MAS_UUID)                
                 );
-            packet.Opcode = Opcode.Put;
 
-            Console.WriteLine("Sending Connect Request packet:");
-            bool status = await RunObexRequest(packet);
+            Console.WriteLine("Sending RemoteNotificationRegister request");
 
-            return status;
+            var status = await RunObexRequest(packet);
+
+            return status.Equals(Opcode.Success) || status.Equals(Opcode.SuccessAlt);
         }
 
-        private async Task BuildPcMns()
+        public async Task<bool> GetMASInstanceInformation()
+        {
+            OBEXPacket packet = new OBEXPacket(
+                Opcode.Get
+                , ConnectionHeader
+                , new StringValueHeader(HeaderId.Type, "x-bt/MASInstanceInformation")
+                , new AppParamHeader(new AppParameter(AppParamTagId.MASInstanceID, MAS_UUID))
+                );
+
+            Console.WriteLine($"Sending GetMASInstanceInformation request ");
+            Opcode status = status = await RunObexRequest(packet);
+            return status.Equals(Opcode.Success) || status.Equals(Opcode.SuccessAlt);
+
+        }
+
+
+        public async Task BuildPcMns()
         {
             BT_MNS_Server = new StreamSocketListener();
             BT_MNS_Provider = await RfcommServiceProvider.CreateAsync(RfcommServiceId.FromUuid(MAP_MNS_Id));
@@ -359,67 +447,149 @@ namespace MyPhone.Demo
                     }
                 }
 
-            }            
+            }
 
         }
 
 
-        private async Task<bool> RunObexRequest(OBEXPacket req)
+
+        public async Task<bool> GetFolderList()
         {
-            Console.WriteLine("Sending request packet:");
-            var buf = req.ToBuffer();
-            Console.WriteLine(BitConverter.ToString(buf.ToArray()));
-            Console.WriteLine("Opcode: " + req.Opcode);
-            _writer.WriteBuffer(buf);
+            OBEXPacket packet = new OBEXPacket(
+                Opcode.Get
+                , ConnectionHeader
+                , new StringValueHeader(HeaderId.Type, "x-obex/folder-listing")
+                , new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, 100))
+            );
 
+            Console.WriteLine("sending GetFolderList request");
+
+            Opcode status = await RunObexRequest(packet);
+            return status.Equals(Opcode.Success) || status.Equals(Opcode.SuccessAlt);
+        }
+
+
+        public async Task<bool> PushMessage()
+        {
+            OBEXPacket packet = new OBEXPacket(
+                Opcode.Put
+                , ConnectionHeader
+                , new StringValueHeader(HeaderId.Type, "x-bt/message")
+                , new StringValueHeader(HeaderId.Name, "telecom/msg/inbox")
+                //, new BytesHeader(HeaderId.SingleResponseMode, 0x01)
+                , new AppParamHeader(new AppParameter(AppParamTagId.Charset, "native"))
+                , new StringValueHeader(HeaderId.Body, "test pushing message from MCE")
+                );
+
+
+            Console.WriteLine("sending PushMessage request ");
+
+            var status = await RunObexRequest(packet);
+            return status.Equals(Opcode.Success) || status.Equals(Opcode.SuccessAlt);
+        }
+
+        private async Task<Opcode> RunObexRequest(OBEXPacket req)
+        {
+            Opcode ret = Opcode.OBEX_UNAVAILABLE;
+            OBEXPacket retPacket = null;
+
+            Opcode srcOpc = req.Opcode;
+            int c = 0;
+            Opcode opc = Opcode.Continue;
             try
             {
-                await _writer.StoreAsync();
-            }
-            catch (Exception ex) when ((uint)ex.HResult == 0x80072745)
-            {
-                Console.WriteLine("Remote side disconnect: " + ex.HResult.ToString() + " - " + ex.Message);
-                return false;
-            } catch(Exception ex)
-            {
-                Console.WriteLine($"Remote side disconnect: : {ex.Message}");
-                return false;
-            }
-
-
-            Console.WriteLine("Req packet sent. Waiting for reply...");
-
-            try
-            {
-                OBEXPacket packet = await OBEXPacket.ReadFromStream(_reader);
-
-                if (packet != null)
+                do
                 {
-                    var bytes = packet.ToBuffer().ToArray();
-                    Console.WriteLine("Reply packet:");
-                    Console.WriteLine(BitConverter.ToString(bytes));
-                    Console.WriteLine($"Opcode: {packet.Opcode}");
+                    Console.WriteLine($"Sending request packet: {++c}");
+                    var buf = req.ToBuffer();
+                    Console.WriteLine(BitConverter.ToString(buf.ToArray()));
+                    Console.WriteLine("Opcode: " + req.Opcode);
+                    _writer.WriteBuffer(buf);
 
-                    foreach (var header in packet.Headers)
+                    try
                     {
-                        Console.WriteLine($"{header.HeaderId}: {header.ToBytes()}");
+                        await _writer.StoreAsync();
                     }
-                } 
+                    catch (Exception ex) when ((uint)ex.HResult == 0x80072745)
+                    {
+                        Console.WriteLine("Remote side disconnect: " + ex.HResult.ToString() + " - " + ex.Message);
+                        return ret;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Remote side disconnect: : {ex.Message}");
+                        return ret;
+                    }
 
-                if (packet == null || (packet.Opcode != Opcode.Success && packet.Opcode != Opcode.SuccessAlt && packet.Opcode != Opcode.Continue && packet.Opcode != Opcode.ContinueAlt))
-                {
-                    Console.WriteLine("Remote request failed.");
-                    return false;
-                }
+
+                    Console.WriteLine($"Req packet sent. Waiting for reply...{c}");
+                    retPacket = await OBEXPacket.ReadFromStream(_reader);
+
+                    if (retPacket != null)
+                    {
+                        opc = retPacket.Opcode;
+                        var bytes = retPacket.ToBuffer().ToArray();
+                        Console.WriteLine("Reply packet:");
+                        Console.WriteLine(BitConverter.ToString(bytes));
+                        Console.WriteLine($"ResponseCode: {retPacket.Opcode}");
+
+                        printh(retPacket.Headers);
+
+                        if (opc.Equals(Opcode.Continue) || opc.Equals(Opcode.ContinueAlt))
+                            //req = new OBEXPacket(srcOpc, ConnectionHeader);
+                            req = new OBEXPacket(srcOpc);
+
+                        if (opc != Opcode.Success && opc != Opcode.SuccessAlt
+                            && opc != Opcode.Continue && opc != Opcode.ContinueAlt)
+                        {
+                            return ret;
+                        }
+                    }
+                    else
+                    {
+                        return ret;
+                    }
+                } while ( c< 10 
+                           && (opc.Equals(Opcode.Continue) || opc.Equals(Opcode.ContinueAlt)) 
+                           //&& (srcOpc.Equals(Opcode.Get) || srcOpc.Equals(Opcode.GetAlter))
+                        );
+
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Remote request exception: " + ex.Message);
-                return false;
+                return ret;
             }
 
             Console.WriteLine("Request returned success");
-            return true;
+            return retPacket.Opcode;
+        }
+
+        private void printh(LinkedList<IOBEXHeader> headers)
+        {
+            if (headers != null && headers.Count > 0)
+            {
+                foreach (var header in headers)
+                {
+                    Console.WriteLine($"{header.HeaderId}: {BitConverter.ToString(header.ToBytes())}");
+
+                    if (header.HeaderId.Equals(HeaderId.ApplicationParameters))
+                    {
+                        var ap = (AppParamHeader)header;
+                        foreach (var item in ap.AppParameters)
+                        {
+                            Console.WriteLine($"{item.TagId}: { BitConverter.ToString(item.Content)} ");
+                        }
+                        //break;
+                    }
+                }
+
+            }
+            else
+            {
+                Console.WriteLine("No header returned.");
+            }
+
         }
     }
 }
