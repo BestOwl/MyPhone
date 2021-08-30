@@ -62,6 +62,12 @@ namespace MyPhone.OBEX
             {
                 exFieldAndHeaderWriter.WriteByte((byte)header.HeaderId);
                 byte[] content = header.ToBytes();
+
+                if (header.HeaderId.Equals(HeaderId.ConnectionId))
+                {
+                    Console.WriteLine($"ConnectionId: {BitConverter.ToString(content)}");
+                }
+
                 if (header.GetFixedLength() == 0)
                 {
                     exFieldAndHeaderWriter.WriteUInt16((ushort)(content.Length + sizeof(HeaderId) + sizeof(ushort)));
@@ -158,7 +164,6 @@ namespace MyPhone.OBEX
                     header.FromBytes(b);
                     Headers.AddLast(header);
                 }
-
             }
         }
 

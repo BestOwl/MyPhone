@@ -53,6 +53,8 @@ namespace MyPhone.OBEX
         {
             return 0;
         }
+
+        public byte [] RawBytes { get; set; }
     }
 
     public class AppParameter

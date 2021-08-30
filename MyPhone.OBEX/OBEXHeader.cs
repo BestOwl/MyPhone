@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using Windows.Storage.Streams;
 
@@ -22,6 +23,7 @@ namespace MyPhone.OBEX
         /// </summary>
         /// <returns></returns>
         ushort GetFixedLength();
+
     }
 
     public abstract class OBEXHeader<T> : IOBEXHeader
@@ -47,7 +49,8 @@ namespace MyPhone.OBEX
         public virtual ushort GetFixedLength()
         {
             return 0;
-        }       
+        }
+
     }
 
     public class Int32ValueHeader : OBEXHeader<int>
@@ -58,16 +61,29 @@ namespace MyPhone.OBEX
 
         public override void FromBytes(byte[] bytes)
         {
-            Value = BitConverter.ToInt32(bytes);
+            if (HeaderId.Equals(HeaderId.ConnectionId))
+            {
+                Value = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(bytes));
+            }
+            else
+            {
+                Value = BitConverter.ToInt32(bytes);
+            }
+            
         }
 
         public override byte[] ToBytes()
         {
-            byte[] ret = BitConverter.GetBytes(Value);
-            //if (BitConverter.IsLittleEndian)
-            //{
-            //    Array.Reverse(ret);
-            //}
+            byte[] ret;
+
+            if (HeaderId.Equals(HeaderId.ConnectionId))
+            {
+                ret = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(Value));
+            }
+            else
+            {
+                ret = BitConverter.GetBytes(Value);
+            }
             return ret;
         }
 

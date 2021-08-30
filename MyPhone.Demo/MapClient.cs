@@ -62,8 +62,8 @@ namespace MyPhone.Demo
 
         private DataReader _reader;
 
-        public Int32ValueHeader ConnectionHeader { get; set; } = new Int32ValueHeader(HeaderId.ConnectionId, 1);
-        
+        public Int32ValueHeader ConnectionHeader { get; set; } = new Int32ValueHeader(HeaderId.ConnectionId, 0);
+
 
         public async Task<bool> ClientBTConnect(string deviceId)
         {
@@ -217,7 +217,7 @@ namespace MyPhone.Demo
             }
         }
 
-        private void Disconnect(string disconnectReason)
+        public void Disconnect(string disconnectReason)
         {
             if (_writer != null)
             {
@@ -274,13 +274,14 @@ namespace MyPhone.Demo
 
                     foreach (var header in retPacket.Headers)
                     {
-                        Console.WriteLine($"{header.HeaderId}: {BitConverter.ToString(header.ToBytes())}");
-
                         if (header.HeaderId.Equals(HeaderId.ConnectionId))
                         {
-                            ConnectionHeader = new Int32ValueHeader(HeaderId.ConnectionId, ((Int32ValueHeader)header).Value);
+                            ConnectionHeader.Value = ((Int32ValueHeader)header).Value;
+                            break;
                         }
                     }
+
+                    printh(retPacket.Headers);
                 }
 
                 if (retPacket == null ||
@@ -304,6 +305,21 @@ namespace MyPhone.Demo
 
 
             return true;
+        }
+
+
+        public async Task<bool> ObexConnect()
+        {
+            OBEXPacket packet = new OBEXPacket(
+                Opcode.Connect
+                , new StringValueHeader(HeaderId.Type, "x-obex/folder-listing")
+            //, new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, 100))
+            );
+
+            Console.WriteLine("sending GetFolderList request");
+
+            Opcode status = await RunObexRequest(packet);
+            return status.Equals(Opcode.Success) || status.Equals(Opcode.SuccessAlt);
         }
 
 
@@ -332,7 +348,7 @@ namespace MyPhone.Demo
                 , new AppParamHeader(new AppParameter(AppParamTagId.NotificationStatus, 1))
                 //, new BytesHeader(HeaderId.Body, 0x30)
                 //, new BytesHeader(HeaderId.EndOfBody, 0x30)
-                ,new BytesHeader(HeaderId.Target, MAS_UUID)                
+                , new BytesHeader(HeaderId.Target, MAS_UUID)
                 );
 
             Console.WriteLine("Sending RemoteNotificationRegister request");
@@ -459,7 +475,7 @@ namespace MyPhone.Demo
                 Opcode.Get
                 , ConnectionHeader
                 , new StringValueHeader(HeaderId.Type, "x-obex/folder-listing")
-                , new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, 100))
+            //, new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, 100))
             );
 
             Console.WriteLine("sending GetFolderList request");
@@ -472,15 +488,15 @@ namespace MyPhone.Demo
         public async Task<bool> PushMessage()
         {
             OBEXPacket packet = new OBEXPacket(
-                Opcode.Put
+                Opcode.PutAlter
                 , ConnectionHeader
                 , new StringValueHeader(HeaderId.Type, "x-bt/message")
                 , new StringValueHeader(HeaderId.Name, "telecom/msg/inbox")
+                //, new StringValueHeader(HeaderId.Name, "telecom/msg/inbox")
                 //, new BytesHeader(HeaderId.SingleResponseMode, 0x01)
                 , new AppParamHeader(new AppParameter(AppParamTagId.Charset, "native"))
-                , new StringValueHeader(HeaderId.Body, "test pushing message from MCE")
+                , new StringValueHeader(HeaderId.EndOfBody, "test pushing message from MCE")
                 );
-
 
             Console.WriteLine("sending PushMessage request ");
 
@@ -500,6 +516,9 @@ namespace MyPhone.Demo
             {
                 do
                 {
+                    _writer = new DataWriter(BTSocket.OutputStream);
+                    _reader = new DataReader(BTSocket.InputStream);
+
                     Console.WriteLine($"Sending request packet: {++c}");
                     var buf = req.ToBuffer();
                     Console.WriteLine(BitConverter.ToString(buf.ToArray()));
@@ -535,10 +554,6 @@ namespace MyPhone.Demo
 
                         printh(retPacket.Headers);
 
-                        if (opc.Equals(Opcode.Continue) || opc.Equals(Opcode.ContinueAlt))
-                            //req = new OBEXPacket(srcOpc, ConnectionHeader);
-                            req = new OBEXPacket(srcOpc);
-
                         if (opc != Opcode.Success && opc != Opcode.SuccessAlt
                             && opc != Opcode.Continue && opc != Opcode.ContinueAlt)
                         {
@@ -549,9 +564,12 @@ namespace MyPhone.Demo
                     {
                         return ret;
                     }
-                } while ( c< 10 
-                           && (opc.Equals(Opcode.Continue) || opc.Equals(Opcode.ContinueAlt)) 
-                           //&& (srcOpc.Equals(Opcode.Get) || srcOpc.Equals(Opcode.GetAlter))
+
+                    req = new OBEXPacket(srcOpc, ConnectionHeader);
+
+                } while (c < 10
+                           && (opc.Equals(Opcode.Continue) || opc.Equals(Opcode.ContinueAlt))
+                        //&& (srcOpc.Equals(Opcode.Get) || srcOpc.Equals(Opcode.GetAlter))
                         );
 
             }

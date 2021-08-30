@@ -9,7 +9,7 @@ namespace MyPhone.OBEX
         /// <summary>
         /// Number of objects (used by Connect) 
         /// </summary>
-        Count = 0xC,
+        Count = 0xC0,
 
         /// <summary>
         /// Name of the object (often a file name) 

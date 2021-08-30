@@ -56,28 +56,29 @@ namespace MyPhone.Demo
             }
 
             DrawLine();
+            success = await mapClient.GetFolderList();
+            Console.WriteLine($"GetFolderList success is: {success}");
+
+            DrawLine();
             success = await mapClient.GetMessages();
             Console.WriteLine($"GetMessages success is: {success}");
 
+            //DrawLine();
+            //success = await mapClient.GetMASInstanceInformation();
+            //Console.WriteLine($"GetMASInstanceInformation success is: {success}");
+
+
+
             DrawLine();
-            success = await mapClient.GetMASInstanceInformation();
-            Console.WriteLine($"GetMASInstanceInformation success is: {success}");
+            success = await mapClient.PushMessage();
+            Console.WriteLine($"PushMessage success is: {success}");
+
 
 
 
             //DrawLine();
-            //success = await mapClient.PushMessage();
-            //Console.WriteLine($"PushMessage success is: {success}");
-
-
-            //DrawLine();
-            //success = await mapClient.GetFolderList();
-            //Console.WriteLine($"GetFolderList success is: {success}");
-
-
-            DrawLine();
-            success = await mapClient.RemoteNotificationRegister();
-            Console.WriteLine($"RemoteNotificationRegister success is: {success}");
+            //success = await mapClient.RemoteNotificationRegister();
+            //Console.WriteLine($"RemoteNotificationRegister success is: {success}");
 
             if (success)
             {
@@ -85,13 +86,15 @@ namespace MyPhone.Demo
                 await mapClient.BuildPcMns();
             }
 
-        restart:
+        restart:            
 
             Console.WriteLine("Enter q to exit or other keys to try again...");
             var c= Console.ReadKey();
 
             if (mapClient.BT_MNS_Provider != null)
                 mapClient.BT_MNS_Provider.StopAdvertising();
+
+            mapClient.Disconnect("Task done. Disconnect device. ");
 
             if (c.KeyChar.Equals('q'))
             {

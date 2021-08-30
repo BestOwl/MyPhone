@@ -18,11 +18,23 @@ namespace MyPhone.OBEX
 
         public byte Flags = 0;
 
-        public ushort MaximumPacketLength = 0xFFFF;
+        //public ushort MaximumPacketLength = 0xFFFF;
+        public ushort MaximumPacketLength = 0x0FA0;
+
+        public bool Disconnect { get; set; } = false;
 
         public OBEXConnectPacket()
         {
             Opcode = Opcode.Connect;
+            Headers.AddLast(new BytesHeader(HeaderId.Target, MAS_UUID));
+        }
+
+        public OBEXConnectPacket(bool disconnect)
+        {
+            if (disconnect)
+                Opcode = Opcode.Disconnect;
+            else
+                Opcode = Opcode.Connect;
             Headers.AddLast(new BytesHeader(HeaderId.Target, MAS_UUID));
         }
 
