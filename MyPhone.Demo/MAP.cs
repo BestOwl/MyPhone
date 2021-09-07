@@ -55,30 +55,26 @@ namespace MyPhone.Demo
                 goto restart;
             }
 
-            DrawLine();
-            success = await mapClient.GetFolderList();
-            Console.WriteLine($"GetFolderList success is: {success}");
+            //DrawLine();
+            //success = await mapClient.GetFolderList();
+            //Console.WriteLine($"GetFolderList success is: {success}");
 
-            DrawLine();
-            success = await mapClient.GetMessages();
-            Console.WriteLine($"GetMessages success is: {success}");
+            //DrawLine();
+            //success = await mapClient.GetMessages();
+            //Console.WriteLine($"GetMessages success is: {success}");
 
             //DrawLine();
             //success = await mapClient.GetMASInstanceInformation();
             //Console.WriteLine($"GetMASInstanceInformation success is: {success}");
 
+            //DrawLine();
+            //success = await mapClient.PushMessage();
+            //Console.WriteLine($"PushMessage success is: {success}");
 
 
             DrawLine();
-            success = await mapClient.PushMessage();
-            Console.WriteLine($"PushMessage success is: {success}");
-
-
-
-
-            //DrawLine();
-            //success = await mapClient.RemoteNotificationRegister();
-            //Console.WriteLine($"RemoteNotificationRegister success is: {success}");
+            success = await mapClient.RemoteNotificationRegister();
+            Console.WriteLine($"RemoteNotificationRegister success is: {success}");
 
             if (success)
             {

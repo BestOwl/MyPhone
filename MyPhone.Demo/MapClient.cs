@@ -342,13 +342,10 @@ namespace MyPhone.Demo
         public async Task<bool> RemoteNotificationRegister()
         {
             OBEXPacket packet = new OBEXPacket(
-                Opcode.Put
+                Opcode.PutAlter
                 , ConnectionHeader
                 , new StringValueHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration")
                 , new AppParamHeader(new AppParameter(AppParamTagId.NotificationStatus, 1))
-                //, new BytesHeader(HeaderId.Body, 0x30)
-                //, new BytesHeader(HeaderId.EndOfBody, 0x30)
-                , new BytesHeader(HeaderId.Target, MAS_UUID)
                 );
 
             Console.WriteLine("Sending RemoteNotificationRegister request");
