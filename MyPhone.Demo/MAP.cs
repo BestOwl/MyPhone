@@ -71,16 +71,12 @@ namespace MyPhone.Demo
             //success = await mapClient.PushMessage();
             //Console.WriteLine($"PushMessage success is: {success}");
 
+            DrawLine();
+            await mapClient.BuildPcMns();
 
             DrawLine();
             success = await mapClient.RemoteNotificationRegister();
             Console.WriteLine($"RemoteNotificationRegister success is: {success}");
-
-            if (success)
-            {
-                DrawLine();
-                await mapClient.BuildPcMns();
-            }
 
         restart:            
 
