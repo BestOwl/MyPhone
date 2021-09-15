@@ -26,7 +26,7 @@ namespace MyPhone.OBEX
         public OBEXConnectPacket()
         {
             Opcode = Opcode.Connect;
-            Headers.AddLast(new BytesHeader(HeaderId.Target, MAS_UUID));
+            Headers[HeaderId.Target] = new BytesHeader(HeaderId.Target, MAS_UUID);
         }
 
         public OBEXConnectPacket(bool disconnect)
@@ -35,7 +35,7 @@ namespace MyPhone.OBEX
                 Opcode = Opcode.Disconnect;
             else
                 Opcode = Opcode.Connect;
-            Headers.AddLast(new BytesHeader(HeaderId.Target, MAS_UUID));
+            Headers[HeaderId.Target] = new BytesHeader(HeaderId.Target, MAS_UUID);
         }
 
         protected override void WriteExtraField(DataWriter writer)

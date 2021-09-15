@@ -179,4 +179,13 @@ namespace MyPhone.OBEX
 
     }
 
+    public static class MasConstants
+    {
+        public static readonly byte CHARSET_NATIVE = 0x00;
+        public static readonly byte CHARSET_UTF8 = 0x01;
+
+        public static readonly byte ATTACHMENT_OFF = 0x00;
+        public static readonly byte ATTACHMENT_ON  = 0x01;
+    }
+
 }

@@ -15,21 +15,15 @@ namespace MyPhone.Demo
     class MAP
     {
         
-        public static void Main(string[] args)
+        public async static Task Main(string[] args)
         {
-            Do().Wait();
-        }
-
-        public static async Task Do()
-        {
-
         select:
             Console.Clear();
             var deviceId = await SelectDevice();
 
-            if(string.IsNullOrEmpty(deviceId)) 
+            if (string.IsNullOrEmpty(deviceId))
                 goto select;
-            else if(deviceId == "q")
+            else if (deviceId == "q")
                 return;
 
 
@@ -37,7 +31,7 @@ namespace MyPhone.Demo
             bool success;
 
 
-            DrawLine();            
+            DrawLine();
             success = await mapClient.ClientBTConnect(deviceId);
             Console.WriteLine($"ClientBTConnect success is: {success}");
             if (!success)
@@ -55,13 +49,27 @@ namespace MyPhone.Demo
                 goto restart;
             }
 
-            //DrawLine();
-            //success = await mapClient.GetFolderList();
-            //Console.WriteLine($"GetFolderList success is: {success}");
+            DrawLine();
+            List<string> folderList = await mapClient.GetFolderList();
+            Console.WriteLine($"GetFolderList success is: {folderList != null}");
 
-            //DrawLine();
-            //success = await mapClient.GetMessages();
-            //Console.WriteLine($"GetMessages success is: {success}");
+            DrawLine();
+            List<string> msgHandles = await mapClient.GetMessageListing(3);
+            Console.WriteLine($"GetMessageListing success is: {msgHandles != null}");
+
+            if (msgHandles != null && msgHandles.Count > 0)
+            {
+                DrawLine();
+                BMessage bMsg = await mapClient.GetMessage(msgHandles[0]);
+                Console.WriteLine("Sender: " + bMsg.Sender);
+                Console.WriteLine("Body: ");
+                Console.WriteLine(bMsg.Body);
+                Console.WriteLine();
+                Console.WriteLine($"GetMessage success is: {bMsg != null}");
+            }
+
+            Console.WriteLine("Press any key to proceed MNS test");
+            Console.ReadKey();
 
             //DrawLine();
             //success = await mapClient.GetMASInstanceInformation();
@@ -75,13 +83,25 @@ namespace MyPhone.Demo
             await mapClient.BuildPcMns();
 
             DrawLine();
-            success = await mapClient.RemoteNotificationRegister();
+            bool mnsSuccess = await mapClient.RemoteNotificationRegister();
             Console.WriteLine($"RemoteNotificationRegister success is: {success}");
 
-        restart:            
+            if (mnsSuccess)
+            {
+                Console.WriteLine();
+                DrawLine();
+                Console.WriteLine("Message Notification Service established, waiting for event");
+                Console.WriteLine("Press any key to abort");
+                DrawLine();
+                Console.WriteLine();
+
+                Console.ReadKey();
+            }
+
+        restart:
 
             Console.WriteLine("Enter q to exit or other keys to try again...");
-            var c= Console.ReadKey();
+            var c = Console.ReadKey();
 
             if (mapClient.BT_MNS_Provider != null)
                 mapClient.BT_MNS_Provider.StopAdvertising();

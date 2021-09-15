@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.Rfcomm;
 using Windows.Devices.Enumeration;
@@ -272,16 +273,9 @@ namespace MyPhone.Demo
                     Console.WriteLine(BitConverter.ToString(bytes));
                     Console.WriteLine($"ResponseCode: {retPacket.Opcode}");
 
-                    foreach (var header in retPacket.Headers)
-                    {
-                        if (header.HeaderId.Equals(HeaderId.ConnectionId))
-                        {
-                            ConnectionHeader.Value = ((Int32ValueHeader)header).Value;
-                            break;
-                        }
-                    }
+                    ConnectionHeader.Value = ((Int32ValueHeader)retPacket.Headers[HeaderId.ConnectionId]).Value;
 
-                    printh(retPacket.Headers);
+                    printh(retPacket.Headers.Values);
                 }
 
                 if (retPacket == null ||
@@ -312,31 +306,102 @@ namespace MyPhone.Demo
         {
             OBEXPacket packet = new OBEXPacket(
                 Opcode.Connect
-                , new StringValueHeader(HeaderId.Type, "x-obex/folder-listing")
+                , new AsciiStringValueHeader(HeaderId.Type, "x-obex/folder-listing")
             //, new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, 100))
             );
 
             Console.WriteLine("sending GetFolderList request");
 
-            Opcode status = await RunObexRequest(packet);
-            return status.Equals(Opcode.Success) || status.Equals(Opcode.SuccessAlt);
+            OBEXPacket resp = await RunObexRequest(packet);
+            return resp.Opcode.Equals(Opcode.Success) || resp.Opcode.Equals(Opcode.SuccessAlt);
         }
 
 
-        public async Task<bool> GetMessages()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="maxListCount"></param>
+        /// <param name="folderName"></param>
+        /// <returns>message handle list</returns>
+        /// TODO: return Messages-Listing objects
+        public async Task<List<string>> GetMessageListing(ushort maxListCount, string folderName = "telecom")
         {
             OBEXPacket packet = new OBEXPacket(
-                Opcode.Get
+                Opcode.GetAlter
                 , ConnectionHeader
                 //, new Int32ValueHeader(HeaderId.SingleResponseMode, 0x01)
-                , new StringValueHeader(HeaderId.Type, "x-bt/MAP-msg-listing")
-                , new StringValueHeader(HeaderId.Name, "telecom/msg/inbox")
-                , new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, 10))
+                , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MAP-msg-listing")
+                , new UnicodeStringValueHeader(HeaderId.Name, folderName)
+                , new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, maxListCount))
                 );
 
-            Console.WriteLine($"Sending GetMessage request ");
-            Opcode status = status = await RunObexRequest(packet);
-            return status.Equals(Opcode.Success) || status.Equals(Opcode.SuccessAlt);
+            Console.WriteLine($"Sending GetMessageListing request ");
+            OBEXPacket resp = await RunObexRequest(packet);
+            if (!(resp.Opcode.Equals(Opcode.Success) || resp.Opcode.Equals(Opcode.SuccessAlt)))
+            {
+                return null;
+            }
+
+            XmlDocument xml = new XmlDocument();
+            xml.LoadXml(((Utf8StringValueHeader)resp.Headers[HeaderId.EndOfBody]).Value);
+            XmlNodeList list = xml.SelectNodes("/MAP-msg-listing/msg/@handle");
+            List<string> ret = new List<string>();
+            Console.WriteLine("Message handle list: ");
+            foreach (XmlNode n in list)
+            {
+                if (n.Value != null)
+                {
+                    Console.WriteLine(n.Value);
+                    ret.Add(n.Value);
+                }
+            }
+
+            return ret;
+        }
+
+        public async Task<BMessage> GetMessage(string messageHandle)
+        {
+            OBEXPacket packet = new OBEXPacket(
+                Opcode.GetAlter,
+                ConnectionHeader,
+                new AsciiStringValueHeader(HeaderId.Type, "x-bt/message"),
+                new UnicodeStringValueHeader(HeaderId.Name, messageHandle),
+                new AppParamHeader(
+                    new AppParameter(AppParamTagId.Attachment, MasConstants.ATTACHMENT_ON),
+                    new AppParameter(AppParamTagId.Charset, MasConstants.CHARSET_UTF8)
+                    )
+                );
+
+            Console.WriteLine("Sending GetMessage request ");
+
+            OBEXPacket resp = await RunObexRequest(packet);
+            string bMsgStr = ((Utf8StringValueHeader)resp.Headers[HeaderId.EndOfBody]).Value;
+
+            BMessage bMsg = null;
+            try
+            {
+                BMessageNode bMsgNode = BMessageNode.Parse(bMsgStr);
+                bMsg = new BMessage();
+                bMsg.Status = bMsgNode.Attributes["STATUS"] == "UNREAD" ? MessageStatus.UNREAD : MessageStatus.READ;
+                bMsg.Type = bMsgNode.Attributes["TYPE"];
+                bMsg.Folder = bMsgNode.Attributes["FOLDER"];
+                bMsg.Sender = bMsgNode.ChildrenNode["VCARD"].Attributes["TEL"]; // TODO: parse vCard
+                bMsg.Charset = bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].Attributes["CHARSET"];
+                bMsg.Length = int.Parse(bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].Attributes["LENGTH"]);
+                bMsg.Body = bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].ChildrenNode["MSG"].Value;
+            }
+            catch (BMessageException)
+            {
+                Console.WriteLine("Invalid bmessage content");
+                return null;
+            }
+            catch (FormatException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+
+            return bMsg;
         }
 
         public async Task<bool> RemoteNotificationRegister()
@@ -344,8 +409,9 @@ namespace MyPhone.Demo
             OBEXPacket packet = new OBEXPacket(
                 Opcode.PutAlter
                 , ConnectionHeader
-                , new StringValueHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration")
+                , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration")
                 , new AppParamHeader(new AppParameter(AppParamTagId.NotificationStatus, 1))
+                , new BytesHeader(HeaderId.EndOfBody, 0x30)
                 );
 
             Console.WriteLine("Sending RemoteNotificationRegister request");
@@ -360,13 +426,13 @@ namespace MyPhone.Demo
             OBEXPacket packet = new OBEXPacket(
                 Opcode.Get
                 , ConnectionHeader
-                , new StringValueHeader(HeaderId.Type, "x-bt/MASInstanceInformation")
+                , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MASInstanceInformation")
                 , new AppParamHeader(new AppParameter(AppParamTagId.MASInstanceID, MAS_UUID))
                 );
 
             Console.WriteLine($"Sending GetMASInstanceInformation request ");
-            Opcode status = status = await RunObexRequest(packet);
-            return status.Equals(Opcode.Success) || status.Equals(Opcode.SuccessAlt);
+            OBEXPacket resp = await RunObexRequest(packet);
+            return resp.Opcode.Equals(Opcode.Success) || resp.Opcode.Equals(Opcode.SuccessAlt);
 
         }
 
@@ -448,9 +514,28 @@ namespace MyPhone.Demo
 
                     if (packet.Opcode == Opcode.Put || packet.Opcode == Opcode.PutAlter)
                     {
+                        string bodyString = null;
+                        if (packet.Headers.ContainsKey(HeaderId.EndOfBody))
+                        {
+                            bodyString = ((AsciiStringValueHeader)packet.Headers[HeaderId.EndOfBody]).Value;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Recieved header dose not contains EndOfBody, abort! ");
+                            continue;
+                        }
+
+                        printh(packet.Headers.Values);
+                        Console.WriteLine("Body: " + bodyString);
+                        XmlDocument doc = new XmlDocument();
+                        doc.LoadXml(bodyString + ">" /* Dont know why */ );
+                        string handle = doc.SelectSingleNode("/MAP-event-report/event/@handle").Value;
+                        
                         writer.WriteByte(0xA0); // Success
                         writer.WriteUInt16(3);
                         await writer.StoreAsync();
+
+                        Task t = GetMessage(handle);
                     }
                     else
                     {
@@ -466,19 +551,38 @@ namespace MyPhone.Demo
 
 
 
-        public async Task<bool> GetFolderList()
+        public async Task<List<string>> GetFolderList()
         {
             OBEXPacket packet = new OBEXPacket(
-                Opcode.Get
+                Opcode.GetAlter
                 , ConnectionHeader
-                , new StringValueHeader(HeaderId.Type, "x-obex/folder-listing")
+                , new AsciiStringValueHeader(HeaderId.Type, "x-obex/folder-listing")
             //, new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, 100))
             );
 
             Console.WriteLine("sending GetFolderList request");
 
-            Opcode status = await RunObexRequest(packet);
-            return status.Equals(Opcode.Success) || status.Equals(Opcode.SuccessAlt);
+            OBEXPacket resp = await RunObexRequest(packet);
+            if (!(resp.Opcode.Equals(Opcode.Success) || resp.Opcode.Equals(Opcode.SuccessAlt)))
+            {
+                return null;
+            }
+
+            XmlDocument xml = new XmlDocument();
+            xml.LoadXml(((Utf8StringValueHeader)resp.Headers[HeaderId.EndOfBody]).Value);
+            XmlNodeList list = xml.SelectNodes("/folder-listing/folder/@name");
+            List<string> ret = new List<string>();
+            Console.WriteLine("Folder list: ");
+            foreach (XmlNode n in list)
+            {
+                if (n.Value != null)
+                {
+                    Console.WriteLine(n.Value);
+                    ret.Add(n.Value);
+                }
+            }
+            
+            return ret;
         }
 
 
@@ -487,12 +591,12 @@ namespace MyPhone.Demo
             OBEXPacket packet = new OBEXPacket(
                 Opcode.PutAlter
                 , ConnectionHeader
-                , new StringValueHeader(HeaderId.Type, "x-bt/message")
-                , new StringValueHeader(HeaderId.Name, "telecom/msg/inbox")
+                , new AsciiStringValueHeader(HeaderId.Type, "x-bt/message")
+                , new AsciiStringValueHeader(HeaderId.Name, "telecom/msg/inbox")
                 //, new StringValueHeader(HeaderId.Name, "telecom/msg/inbox")
                 //, new BytesHeader(HeaderId.SingleResponseMode, 0x01)
                 , new AppParamHeader(new AppParameter(AppParamTagId.Charset, "native"))
-                , new StringValueHeader(HeaderId.EndOfBody, "test pushing message from MCE")
+                , new AsciiStringValueHeader(HeaderId.EndOfBody, "test pushing message from MCE")
                 );
 
             Console.WriteLine("sending PushMessage request ");
@@ -501,9 +605,9 @@ namespace MyPhone.Demo
             return status.Equals(Opcode.Success) || status.Equals(Opcode.SuccessAlt);
         }
 
-        private async Task<Opcode> RunObexRequest(OBEXPacket req)
+        private async Task<OBEXPacket> RunObexRequest(OBEXPacket req)
         {
-            Opcode ret = Opcode.OBEX_UNAVAILABLE;
+            Opcode retOpc = Opcode.OBEX_UNAVAILABLE;
             OBEXPacket retPacket = null;
 
             Opcode srcOpc = req.Opcode;
@@ -513,9 +617,6 @@ namespace MyPhone.Demo
             {
                 do
                 {
-                    _writer = new DataWriter(BTSocket.OutputStream);
-                    _reader = new DataReader(BTSocket.InputStream);
-
                     Console.WriteLine($"Sending request packet: {++c}");
                     var buf = req.ToBuffer();
                     Console.WriteLine(BitConverter.ToString(buf.ToArray()));
@@ -529,12 +630,12 @@ namespace MyPhone.Demo
                     catch (Exception ex) when ((uint)ex.HResult == 0x80072745)
                     {
                         Console.WriteLine("Remote side disconnect: " + ex.HResult.ToString() + " - " + ex.Message);
-                        return ret;
+                        return new OBEXPacket { Opcode = retOpc };
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Remote side disconnect: : {ex.Message}");
-                        return ret;
+                        return new OBEXPacket { Opcode = retOpc };
                     }
 
 
@@ -549,17 +650,18 @@ namespace MyPhone.Demo
                         Console.WriteLine(BitConverter.ToString(bytes));
                         Console.WriteLine($"ResponseCode: {retPacket.Opcode}");
 
-                        printh(retPacket.Headers);
+                        printh(retPacket.Headers.Values);
 
-                        if (opc != Opcode.Success && opc != Opcode.SuccessAlt
-                            && opc != Opcode.Continue && opc != Opcode.ContinueAlt)
-                        {
-                            return ret;
-                        }
+                        //if (opc != Opcode.Success && opc != Opcode.SuccessAlt
+                        //    && opc != Opcode.Continue && opc != Opcode.ContinueAlt)
+                        //{
+                        //    return retPacket;
+                        //}
+                        return retPacket;
                     }
                     else
                     {
-                        return ret;
+                        return new OBEXPacket { Opcode = retOpc };
                     }
 
                     req = new OBEXPacket(srcOpc, ConnectionHeader);
@@ -573,34 +675,32 @@ namespace MyPhone.Demo
             catch (Exception ex)
             {
                 Console.WriteLine("Remote request exception: " + ex.Message);
-                return ret;
+                return new OBEXPacket { Opcode = retOpc };
             }
 
             Console.WriteLine("Request returned success");
-            return retPacket.Opcode;
+            return new OBEXPacket { Opcode = retPacket.Opcode };
         }
 
-        private void printh(LinkedList<IOBEXHeader> headers)
+        private void printh(IEnumerable<IOBEXHeader> headers)
         {
-            if (headers != null && headers.Count > 0)
+            bool zeroFlag = true;
+            foreach (var header in headers)
             {
-                foreach (var header in headers)
+                zeroFlag = false;
+                Console.WriteLine($"{header.HeaderId}: {BitConverter.ToString(header.ToBytes())}");
+
+                if (header.HeaderId.Equals(HeaderId.ApplicationParameters))
                 {
-                    Console.WriteLine($"{header.HeaderId}: {BitConverter.ToString(header.ToBytes())}");
-
-                    if (header.HeaderId.Equals(HeaderId.ApplicationParameters))
+                    var ap = (AppParamHeader)header;
+                    foreach (var item in ap.AppParameters)
                     {
-                        var ap = (AppParamHeader)header;
-                        foreach (var item in ap.AppParameters)
-                        {
-                            Console.WriteLine($"{item.TagId}: { BitConverter.ToString(item.Content)} ");
-                        }
-                        //break;
+                        Console.WriteLine($"{item.TagId}: { BitConverter.ToString(item.Content)} ");
                     }
+                    //break;
                 }
-
             }
-            else
+            if (headers != null && zeroFlag)
             {
                 Console.WriteLine("No header returned.");
             }

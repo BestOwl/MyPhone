@@ -15,17 +15,17 @@ namespace MyPhone.OBEX
         /// </summary>
         public ushort PacketLength { get; set; }
 
-        public LinkedList<IOBEXHeader> Headers;
+        public Dictionary<HeaderId, IOBEXHeader> Headers;
 
         public OBEXPacket()
         {
-            Headers = new LinkedList<IOBEXHeader>();
+            Headers = new Dictionary<HeaderId, IOBEXHeader>();
         }
 
         public OBEXPacket(Opcode op)
         {
             Opcode = op;
-            Headers = new LinkedList<IOBEXHeader>();
+            Headers = new Dictionary<HeaderId, IOBEXHeader>();
         }
 
         public OBEXPacket(Opcode op, params IOBEXHeader[] headers) : this()
@@ -33,7 +33,7 @@ namespace MyPhone.OBEX
             Opcode = op;
             foreach (IOBEXHeader h in headers)
             {
-                Headers.AddLast(h);
+                Headers[h.HeaderId] = h;
             }
         }
 
@@ -58,7 +58,7 @@ namespace MyPhone.OBEX
 
             WriteExtraField(exFieldAndHeaderWriter);
 
-            foreach (IOBEXHeader header in Headers)
+            foreach (IOBEXHeader header in Headers.Values)
             {
                 exFieldAndHeaderWriter.WriteByte((byte)header.HeaderId);
                 byte[] content = header.ToBytes();
@@ -162,7 +162,7 @@ namespace MyPhone.OBEX
                     byte[] b = new byte[len];
                     reader.ReadBytes(b);
                     header.FromBytes(b);
-                    Headers.AddLast(header);
+                    Headers[header.HeaderId] = header;
                 }
             }
         }
@@ -184,7 +184,7 @@ namespace MyPhone.OBEX
                 case HeaderId.Name:
                 case HeaderId.EndOfBody:
                 case HeaderId.Body:
-                    header = new StringValueHeader(headerId);
+                    header = new Utf8StringValueHeader(headerId);
                     break;
                 case HeaderId.Who:
                 case HeaderId.Target:
@@ -193,7 +193,7 @@ namespace MyPhone.OBEX
                 default:
                     //throw new NotSupportedException($"Input byte '{b}' does not match HeaderId definition. ");
                     Console.WriteLine($"Input byte '{b}' does not match HeaderId definition. ");
-                    header = new StringValueHeader(headerId);
+                    header = new AsciiStringValueHeader(headerId);
                     break;
             }
 
