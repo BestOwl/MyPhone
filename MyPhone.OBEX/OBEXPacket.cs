@@ -182,9 +182,11 @@ namespace MyPhone.OBEX
                     break;
                 case HeaderId.Type:
                 case HeaderId.Name:
+                    header = new Utf8StringValueHeader(headerId);
+                    break;
                 case HeaderId.EndOfBody:
                 case HeaderId.Body:
-                    header = new Utf8StringValueHeader(headerId);
+                    header = new BodyHeader(headerId);
                     break;
                 case HeaderId.Who:
                 case HeaderId.Target:

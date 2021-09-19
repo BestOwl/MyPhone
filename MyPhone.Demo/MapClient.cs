@@ -375,7 +375,7 @@ namespace MyPhone.Demo
             Console.WriteLine("Sending GetMessage request ");
 
             OBEXPacket resp = await RunObexRequest(packet);
-            string bMsgStr = ((Utf8StringValueHeader)resp.Headers[HeaderId.EndOfBody]).Value;
+            string bMsgStr = ((BodyHeader)resp.Headers[HeaderId.EndOfBody]).Value;
 
             BMessage bMsg = null;
             try
@@ -517,7 +517,7 @@ namespace MyPhone.Demo
                         string bodyString = null;
                         if (packet.Headers.ContainsKey(HeaderId.EndOfBody))
                         {
-                            bodyString = ((AsciiStringValueHeader)packet.Headers[HeaderId.EndOfBody]).Value;
+                            bodyString = ((BodyHeader)packet.Headers[HeaderId.EndOfBody]).Value;
                         }
                         else
                         {
@@ -528,14 +528,25 @@ namespace MyPhone.Demo
                         printh(packet.Headers.Values);
                         Console.WriteLine("Body: " + bodyString);
                         XmlDocument doc = new XmlDocument();
-                        doc.LoadXml(bodyString + ">" /* Dont know why */ );
+                        //doc.LoadXml(bodyString + ">" /* Dont know why */ );
+                        doc.LoadXml(bodyString);
                         string handle = doc.SelectSingleNode("/MAP-event-report/event/@handle").Value;
-                        
+
                         writer.WriteByte(0xA0); // Success
                         writer.WriteUInt16(3);
                         await writer.StoreAsync();
 
-                        Task t = GetMessage(handle);
+
+                        try
+                        {
+                            var mssgg = await GetMessage(handle);
+                            Console.WriteLine($"Message received: {mssgg.Body.ToString()}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"GetMessage failed: {ex.Message}");
+                            
+                        }
                     }
                     else
                     {
@@ -581,7 +592,7 @@ namespace MyPhone.Demo
                     ret.Add(n.Value);
                 }
             }
-            
+
             return ret;
         }
 
@@ -613,6 +624,10 @@ namespace MyPhone.Demo
             Opcode srcOpc = req.Opcode;
             int c = 0;
             Opcode opc = Opcode.Continue;
+
+            _writer = new DataWriter(BTSocket.OutputStream);
+            _reader = new DataReader(BTSocket.InputStream);
+
             try
             {
                 do
@@ -638,9 +653,16 @@ namespace MyPhone.Demo
                         return new OBEXPacket { Opcode = retOpc };
                     }
 
-
-                    Console.WriteLine($"Req packet sent. Waiting for reply...{c}");
-                    retPacket = await OBEXPacket.ReadFromStream(_reader);
+                    try
+                    {
+                        Console.WriteLine($"Req packet sent. Waiting for reply...{c}");
+                        retPacket = await OBEXPacket.ReadFromStream(_reader);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"ReadFromStream exception {ex.Message}");
+                        throw ex;
+                    }
 
                     if (retPacket != null)
                     {
@@ -652,11 +674,6 @@ namespace MyPhone.Demo
 
                         printh(retPacket.Headers.Values);
 
-                        //if (opc != Opcode.Success && opc != Opcode.SuccessAlt
-                        //    && opc != Opcode.Continue && opc != Opcode.ContinueAlt)
-                        //{
-                        //    return retPacket;
-                        //}
                         return retPacket;
                     }
                     else

@@ -49,27 +49,27 @@ namespace MyPhone.Demo
                 goto restart;
             }
 
-            DrawLine();
-            List<string> folderList = await mapClient.GetFolderList();
-            Console.WriteLine($"GetFolderList success is: {folderList != null}");
+            //DrawLine();
+            //List<string> folderList = await mapClient.GetFolderList();
+            //Console.WriteLine($"GetFolderList success is: {folderList != null}");
 
-            DrawLine();
-            List<string> msgHandles = await mapClient.GetMessageListing(3);
-            Console.WriteLine($"GetMessageListing success is: {msgHandles != null}");
+            //DrawLine();
+            //List<string> msgHandles = await mapClient.GetMessageListing(3);
+            //Console.WriteLine($"GetMessageListing success is: {msgHandles != null}");
 
-            if (msgHandles != null && msgHandles.Count > 0)
-            {
-                DrawLine();
-                BMessage bMsg = await mapClient.GetMessage(msgHandles[0]);
-                Console.WriteLine("Sender: " + bMsg.Sender);
-                Console.WriteLine("Body: ");
-                Console.WriteLine(bMsg.Body);
-                Console.WriteLine();
-                Console.WriteLine($"GetMessage success is: {bMsg != null}");
-            }
+            //if (msgHandles != null && msgHandles.Count > 0)
+            //{
+            //    DrawLine();
+            //    BMessage bMsg = await mapClient.GetMessage(msgHandles[0]);
+            //    Console.WriteLine("Sender: " + bMsg.Sender);
+            //    Console.WriteLine("Body: ");
+            //    Console.WriteLine(bMsg.Body);
+            //    Console.WriteLine();
+            //    Console.WriteLine($"GetMessage success is: {bMsg != null}");
+            //}
 
-            Console.WriteLine("Press any key to proceed MNS test");
-            Console.ReadKey();
+            //Console.WriteLine("Press any key to proceed MNS test");
+            //Console.ReadKey();
 
             //DrawLine();
             //success = await mapClient.GetMASInstanceInformation();
