@@ -113,6 +113,25 @@ namespace MyPhone.OBEX
         }
     }
 
+    public class BodyHeader : OBEXHeader<string>
+    {
+        public BodyHeader(HeaderId headerId) : base(headerId) { }
+
+        public BodyHeader(HeaderId headerId, string value) : base(headerId, value) { }
+
+        public override void FromBytes(byte[] bytes)
+        {
+            Value = Encoding.ASCII.GetString(bytes, 0, bytes.Length);
+        }
+
+        public override byte[] ToBytes()
+        {
+            byte[] ret = new byte[Encoding.ASCII.GetByteCount(Value)]; // plus \0 null terminator
+            _ = Encoding.ASCII.GetBytes(Value, ret);
+            return ret;
+        }
+    }
+
     public class Utf8StringValueHeader : OBEXHeader<string>
     {
         public Utf8StringValueHeader(HeaderId headerId) : base(headerId) { }
