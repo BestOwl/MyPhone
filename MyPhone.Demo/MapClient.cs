@@ -1,5 +1,6 @@
 ﻿using MyPhone.OBEX;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
@@ -62,6 +63,8 @@ namespace MyPhone.Demo
         private DataWriter _writer;
 
         private DataReader _reader;
+
+        public ConcurrentQueue<string> RequestQueue = new ConcurrentQueue<string>();
 
         public Int32ValueHeader ConnectionHeader { get; set; } = new Int32ValueHeader(HeaderId.ConnectionId, 0);
 
@@ -416,9 +419,9 @@ namespace MyPhone.Demo
 
             Console.WriteLine("Sending RemoteNotificationRegister request");
 
-            var status = await RunObexRequest(packet);
+            OBEXPacket resp = await RunObexRequest(packet);
 
-            return status.Equals(Opcode.Success) || status.Equals(Opcode.SuccessAlt);
+            return resp.Opcode.Equals(Opcode.Success) || resp.Opcode.Equals(Opcode.SuccessAlt);
         }
 
         public async Task<bool> GetMASInstanceInformation()
@@ -536,17 +539,7 @@ namespace MyPhone.Demo
                         writer.WriteUInt16(3);
                         await writer.StoreAsync();
 
-
-                        try
-                        {
-                            var mssgg = await GetMessage(handle);
-                            Console.WriteLine($"Message received: {mssgg.Body.ToString()}");
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"GetMessage failed: {ex.Message}");
-                            
-                        }
+                        RequestQueue.Enqueue(handle);
                     }
                     else
                     {

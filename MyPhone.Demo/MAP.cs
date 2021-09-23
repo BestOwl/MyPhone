@@ -84,7 +84,7 @@ namespace MyPhone.Demo
 
             DrawLine();
             bool mnsSuccess = await mapClient.RemoteNotificationRegister();
-            Console.WriteLine($"RemoteNotificationRegister success is: {success}");
+            Console.WriteLine($"RemoteNotificationRegister success is: {mnsSuccess}");
 
             if (mnsSuccess)
             {
@@ -93,9 +93,22 @@ namespace MyPhone.Demo
                 Console.WriteLine("Message Notification Service established, waiting for event");
                 Console.WriteLine("Press any key to abort");
                 DrawLine();
-                Console.WriteLine();
 
-                Console.ReadKey();
+                while (!Console.KeyAvailable)
+                {
+                    if (mapClient.RequestQueue.TryDequeue(out string handle))
+                    {
+                        Console.WriteLine("event received");
+                        BMessage bMsg = await mapClient.GetMessage(handle);
+
+                        DrawLine();
+                        Console.WriteLine("New message received");
+                        Console.WriteLine($"Sender: {bMsg.Sender}");
+                        Console.WriteLine($"Body: {bMsg.Body}");
+                    }
+                }
+
+                return;
             }
 
         restart:
