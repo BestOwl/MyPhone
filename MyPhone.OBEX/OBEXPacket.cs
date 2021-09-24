@@ -15,18 +15,25 @@ namespace MyPhone.OBEX
         /// </summary>
         public ushort PacketLength { get; set; }
 
-        public LinkedList<IOBEXHeader> Headers;
+        public Dictionary<HeaderId, IOBEXHeader> Headers;
 
         public OBEXPacket()
         {
-            Headers = new LinkedList<IOBEXHeader>();
+            Headers = new Dictionary<HeaderId, IOBEXHeader>();
         }
 
-        public OBEXPacket(params IOBEXHeader[] headers) : this()
+        public OBEXPacket(Opcode op)
         {
+            Opcode = op;
+            Headers = new Dictionary<HeaderId, IOBEXHeader>();
+        }
+
+        public OBEXPacket(Opcode op, params IOBEXHeader[] headers) : this()
+        {
+            Opcode = op;
             foreach (IOBEXHeader h in headers)
             {
-                Headers.AddLast(h);
+                Headers[h.HeaderId] = h;
             }
         }
 
@@ -48,13 +55,19 @@ namespace MyPhone.OBEX
         {
             DataWriter writer = new DataWriter();
             DataWriter exFieldAndHeaderWriter = new DataWriter();
-            
+
             WriteExtraField(exFieldAndHeaderWriter);
 
-            foreach (IOBEXHeader header in Headers)
+            foreach (IOBEXHeader header in Headers.Values)
             {
                 exFieldAndHeaderWriter.WriteByte((byte)header.HeaderId);
                 byte[] content = header.ToBytes();
+
+                if (header.HeaderId.Equals(HeaderId.ConnectionId))
+                {
+                    Console.WriteLine($"ConnectionId: {BitConverter.ToString(content)}");
+                }
+
                 if (header.GetFixedLength() == 0)
                 {
                     exFieldAndHeaderWriter.WriteUInt16((ushort)(content.Length + sizeof(HeaderId) + sizeof(ushort)));
@@ -82,36 +95,41 @@ namespace MyPhone.OBEX
             uint loaded = await reader.LoadAsync(1);
             if (loaded <= 0)
             {
-                goto fail;
+                Console.WriteLine("No data returned for 1 unint read.");
+                return null;
             }
 
             packet.Opcode = (Opcode)reader.ReadByte();
 
+            Console.WriteLine($"ReadFromStream:: Opcode: {packet.Opcode}");
+
             loaded = await reader.LoadAsync(2);
             if (loaded <= 0)
             {
-                goto fail;
+                Console.WriteLine("No data returned for 2 unint read.");
+                return null;
             }
             packet.PacketLength = reader.ReadUInt16();
+            Console.WriteLine($"packet length: {packet.PacketLength}");
+
             uint extraFieldBits = await packet.ReadExtraField(reader);
             uint size = packet.PacketLength - (uint)sizeof(Opcode) - sizeof(ushort) - extraFieldBits;
             await packet.ParseHeader(reader, size);
             return packet;
-
-        fail:
-            return null;
         }
 
         private async Task ParseHeader(DataReader reader, uint headerSize)
         {
             if (headerSize <= 0)
             {
+                Console.WriteLine("Header size to read is zero.");
                 return;
             }
 
             uint loaded = await reader.LoadAsync(headerSize);
             if (loaded <= 0)
             {
+                Console.WriteLine($"No data returned for {headerSize} unint read.");
                 return;
             }
 
@@ -122,46 +140,67 @@ namespace MyPhone.OBEX
                     break;
                 }
 
-                HeaderId headerId = (HeaderId)reader.ReadByte();
-                IOBEXHeader header = null;
-                switch (headerId)
-                {
-                    case HeaderId.ConnectionId:
-                        header = new Int32ValueHeader(headerId);
-                        break;
-                    case HeaderId.ApplicationParameters:
-                        header = new AppParamHeader();
-                        break;
-                    case HeaderId.Type:
-                    case HeaderId.Name:
-                    case HeaderId.EndOfBody:
-                    case HeaderId.Body:
-                        header = new StringValueHeader(headerId);
-                        break;
-                    case HeaderId.Who:
-                    case HeaderId.Target:
-                        header = new BytesHeader(headerId);
-                        break;
-                    default:
-                        throw new NotSupportedException("Not supprted header id: " + headerId);
-                }
+                byte read = reader.ReadByte();
+                Console.WriteLine(read);
 
-                ushort len = header.GetFixedLength();
-                if (len == 0)
-                {
-                    len = (ushort)(reader.ReadUInt16() - sizeof(HeaderId) - sizeof(ushort));
-                }
+                IOBEXHeader header = ObexHeaderFromByte(read);
 
-                if (len == 0)
+                if (header != null)
                 {
-                    continue;
-                }
 
-                byte[] b = new byte[len];
-                reader.ReadBytes(b);
-                header.FromBytes(b);
-                Headers.AddLast(header);
+                    ushort len = header.GetFixedLength();
+                    if (len == 0)
+                    {
+                        len = (ushort)(reader.ReadUInt16() - sizeof(HeaderId) - sizeof(ushort));
+                    }
+
+                    if (len == 0)
+                    {
+                        continue;
+                    }
+
+                    byte[] b = new byte[len];
+                    reader.ReadBytes(b);
+                    header.FromBytes(b);
+                    Headers[header.HeaderId] = header;
+                }
             }
         }
+
+        public static IOBEXHeader ObexHeaderFromByte(byte b)
+        {
+            HeaderId headerId = (HeaderId)b;
+            IOBEXHeader header;
+            switch (headerId)
+            {
+                case HeaderId.ConnectionId:
+                case HeaderId.SingleResponseMode:
+                    header = new Int32ValueHeader(headerId);
+                    break;
+                case HeaderId.ApplicationParameters:
+                    header = new AppParamHeader();
+                    break;
+                case HeaderId.Type:
+                case HeaderId.Name:
+                    header = new Utf8StringValueHeader(headerId);
+                    break;
+                case HeaderId.EndOfBody:
+                case HeaderId.Body:
+                    header = new BodyHeader(headerId);
+                    break;
+                case HeaderId.Who:
+                case HeaderId.Target:
+                    header = new BytesHeader(headerId);
+                    break;
+                default:
+                    //throw new NotSupportedException($"Input byte '{b}' does not match HeaderId definition. ");
+                    Console.WriteLine($"Input byte '{b}' does not match HeaderId definition. ");
+                    header = new AsciiStringValueHeader(headerId);
+                    break;
+            }
+
+            return header;
+        }
+
     }
 }

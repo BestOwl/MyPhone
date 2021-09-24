@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using Windows.Storage.Streams;
 
@@ -22,6 +23,7 @@ namespace MyPhone.OBEX
         /// </summary>
         /// <returns></returns>
         ushort GetFixedLength();
+
     }
 
     public abstract class OBEXHeader<T> : IOBEXHeader
@@ -48,6 +50,7 @@ namespace MyPhone.OBEX
         {
             return 0;
         }
+
     }
 
     public class Int32ValueHeader : OBEXHeader<int>
@@ -58,15 +61,28 @@ namespace MyPhone.OBEX
 
         public override void FromBytes(byte[] bytes)
         {
-            Value = BitConverter.ToInt32(bytes);
+            if (HeaderId.Equals(HeaderId.ConnectionId))
+            {
+                Value = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(bytes));
+            }
+            else
+            {
+                Value = BitConverter.ToInt32(bytes);
+            }
+            
         }
 
         public override byte[] ToBytes()
         {
-            byte[] ret = BitConverter.GetBytes(Value);
-            if (BitConverter.IsLittleEndian)
+            byte[] ret;
+
+            if (HeaderId.Equals(HeaderId.ConnectionId))
             {
-                Array.Reverse(ret);
+                ret = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(Value));
+            }
+            else
+            {
+                ret = BitConverter.GetBytes(Value);
             }
             return ret;
         }
@@ -77,11 +93,11 @@ namespace MyPhone.OBEX
         }
     }
 
-    public class StringValueHeader : OBEXHeader<string>
+    public class AsciiStringValueHeader : OBEXHeader<string>
     {
-        public StringValueHeader(HeaderId headerId) : base(headerId) { }
+        public AsciiStringValueHeader(HeaderId headerId) : base(headerId) { }
 
-        public StringValueHeader(HeaderId headerId, string value) : base(headerId, value) { }
+        public AsciiStringValueHeader(HeaderId headerId, string value) : base(headerId, value) { }
 
         public override void FromBytes(byte[] bytes)
         {
@@ -93,6 +109,68 @@ namespace MyPhone.OBEX
             byte[] ret = new byte[Encoding.ASCII.GetByteCount(Value) + 1]; // plus \0 null terminator
             Encoding.ASCII.GetBytes(Value, ret);
             ret[ret.Length - 1] = 0; // null terminator
+            return ret;
+        }
+    }
+
+    public class BodyHeader : OBEXHeader<string>
+    {
+        public BodyHeader(HeaderId headerId) : base(headerId) { }
+
+        public BodyHeader(HeaderId headerId, string value) : base(headerId, value) { }
+
+        public override void FromBytes(byte[] bytes)
+        {
+            Value = Encoding.ASCII.GetString(bytes, 0, bytes.Length);
+        }
+
+        public override byte[] ToBytes()
+        {
+            byte[] ret = new byte[Encoding.ASCII.GetByteCount(Value)]; // plus \0 null terminator
+            _ = Encoding.ASCII.GetBytes(Value, ret);
+            return ret;
+        }
+    }
+
+    public class Utf8StringValueHeader : OBEXHeader<string>
+    {
+        public Utf8StringValueHeader(HeaderId headerId) : base(headerId) { }
+
+        public Utf8StringValueHeader(HeaderId headerId, string value) : base(headerId, value) { }
+
+
+        public override void FromBytes(byte[] bytes)
+        {
+            Value = Encoding.UTF8.GetString(bytes, 0, bytes.Length - 1); //Remove \0 null terminator
+        }
+
+        public override byte[] ToBytes()
+        {
+            byte[] ret = new byte[Encoding.Unicode.GetByteCount(Value) + 1]; // plus \0 null terminator
+            Encoding.UTF8.GetBytes(Value, ret);
+            ret[ret.Length - 1] = 0; // null terminator
+            return ret;
+        }
+    }
+
+    public class UnicodeStringValueHeader : OBEXHeader<string>
+    {
+        public UnicodeStringValueHeader(HeaderId headerId) : base(headerId) { }
+
+        public UnicodeStringValueHeader(HeaderId headerId, string value) : base(headerId, value) { }
+
+
+        public override void FromBytes(byte[] bytes)
+        {
+            Value = Encoding.BigEndianUnicode.GetString(bytes, 0, bytes.Length - 2); //Remove \0 null terminator
+        }
+
+        public override byte[] ToBytes()
+        {
+            byte[] ret = new byte[Encoding.Unicode.GetByteCount(Value) + 2]; // plus \0 null terminator
+            Encoding.BigEndianUnicode.GetBytes(Value, ret);
+            ret[ret.Length - 1] = 0; // null terminator
+            ret[ret.Length - 2] = 0; // null terminator
             return ret;
         }
     }

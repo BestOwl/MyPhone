@@ -53,6 +53,8 @@ namespace MyPhone.OBEX
         {
             return 0;
         }
+
+        public byte [] RawBytes { get; set; }
     }
 
     public class AppParameter
@@ -90,6 +92,15 @@ namespace MyPhone.OBEX
         }
 
         public AppParameter(AppParamTagId tagId, byte value) : this(tagId, new byte[] { value }) { }
+
+        public AppParameter(AppParamTagId tagId, ushort value) : this(tagId)
+        {
+            Content = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(Content);
+            }
+        }
 
         public void ToBytes(DataWriter writer)
         {
