@@ -61,18 +61,24 @@ namespace MyPhone.OBEX
             foreach (IOBEXHeader header in Headers.Values)
             {
                 exFieldAndHeaderWriter.WriteByte((byte)header.HeaderId);
-                byte[] content = header.ToBytes();
-
-                if (header.HeaderId.Equals(HeaderId.ConnectionId))
+                byte[]? content = header.ToBytes();
+                if (content != null)
                 {
-                    Console.WriteLine($"ConnectionId: {BitConverter.ToString(content)}");
-                }
+                    if (header.HeaderId.Equals(HeaderId.ConnectionId))
+                    {
+                        Console.WriteLine($"ConnectionId: {BitConverter.ToString(content)}");
+                    }
 
-                if (header.GetFixedLength() == 0)
-                {
-                    exFieldAndHeaderWriter.WriteUInt16((ushort)(content.Length + sizeof(HeaderId) + sizeof(ushort)));
+                    if (header.GetFixedLength() == 0)
+                    {
+                        exFieldAndHeaderWriter.WriteUInt16((ushort)(content.Length + sizeof(HeaderId) + sizeof(ushort)));
+                    }
+                    exFieldAndHeaderWriter.WriteBytes(content);
                 }
-                exFieldAndHeaderWriter.WriteBytes(content);
+                else
+                {
+                    exFieldAndHeaderWriter.WriteUInt16(0);
+                }
             }
 
             IBuffer exFieldAndHeaderBuffer = exFieldAndHeaderWriter.DetachBuffer();
@@ -85,12 +91,12 @@ namespace MyPhone.OBEX
             return writer.DetachBuffer();
         }
 
-        public static Task<OBEXPacket> ReadFromStream(DataReader reader)
+        public static Task<OBEXPacket?> ReadFromStream(DataReader reader)
         {
             return ReadFromStream(reader, new OBEXPacket());
         }
 
-        public async static Task<OBEXPacket> ReadFromStream(DataReader reader, OBEXPacket packet)
+        public async static Task<OBEXPacket?> ReadFromStream(DataReader reader, OBEXPacket packet)
         {
             uint loaded = await reader.LoadAsync(1);
             if (loaded <= 0)

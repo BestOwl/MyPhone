@@ -13,10 +13,11 @@ namespace MyPhone.OBEX
 
         public Dictionary<string, string> Attributes { get; set; }
 
-        public string Value { get; set; }
+        public string? Value { get; set; }
 
-        public BMessageNode()
+        public BMessageNode(string nodeName)
         {
+            NodeName = nodeName;
             ChildrenNode = new Dictionary<string, BMessageNode>();
             Attributes = new Dictionary<string, string>();
         }
@@ -30,7 +31,7 @@ namespace MyPhone.OBEX
                 throw new BMessageException(1, "bMessage string should starts with BEGIN");
             }
 
-            BMessageNode root = new BMessageNode { NodeName = line.Substring(6) };
+            BMessageNode root = new BMessageNode(line.Substring(6));
             return _parseRecursive(ref reader, root, 1);
         }
 
@@ -45,13 +46,13 @@ namespace MyPhone.OBEX
                     if (line  == "BEGIN:MSG")
                     {
                         root.ChildrenNode.Add(line.Substring(6), 
-                            _parseRecursive(ref reader, new BMessageNode { NodeName = line.Substring(6) }, 
+                            _parseRecursive(ref reader, new BMessageNode(line.Substring(6)), 
                             lineNum, true));
                     }
                     else
                     {
                         root.ChildrenNode.Add(line.Substring(6), 
-                            _parseRecursive(ref reader, new BMessageNode { NodeName = line.Substring(6) }, 
+                            _parseRecursive(ref reader, new BMessageNode(line.Substring(6)), 
                             lineNum));
                     }
                 }
@@ -67,7 +68,7 @@ namespace MyPhone.OBEX
                 {
                     if (line.Contains(":") && !ignoreAttr)
                     {
-                        string[] kv = line.Split(":");
+                        string[] kv = line.Split(':');
                         root.Attributes[kv[0]] = kv[1];
                     }
                     else

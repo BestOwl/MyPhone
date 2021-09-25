@@ -40,11 +40,13 @@ namespace MyPhone.OBEX
         {
             for (int i = 0; i < bytes.Length; )
             {
-                AppParameter param = new AppParameter((AppParamTagId)bytes[i++]);
-                param.Length = bytes[i++];
-                param.Content = new byte[param.Length];
-                Array.Copy(bytes, i, param.Content, 0, param.Length);
-                i += param.Length;
+                AppParamTagId tagId = (AppParamTagId)bytes[i++];
+                byte len = bytes[i++];
+                byte[] buf = new byte[len];
+                Array.Copy(bytes, i, buf, 0, len);
+                i += len;
+
+                AppParameter param = new AppParameter(tagId, len);
                 AppParameters.AddLast(param);
             }
         }
@@ -54,12 +56,11 @@ namespace MyPhone.OBEX
             return 0;
         }
 
-        public byte [] RawBytes { get; set; }
     }
 
     public class AppParameter
     {
-        private static readonly byte _MAX_LEN = 255;
+        private static readonly byte _MAX_LEN = byte.MaxValue - sizeof(byte) - sizeof(byte);
 
         public AppParamTagId TagId { get; set; }
 
@@ -67,34 +68,35 @@ namespace MyPhone.OBEX
 
         public byte[] Content;
 
-        public AppParameter(AppParamTagId tagId)
+        public AppParameter(AppParamTagId tagId, string text)
         {
             TagId = tagId;
-        }
-
-        public AppParameter(AppParamTagId tagId, string text) : this(tagId)
-        {
             int count = Encoding.UTF8.GetByteCount(text);
             if (count > _MAX_LEN)
             {
                 throw new NotSupportedException("String more that 126 bytes is not allowed");
             }
             Content = Encoding.UTF8.GetBytes(text);
+            Length = (byte) count;
         }
 
-        public AppParameter(AppParamTagId tagId, byte[] value) : this(tagId)
+        public AppParameter(AppParamTagId tagId, byte[] value)
         {
-            if (value.Length > 128)
+            TagId = tagId;
+            if (value.Length > _MAX_LEN)
             {
-                throw new NotSupportedException("Array more that 126 bytes is not allowed");
+                throw new NotSupportedException($"Array more that {_MAX_LEN} bytes is not allowed");
             }
             Content = value;
+            Length = (byte) value.Length;
         }
 
         public AppParameter(AppParamTagId tagId, byte value) : this(tagId, new byte[] { value }) { }
 
-        public AppParameter(AppParamTagId tagId, ushort value) : this(tagId)
+        public AppParameter(AppParamTagId tagId, ushort value)
         {
+            TagId = tagId;
+            Length = sizeof(ushort);
             Content = BitConverter.GetBytes(value);
             if (BitConverter.IsLittleEndian)
             {
