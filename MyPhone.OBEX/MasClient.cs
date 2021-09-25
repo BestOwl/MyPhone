@@ -70,21 +70,22 @@ namespace MyPhone.OBEX
 
             OBEXPacket resp = await RunObexRequest(packet);
             
-            // EndOfBody header has been copied to Body by ObexClient
+            // "EndOfBody" has been copied to "Body" by ObexClient
             string bMsgStr = ((BodyHeader)resp.Headers[HeaderId.Body]).Value!;
 
             BMessage bMsg;
             try
             {
                 BMessageNode bMsgNode = BMessageNode.Parse(bMsgStr);
-                bMsg = new BMessage();
-                bMsg.Status = bMsgNode.Attributes["STATUS"] == "UNREAD" ? MessageStatus.UNREAD : MessageStatus.READ;
-                bMsg.Type = bMsgNode.Attributes["TYPE"];
-                bMsg.Folder = bMsgNode.Attributes["FOLDER"];
-                bMsg.Sender = bMsgNode.ChildrenNode["VCARD"].Attributes["TEL"]; // TODO: parse vCard
-                bMsg.Charset = bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].Attributes["CHARSET"];
-                bMsg.Length = int.Parse(bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].Attributes["LENGTH"]);
-                bMsg.Body = bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].ChildrenNode["MSG"].Value;
+                bMsg = new BMessage(
+                    status: bMsgNode.Attributes["STATUS"] == "UNREAD" ? MessageStatus.UNREAD : MessageStatus.READ,
+                    type: bMsgNode.Attributes["TYPE"],
+                    folder: bMsgNode.Attributes["FOLDER"],
+                    charset: bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].Attributes["CHARSET"],
+                    length: int.Parse(bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].Attributes["LENGTH"]),
+                    body: bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].ChildrenNode["MSG"].Value!,
+                    sender: MixERP.Net.VCards.Deserializer.GetVCard(bMsgNode.ChildrenNode["VCARD"].ToString())
+                    );
             }
             catch (BMessageException ex)
             {

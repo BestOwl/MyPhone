@@ -22,6 +22,11 @@ namespace MyPhone.OBEX
             Attributes = new Dictionary<string, string>();
         }
 
+        public override string ToString()
+        {
+            return "BEGIN:" + NodeName + Environment.NewLine + Value + Environment.NewLine + "END:" + NodeName;
+        }
+
         public static BMessageNode Parse(string bMessageString)
         {
             StringReader reader = new StringReader(bMessageString);
@@ -43,17 +48,19 @@ namespace MyPhone.OBEX
             {
                 if (line.StartsWith("BEGIN:"))
                 {
-                    if (line  == "BEGIN:MSG")
+                    switch (line)
                     {
-                        root.ChildrenNode.Add(line.Substring(6), 
-                            _parseRecursive(ref reader, new BMessageNode(line.Substring(6)), 
+                        case "BEGIN:MSG":
+                        case "BEGIN:VCARD":
+                            root.ChildrenNode.Add(line.Substring(6),
+                            _parseRecursive(ref reader, new BMessageNode(line.Substring(6)),
                             lineNum, true));
-                    }
-                    else
-                    {
-                        root.ChildrenNode.Add(line.Substring(6), 
-                            _parseRecursive(ref reader, new BMessageNode(line.Substring(6)), 
+                            break;
+                        default:
+                            root.ChildrenNode.Add(line.Substring(6),
+                            _parseRecursive(ref reader, new BMessageNode(line.Substring(6)),
                             lineNum));
+                            break;
                     }
                 }
                 else if (line.StartsWith("END:"))

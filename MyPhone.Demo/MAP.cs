@@ -9,6 +9,7 @@ using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 using System.Runtime.InteropServices.WindowsRuntime;
 using MyPhone.OBEX;
+using MixERP.Net.VCards.Models;
 
 namespace MyPhone.Demo
 {
@@ -83,7 +84,28 @@ namespace MyPhone.Demo
 
                     DrawLine();
                     Console.WriteLine("New message received");
-                    Console.WriteLine($"Sender: {bMsg.Sender}");
+                    Console.WriteLine($"Sender: ");
+                    Console.WriteLine("\t" + bMsg.Sender.FormattedName);
+                    Console.Write("\tTel: ");
+                    if (bMsg.Sender.Telephones != null)
+                    {
+                        foreach (Telephone telephone in bMsg.Sender.Telephones)
+                        {
+                            Console.Write(telephone.Number);
+                            Console.Write("; ");
+                        }
+                    }
+                    Console.WriteLine();
+                    if (bMsg.Sender.Emails != null)
+                    {
+                        Console.Write("\tEmail address: ");
+                        foreach (Email email in bMsg.Sender.Emails)
+                        {
+                            Console.Write(email.EmailAddress);
+                            Console.Write("; ");
+                        }
+                        Console.WriteLine();
+                    }
                     Console.WriteLine($"Body: {bMsg.Body}");
                 }
             }
