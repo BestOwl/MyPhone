@@ -1,0 +1,171 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml;
+using Windows.Storage.Streams;
+
+namespace MyPhone.OBEX
+{
+    public class MasClient : ObexClient
+    {
+
+        //bb582b40-420c-11db-b0de-0800200c9a66
+        public static readonly byte[] MAS_UUID = new byte[] { 0xBB, 0x58, 0x2B, 0x40, 0x42, 0x0C, 0x11, 0xDB, 0xB0, 0xDE, 0x08, 0x00, 0x20, 0x0C, 0x9A, 0x66 };
+
+        public MasClient(IInputStream inputStream, IOutputStream outputStream) : base(inputStream, outputStream)
+        {
+        }
+
+        /// <summary>
+        /// Retrieve messages listing from MSE
+        /// </summary>
+        /// <param name="maxListCount">Maximum number of messages listed.</param>
+        /// <param name="folderName">The name of the folder.</param>
+        /// <returns>message handle list</returns>
+        /// TODO: return Messages-Listing objects
+        public async Task<List<string>> GetMessageListing(ushort maxListCount, string folderName = "telecom")
+        {
+            OBEXPacket packet = new OBEXPacket(
+                Opcode.GetAlter
+                //, new Int32ValueHeader(HeaderId.SingleResponseMode, 0x01)
+                , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MAP-msg-listing")
+                , new UnicodeStringValueHeader(HeaderId.Name, folderName)
+                , new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, maxListCount))
+                );
+
+            Console.WriteLine($"Sending GetMessageListing request ");
+            OBEXPacket resp = await RunObexRequest(packet);
+
+            XmlDocument xml = new XmlDocument();
+            xml.LoadXml(((Utf8StringValueHeader)resp.Headers[HeaderId.EndOfBody]).Value);
+            XmlNodeList list = xml.SelectNodes("/MAP-msg-listing/msg/@handle");
+            List<string> ret = new List<string>();
+            Console.WriteLine("Message handle list: ");
+            foreach (XmlNode n in list)
+            {
+                if (n.Value != null)
+                {
+                    Console.WriteLine(n.Value);
+                    ret.Add(n.Value);
+                }
+            }
+
+            return ret;
+        }
+
+        public async Task<BMessage> GetMessage(string messageHandle)
+        {
+            OBEXPacket packet = new OBEXPacket(
+                Opcode.GetAlter,
+                new AsciiStringValueHeader(HeaderId.Type, "x-bt/message"),
+                new UnicodeStringValueHeader(HeaderId.Name, messageHandle),
+                new AppParamHeader(
+                    new AppParameter(AppParamTagId.Attachment, MasConstants.ATTACHMENT_ON),
+                    new AppParameter(AppParamTagId.Charset, MasConstants.CHARSET_UTF8)
+                    )
+                );
+
+            Console.WriteLine("Sending GetMessage request ");
+
+            OBEXPacket resp = await RunObexRequest(packet);
+            string bMsgStr = ((BodyHeader)resp.Headers[HeaderId.EndOfBody]).Value!;
+
+            BMessage bMsg;
+            try
+            {
+                BMessageNode bMsgNode = BMessageNode.Parse(bMsgStr);
+                bMsg = new BMessage();
+                bMsg.Status = bMsgNode.Attributes["STATUS"] == "UNREAD" ? MessageStatus.UNREAD : MessageStatus.READ;
+                bMsg.Type = bMsgNode.Attributes["TYPE"];
+                bMsg.Folder = bMsgNode.Attributes["FOLDER"];
+                bMsg.Sender = bMsgNode.ChildrenNode["VCARD"].Attributes["TEL"]; // TODO: parse vCard
+                bMsg.Charset = bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].Attributes["CHARSET"];
+                bMsg.Length = int.Parse(bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].Attributes["LENGTH"]);
+                bMsg.Body = bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].ChildrenNode["MSG"].Value;
+            }
+            catch (BMessageException ex)
+            {
+                throw new ObexRequestException($"Failed to get message (handle: {messageHandle}) from MSE. The MSE send back a invalid response", ex);
+            }
+
+            return bMsg;
+        }
+
+        public async Task SetNotificationRegistration(bool enableNotification)
+        {
+            byte flag = (byte)(enableNotification ? 1 : 0);
+
+            OBEXPacket packet = new OBEXPacket(
+                Opcode.PutAlter
+                , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration")
+                , new AppParamHeader(new AppParameter(AppParamTagId.NotificationStatus, flag))
+                , new BytesHeader(HeaderId.EndOfBody, 0x30)
+                );
+
+            Console.WriteLine("Sending RemoteNotificationRegister request");
+            await RunObexRequest(packet);
+        }
+
+        public async Task GetMASInstanceInformation()
+        {
+            OBEXPacket packet = new OBEXPacket(
+                Opcode.Get
+                , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MASInstanceInformation")
+                , new AppParamHeader(new AppParameter(AppParamTagId.MASInstanceID, MAS_UUID))
+                );
+
+            Console.WriteLine($"Sending GetMASInstanceInformation request ");
+            await RunObexRequest(packet);
+        }
+
+        public async Task<List<string>> GetFolderList()
+        {
+            OBEXPacket packet = new OBEXPacket(
+                Opcode.GetAlter
+                , new AsciiStringValueHeader(HeaderId.Type, "x-obex/folder-listing")
+            //, new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, 100))
+            );
+
+            Console.WriteLine("sending GetFolderList request");
+
+            OBEXPacket resp = await RunObexRequest(packet);
+
+            XmlDocument xml = new XmlDocument();
+            xml.LoadXml(((Utf8StringValueHeader)resp.Headers[HeaderId.EndOfBody]).Value);
+            XmlNodeList list = xml.SelectNodes("/folder-listing/folder/@name");
+            List<string> ret = new List<string>();
+            Console.WriteLine("Folder list: ");
+            foreach (XmlNode n in list)
+            {
+                if (n.Value != null)
+                {
+                    Console.WriteLine(n.Value);
+                    ret.Add(n.Value);
+                }
+            }
+
+            return ret;
+        }
+
+
+        public async Task PushMessage()
+        {
+            OBEXPacket packet = new OBEXPacket(
+                Opcode.PutAlter
+                , new AsciiStringValueHeader(HeaderId.Type, "x-bt/message")
+                , new AsciiStringValueHeader(HeaderId.Name, "telecom/msg/inbox")
+                //, new StringValueHeader(HeaderId.Name, "telecom/msg/inbox")
+                //, new BytesHeader(HeaderId.SingleResponseMode, 0x01)
+                , new AppParamHeader(new AppParameter(AppParamTagId.Charset, MasConstants.CHARSET_UTF8))
+                , new AsciiStringValueHeader(HeaderId.EndOfBody, "test pushing message from MCE")
+                );
+
+            Console.WriteLine("sending PushMessage request ");
+
+            await RunObexRequest(packet);
+        }
+
+    }
+
+}

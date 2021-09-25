@@ -23,13 +23,10 @@ namespace MyPhone.OBEX
 
         public bool Disconnect { get; set; } = false;
 
-        public OBEXConnectPacket()
-        {
-            Opcode = Opcode.Connect;
-            Headers[HeaderId.Target] = new BytesHeader(HeaderId.Target, MAS_UUID);
-        }
+        public OBEXConnectPacket() : this(false)
+        { }
 
-        public OBEXConnectPacket(bool disconnect)
+        public OBEXConnectPacket(bool disconnect) : base(disconnect ? Opcode.Disconnect : Opcode.Connect)
         {
             if (disconnect)
                 Opcode = Opcode.Disconnect;
@@ -47,7 +44,11 @@ namespace MyPhone.OBEX
 
         protected override async Task<uint> ReadExtraField(DataReader reader)
         {
-            await reader.LoadAsync(_EXTRA_FIELD_BITS);
+            uint loaded = await reader.LoadAsync(_EXTRA_FIELD_BITS);
+            if (loaded != _EXTRA_FIELD_BITS)
+            {
+                throw new ObexRequestException("The underlying socket was closed before we were able to read the whole data.");
+            }
             OBEXVersion = reader.ReadByte();
             Flags = reader.ReadByte();
             MaximumPacketLength = reader.ReadUInt16();

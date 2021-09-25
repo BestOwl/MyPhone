@@ -17,20 +17,14 @@ namespace MyPhone.OBEX
 
         public Dictionary<HeaderId, IOBEXHeader> Headers;
 
-        public OBEXPacket()
-        {
-            Headers = new Dictionary<HeaderId, IOBEXHeader>();
-        }
-
         public OBEXPacket(Opcode op)
         {
             Opcode = op;
             Headers = new Dictionary<HeaderId, IOBEXHeader>();
         }
 
-        public OBEXPacket(Opcode op, params IOBEXHeader[] headers) : this()
+        public OBEXPacket(Opcode op, params IOBEXHeader[] headers) : this(op)
         {
-            Opcode = op;
             foreach (IOBEXHeader h in headers)
             {
                 Headers[h.HeaderId] = h;
@@ -91,39 +85,6 @@ namespace MyPhone.OBEX
             return writer.DetachBuffer();
         }
 
-        public static Task<OBEXPacket?> ReadFromStream(DataReader reader)
-        {
-            return ReadFromStream(reader, new OBEXPacket());
-        }
-
-        public async static Task<OBEXPacket?> ReadFromStream(DataReader reader, OBEXPacket packet)
-        {
-            uint loaded = await reader.LoadAsync(1);
-            if (loaded <= 0)
-            {
-                Console.WriteLine("No data returned for 1 unint read.");
-                return null;
-            }
-
-            packet.Opcode = (Opcode)reader.ReadByte();
-
-            Console.WriteLine($"ReadFromStream:: Opcode: {packet.Opcode}");
-
-            loaded = await reader.LoadAsync(2);
-            if (loaded <= 0)
-            {
-                Console.WriteLine("No data returned for 2 unint read.");
-                return null;
-            }
-            packet.PacketLength = reader.ReadUInt16();
-            Console.WriteLine($"packet length: {packet.PacketLength}");
-
-            uint extraFieldBits = await packet.ReadExtraField(reader);
-            uint size = packet.PacketLength - (uint)sizeof(Opcode) - sizeof(ushort) - extraFieldBits;
-            await packet.ParseHeader(reader, size);
-            return packet;
-        }
-
         private async Task ParseHeader(DataReader reader, uint headerSize)
         {
             if (headerSize <= 0)
@@ -135,8 +96,7 @@ namespace MyPhone.OBEX
             uint loaded = await reader.LoadAsync(headerSize);
             if (loaded <= 0)
             {
-                Console.WriteLine($"No data returned for {headerSize} unint read.");
-                return;
+                throw new ObexRequestException($"No data returned for {headerSize} unint read.");
             }
 
             while (true)
@@ -171,6 +131,70 @@ namespace MyPhone.OBEX
                     Headers[header.HeaderId] = header;
                 }
             }
+        }
+
+        public void PrintHeaders()
+        {
+            bool zeroFlag = true;
+            foreach (var header in Headers.Values)
+            {
+                zeroFlag = false;
+                Console.WriteLine($"{header.HeaderId}: {BitConverter.ToString(header.ToBytes())}");
+
+                if (header.HeaderId.Equals(HeaderId.ApplicationParameters))
+                {
+                    var ap = (AppParamHeader)header;
+                    foreach (var item in ap.AppParameters)
+                    {
+                        Console.WriteLine($"{item.TagId}: { BitConverter.ToString(item.Content)} ");
+                    }
+                    //break;
+                }
+            }
+            if (zeroFlag)
+            {
+                Console.WriteLine("No header returned.");
+            }
+        }
+
+        /// <summary>
+        /// Read and parse OBEX packet from DataReader
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="packet">Optional, if this parameter is not null, the data will be read into this parameter</param>
+        /// <returns>Loaded OBEX packet</returns>
+        public async static Task<OBEXPacket> ReadFromStream(DataReader reader, OBEXPacket? packet = null)
+        {
+            uint loaded = await reader.LoadAsync(1);
+            if (loaded != 1)
+            {
+                throw new ObexRequestException("The underlying socket was closed before we were able to read the whole data.");
+            }
+
+            Opcode opcode = (Opcode)reader.ReadByte();
+            if (packet == null)
+            {
+                packet = new OBEXPacket(opcode);
+            }
+            else
+            {
+                packet.Opcode = opcode;
+            }
+            Console.WriteLine($"ReadFromStream:: Opcode: {packet.Opcode}");
+
+            loaded = await reader.LoadAsync(sizeof(ushort));
+            if (loaded != sizeof(ushort))
+            {
+                throw new ObexRequestException("The underlying socket was closed before we were able to read the whole data.");
+            }
+
+            packet.PacketLength = reader.ReadUInt16();
+            Console.WriteLine($"packet length: {packet.PacketLength}");
+
+            uint extraFieldBits = await packet.ReadExtraField(reader);
+            uint size = packet.PacketLength - (uint)sizeof(Opcode) - sizeof(ushort) - extraFieldBits;
+            await packet.ParseHeader(reader, size);
+            return packet;
         }
 
         public static IOBEXHeader ObexHeaderFromByte(byte b)

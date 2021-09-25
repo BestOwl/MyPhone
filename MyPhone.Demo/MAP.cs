@@ -41,75 +41,54 @@ namespace MyPhone.Demo
             }
 
             DrawLine();
-            success = await mapClient.MasObexConnect();
-            Console.WriteLine($"MasObexConnect success is: {success}");
-            if (!success)
+            try
             {
-                Console.WriteLine("Not able to remotely connect to the selected device based on MAS protocol.");
+                await mapClient.MasClient.Connect();
+            }
+            catch (ObexRequestException ex)
+            {
+                Console.WriteLine("Not able to remotely connect to the selected device based on MAS protocol. " + ex.Message);
                 goto restart;
             }
-
-            //DrawLine();
-            //List<string> folderList = await mapClient.GetFolderList();
-            //Console.WriteLine($"GetFolderList success is: {folderList != null}");
-
-            //DrawLine();
-            //List<string> msgHandles = await mapClient.GetMessageListing(3);
-            //Console.WriteLine($"GetMessageListing success is: {msgHandles != null}");
-
-            //if (msgHandles != null && msgHandles.Count > 0)
-            //{
-            //    DrawLine();
-            //    BMessage bMsg = await mapClient.GetMessage(msgHandles[0]);
-            //    Console.WriteLine("Sender: " + bMsg.Sender);
-            //    Console.WriteLine("Body: ");
-            //    Console.WriteLine(bMsg.Body);
-            //    Console.WriteLine();
-            //    Console.WriteLine($"GetMessage success is: {bMsg != null}");
-            //}
-
-            //Console.WriteLine("Press any key to proceed MNS test");
-            //Console.ReadKey();
-
-            //DrawLine();
-            //success = await mapClient.GetMASInstanceInformation();
-            //Console.WriteLine($"GetMASInstanceInformation success is: {success}");
-
-            //DrawLine();
-            //success = await mapClient.PushMessage();
-            //Console.WriteLine($"PushMessage success is: {success}");
+            Console.WriteLine($"MAS service connected");
 
             DrawLine();
             await mapClient.BuildPcMns();
 
             DrawLine();
-            bool mnsSuccess = await mapClient.RemoteNotificationRegister();
-            Console.WriteLine($"RemoteNotificationRegister success is: {mnsSuccess}");
-
-            if (mnsSuccess)
+            try
             {
-                Console.WriteLine();
-                DrawLine();
-                Console.WriteLine("Message Notification Service established, waiting for event");
-                Console.WriteLine("Press any key to abort");
-                DrawLine();
-
-                while (!Console.KeyAvailable)
-                {
-                    if (mapClient.RequestQueue.TryDequeue(out string handle))
-                    {
-                        Console.WriteLine("event received");
-                        BMessage bMsg = await mapClient.GetMessage(handle);
-
-                        DrawLine();
-                        Console.WriteLine("New message received");
-                        Console.WriteLine($"Sender: {bMsg.Sender}");
-                        Console.WriteLine($"Body: {bMsg.Body}");
-                    }
-                }
-
-                return;
+                await mapClient.MasClient.SetNotificationRegistration(true);
             }
+            catch (ObexRequestException ex)
+            {
+                Console.WriteLine("RemoteNotificationRegister failed. " + ex.Message);
+                goto restart;
+            }
+            Console.WriteLine($"RemoteNotificationRegister success");
+
+
+            Console.WriteLine();
+            DrawLine();
+            Console.WriteLine("Message Notification Service established, waiting for event");
+            Console.WriteLine("Press any key to abort");
+            DrawLine();
+
+            while (!Console.KeyAvailable)
+            {
+                if (mapClient.RequestQueue.TryDequeue(out string handle))
+                {
+                    Console.WriteLine("event received");
+                    BMessage bMsg = await mapClient.MasClient.GetMessage(handle);
+
+                    DrawLine();
+                    Console.WriteLine("New message received");
+                    Console.WriteLine($"Sender: {bMsg.Sender}");
+                    Console.WriteLine($"Body: {bMsg.Body}");
+                }
+            }
+
+            return;
 
         restart:
 
