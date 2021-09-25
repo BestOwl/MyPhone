@@ -125,15 +125,15 @@ namespace MyPhone.OBEX
 
         public override void FromBytes(byte[] bytes)
         {
-            Value = Encoding.ASCII.GetString(bytes, 0, bytes.Length);
+            Value = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
         }
 
         public override byte[]? ToBytes()
         {
             if (Value != null)
             {
-                byte[] ret = new byte[Encoding.ASCII.GetByteCount(Value)]; // plus \0 null terminator
-                Encoding.ASCII.GetBytes(Value, 0, Value.Length, ret, 0);
+                byte[] ret = new byte[Encoding.UTF8.GetByteCount(Value)]; // plus \0 null terminator
+                Encoding.UTF8.GetBytes(Value, 0, Value.Length, ret, 0);
                 return ret;
             }
             return null;

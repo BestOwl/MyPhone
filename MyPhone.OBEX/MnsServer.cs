@@ -44,7 +44,6 @@ namespace MyPhone.OBEX
                 clientRequestPacket.PrintHeaders();
                 Console.WriteLine("Body: " + bodyString);
                 XmlDocument doc = new XmlDocument();
-                //doc.LoadXml(bodyString + ">" /* Dont know why */ );
                 doc.LoadXml(bodyString);
                 string handle = doc.SelectSingleNode("/MAP-event-report/event/@handle").Value;
                 MessageReceived?.Invoke(this, new MessageReceivedEventArgs(handle));
