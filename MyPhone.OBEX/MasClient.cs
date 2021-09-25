@@ -69,7 +69,9 @@ namespace MyPhone.OBEX
             Console.WriteLine("Sending GetMessage request ");
 
             OBEXPacket resp = await RunObexRequest(packet);
-            string bMsgStr = ((BodyHeader)resp.Headers[HeaderId.EndOfBody]).Value!;
+            
+            // EndOfBody header has been copied to Body by ObexClient
+            string bMsgStr = ((BodyHeader)resp.Headers[HeaderId.Body]).Value!;
 
             BMessage bMsg;
             try

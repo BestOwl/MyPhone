@@ -75,7 +75,7 @@ namespace MyPhone.OBEX
             }
 
             Opcode requestOpcode = req.Opcode;
-            OBEXPacket response;
+            OBEXPacket? response = null;
             int c = 0;
 
             do
@@ -88,29 +88,54 @@ namespace MyPhone.OBEX
                 _writer.WriteBuffer(buf);
                 await _writer.StoreAsync();
 
-                response = await OBEXPacket.ReadFromStream(_reader);
+                OBEXPacket subResponse;
+                subResponse = await OBEXPacket.ReadFromStream(_reader);
 
-                var bytes = response.ToBuffer().ToArray();
+                var bytes = subResponse.ToBuffer().ToArray();
                 Console.WriteLine("Reply packet:");
                 Console.WriteLine(BitConverter.ToString(bytes));
-                Console.WriteLine($"ResponseCode: {response.Opcode}");
+                Console.WriteLine($"ResponseCode: {subResponse.Opcode}");
 
-                response.PrintHeaders();
+                subResponse.PrintHeaders();
+                if (response == null)
+                {
+                    response = subResponse;
+                }
+
+                switch (subResponse.Opcode)
+                {
+                    case Opcode.Success:
+                    case Opcode.SuccessAlt:
+                        if (subResponse.Headers.ContainsKey(HeaderId.EndOfBody))
+                        {
+                            if (response.Headers.ContainsKey(HeaderId.Body))
+                            {
+                                ((BodyHeader)response.Headers[HeaderId.Body]).Value += ((BodyHeader)subResponse.Headers[HeaderId.EndOfBody]).Value;
+                            }
+                            else
+                            {
+                                response.Headers[HeaderId.Body] = response.Headers[HeaderId.EndOfBody];
+                            }
+                        }
+                        return response;
+                    case Opcode.Continue:
+                    case Opcode.ContinueAlt:
+                        if (response != subResponse)
+                        {
+                            if (response.Headers.ContainsKey(HeaderId.Body))
+                            {
+                                ((BodyHeader)response.Headers[HeaderId.Body]).Value += ((BodyHeader)subResponse.Headers[HeaderId.Body]).Value;
+                            }
+                        }
+                        break;
+                    default:
+                        throw new ObexRequestException($"The {requestOpcode} request failed with opcode ${subResponse.Opcode}");
+                }
                 
-                if (response.Opcode == Opcode.Success || response.Opcode == Opcode.SuccessAlt)
-                {
-                    return response;
-                }
-                else if (response.Opcode != Opcode.Continue || response.Opcode != Opcode.ContinueAlt)
-                {
-                    throw new ObexRequestException($"The {requestOpcode} request failed with opcode ${response.Opcode}");
-                }
-
                 req = new OBEXPacket(requestOpcode, _connectionIdHeader!);
             } while (c < 10);
-
       
-            Console.WriteLine("Request returned success");
+            Console.WriteLine("Maultiple GET over 10 times, abort!");
             return response;
         }
     }
