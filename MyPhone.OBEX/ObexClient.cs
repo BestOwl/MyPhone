@@ -22,6 +22,11 @@ namespace MyPhone.OBEX
             _writer = new DataWriter(outputStream);
         }
 
+        /// <summary>
+        /// Send OBEX Connect packet to the server.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">The Connect method can call only once and it is already called before.</exception>
+        /// <exception cref="ObexRequestException">The request failed due to an underlying issue such as connection issue, or the server reply with a invalid response</exception>
         public async Task Connect()
         {
             if (Conntected)
