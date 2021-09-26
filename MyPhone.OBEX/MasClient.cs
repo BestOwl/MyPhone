@@ -26,7 +26,7 @@ namespace MyPhone.OBEX
         /// TODO: return Messages-Listing objects
         public async Task<List<string>> GetMessageListing(ushort maxListCount, string folderName = "telecom")
         {
-            OBEXPacket packet = new OBEXPacket(
+            ObexPacket packet = new ObexPacket(
                 Opcode.GetAlter
                 //, new Int32ValueHeader(HeaderId.SingleResponseMode, 0x01)
                 , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MAP-msg-listing")
@@ -35,7 +35,7 @@ namespace MyPhone.OBEX
                 );
 
             Console.WriteLine($"Sending GetMessageListing request ");
-            OBEXPacket resp = await RunObexRequest(packet);
+            ObexPacket resp = await RunObexRequest(packet);
 
             XmlDocument xml = new XmlDocument();
             xml.LoadXml(((Utf8StringValueHeader)resp.Headers[HeaderId.EndOfBody]).Value);
@@ -56,7 +56,7 @@ namespace MyPhone.OBEX
 
         public async Task<BMessage> GetMessage(string messageHandle)
         {
-            OBEXPacket packet = new OBEXPacket(
+            ObexPacket packet = new ObexPacket(
                 Opcode.GetAlter,
                 new AsciiStringValueHeader(HeaderId.Type, "x-bt/message"),
                 new UnicodeStringValueHeader(HeaderId.Name, messageHandle),
@@ -68,7 +68,7 @@ namespace MyPhone.OBEX
 
             Console.WriteLine("Sending GetMessage request ");
 
-            OBEXPacket resp = await RunObexRequest(packet);
+            ObexPacket resp = await RunObexRequest(packet);
             
             // "EndOfBody" has been copied to "Body" by ObexClient
             string bMsgStr = ((BodyHeader)resp.Headers[HeaderId.Body]).Value!;
@@ -99,7 +99,7 @@ namespace MyPhone.OBEX
         {
             byte flag = (byte)(enableNotification ? 1 : 0);
 
-            OBEXPacket packet = new OBEXPacket(
+            ObexPacket packet = new ObexPacket(
                 Opcode.PutAlter
                 , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration")
                 , new AppParamHeader(new AppParameter(AppParamTagId.NotificationStatus, flag))
@@ -112,7 +112,7 @@ namespace MyPhone.OBEX
 
         public async Task GetMASInstanceInformation()
         {
-            OBEXPacket packet = new OBEXPacket(
+            ObexPacket packet = new ObexPacket(
                 Opcode.Get
                 , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MASInstanceInformation")
                 , new AppParamHeader(new AppParameter(AppParamTagId.MASInstanceID, MAS_UUID))
@@ -124,7 +124,7 @@ namespace MyPhone.OBEX
 
         public async Task<List<string>> GetFolderList()
         {
-            OBEXPacket packet = new OBEXPacket(
+            ObexPacket packet = new ObexPacket(
                 Opcode.GetAlter
                 , new AsciiStringValueHeader(HeaderId.Type, "x-obex/folder-listing")
             //, new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, 100))
@@ -132,7 +132,7 @@ namespace MyPhone.OBEX
 
             Console.WriteLine("sending GetFolderList request");
 
-            OBEXPacket resp = await RunObexRequest(packet);
+            ObexPacket resp = await RunObexRequest(packet);
 
             XmlDocument xml = new XmlDocument();
             xml.LoadXml(((Utf8StringValueHeader)resp.Headers[HeaderId.EndOfBody]).Value);
@@ -154,7 +154,7 @@ namespace MyPhone.OBEX
 
         public async Task PushMessage()
         {
-            OBEXPacket packet = new OBEXPacket(
+            ObexPacket packet = new ObexPacket(
                 Opcode.PutAlter
                 , new AsciiStringValueHeader(HeaderId.Type, "x-bt/message")
                 , new AsciiStringValueHeader(HeaderId.Name, "telecom/msg/inbox")

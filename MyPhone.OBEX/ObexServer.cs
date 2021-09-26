@@ -24,7 +24,7 @@ namespace MyPhone.OBEX
         {
             Task.Run(async () =>
             {
-                OBEXPacket packet = await OBEXPacket.ReadFromStream(_reader, new OBEXConnectPacket());
+                ObexPacket packet = await ObexPacket.ReadFromStream(_reader, new ObexConnectPacket());
                 if (packet.Opcode != Opcode.Connect)
                 {
                     Console.WriteLine("Not support operation code: " + packet.Opcode);
@@ -40,9 +40,9 @@ namespace MyPhone.OBEX
                 {
                     _cts.Token.ThrowIfCancellationRequested();
 
-                    packet = await OBEXPacket.ReadFromStream(_reader);
+                    packet = await ObexPacket.ReadFromStream(_reader);
 
-                    OBEXPacket? response = OnClientRequest(packet);
+                    ObexPacket? response = OnClientRequest(packet);
                     if (response != null)
                     {
                         _writer.WriteBuffer(response.ToBuffer());
@@ -73,7 +73,7 @@ namespace MyPhone.OBEX
         /// <returns>
         /// The OBEX response packet. If the server doesn't know how to handle this client request, return null.
         /// </returns>
-        protected virtual OBEXPacket? OnClientRequest(OBEXPacket clientRequestPacket)
+        protected virtual ObexPacket? OnClientRequest(ObexPacket clientRequestPacket)
         {
             return null;
         }

@@ -6,7 +6,7 @@ using Windows.Storage.Streams;
 
 namespace MyPhone.OBEX
 {
-    public class OBEXPacket
+    public class ObexPacket
     {
         public Opcode Opcode { get; set; }
 
@@ -15,17 +15,17 @@ namespace MyPhone.OBEX
         /// </summary>
         public ushort PacketLength { get; set; }
 
-        public Dictionary<HeaderId, IOBEXHeader> Headers;
+        public Dictionary<HeaderId, IObexHeader> Headers;
 
-        public OBEXPacket(Opcode op)
+        public ObexPacket(Opcode op)
         {
             Opcode = op;
-            Headers = new Dictionary<HeaderId, IOBEXHeader>();
+            Headers = new Dictionary<HeaderId, IObexHeader>();
         }
 
-        public OBEXPacket(Opcode op, params IOBEXHeader[] headers) : this(op)
+        public ObexPacket(Opcode op, params IObexHeader[] headers) : this(op)
         {
-            foreach (IOBEXHeader h in headers)
+            foreach (IObexHeader h in headers)
             {
                 Headers[h.HeaderId] = h;
             }
@@ -52,7 +52,7 @@ namespace MyPhone.OBEX
 
             WriteExtraField(exFieldAndHeaderWriter);
 
-            foreach (IOBEXHeader header in Headers.Values)
+            foreach (IObexHeader header in Headers.Values)
             {
                 exFieldAndHeaderWriter.WriteByte((byte)header.HeaderId);
                 byte[]? content = header.ToBytes();
@@ -109,7 +109,7 @@ namespace MyPhone.OBEX
                 byte read = reader.ReadByte();
                 Console.WriteLine(read);
 
-                IOBEXHeader header = ObexHeaderFromByte(read);
+                IObexHeader header = ObexHeaderFromByte(read);
 
                 if (header != null)
                 {
@@ -163,7 +163,7 @@ namespace MyPhone.OBEX
         /// <param name="reader"></param>
         /// <param name="packet">Optional, if this parameter is not null, the data will be read into this parameter</param>
         /// <returns>Loaded OBEX packet</returns>
-        public async static Task<OBEXPacket> ReadFromStream(DataReader reader, OBEXPacket? packet = null)
+        public async static Task<ObexPacket> ReadFromStream(DataReader reader, ObexPacket? packet = null)
         {
             uint loaded = await reader.LoadAsync(1);
             if (loaded != 1)
@@ -174,7 +174,7 @@ namespace MyPhone.OBEX
             Opcode opcode = (Opcode)reader.ReadByte();
             if (packet == null)
             {
-                packet = new OBEXPacket(opcode);
+                packet = new ObexPacket(opcode);
             }
             else
             {
@@ -197,10 +197,10 @@ namespace MyPhone.OBEX
             return packet;
         }
 
-        public static IOBEXHeader ObexHeaderFromByte(byte b)
+        public static IObexHeader ObexHeaderFromByte(byte b)
         {
             HeaderId headerId = (HeaderId)b;
-            IOBEXHeader header;
+            IObexHeader header;
             switch (headerId)
             {
                 case HeaderId.ConnectionId:

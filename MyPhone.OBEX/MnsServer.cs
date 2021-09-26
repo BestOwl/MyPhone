@@ -24,7 +24,7 @@ namespace MyPhone.OBEX
         public delegate void MnsMessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);
         public event MnsMessageReceivedEventHandler? MessageReceived;
 
-        protected override OBEXPacket? OnClientRequest(OBEXPacket clientRequestPacket)
+        protected override ObexPacket? OnClientRequest(ObexPacket clientRequestPacket)
         {
             Console.WriteLine("Opcode: " + clientRequestPacket.Opcode);
 
@@ -48,7 +48,7 @@ namespace MyPhone.OBEX
                 string handle = doc.SelectSingleNode("/MAP-event-report/event/@handle").Value;
                 MessageReceived?.Invoke(this, new MessageReceivedEventArgs(handle));
 
-                return new OBEXPacket(Opcode.Success);
+                return new ObexPacket(Opcode.Success);
             }
 
             return null;

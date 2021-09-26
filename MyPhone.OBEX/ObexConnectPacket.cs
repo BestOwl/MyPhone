@@ -6,7 +6,7 @@ using Windows.Storage.Streams;
 
 namespace MyPhone.OBEX
 {
-    public class OBEXConnectPacket : OBEXPacket
+    public class ObexConnectPacket : ObexPacket
     {
         public static readonly byte[] MAS_UUID = new byte[] { 0xBB, 0x58, 0x2B, 0x40, 0x42, 0x0C, 0x11, 0xDB, 0xB0, 0xDE, 0x08, 0x00, 0x20, 0x0C, 0x9A, 0x66 };
 
@@ -23,10 +23,10 @@ namespace MyPhone.OBEX
 
         public bool Disconnect { get; set; } = false;
 
-        public OBEXConnectPacket() : this(false)
+        public ObexConnectPacket() : this(false)
         { }
 
-        public OBEXConnectPacket(bool disconnect) : base(disconnect ? Opcode.Disconnect : Opcode.Connect)
+        public ObexConnectPacket(bool disconnect) : base(disconnect ? Opcode.Disconnect : Opcode.Connect)
         {
             if (disconnect)
                 Opcode = Opcode.Disconnect;

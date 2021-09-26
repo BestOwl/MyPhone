@@ -29,7 +29,7 @@ namespace MyPhone.OBEX
                 throw new InvalidOperationException("ObexClient is already connected to a ObexServer");
             }
 
-            OBEXConnectPacket packet = new OBEXConnectPacket();
+            ObexConnectPacket packet = new ObexConnectPacket();
             var buf = packet.ToBuffer();
 
             Console.WriteLine("Sending OBEX Connection request to server:");
@@ -40,7 +40,7 @@ namespace MyPhone.OBEX
             await _writer.StoreAsync();
 
             Console.WriteLine("Waiting reply packet...");
-            OBEXPacket response = await OBEXPacket.ReadFromStream(_reader, packet);
+            ObexPacket response = await ObexPacket.ReadFromStream(_reader, packet);
 
             var bytes = response.ToBuffer().ToArray();
             Console.WriteLine("Reply packet:");
@@ -67,7 +67,7 @@ namespace MyPhone.OBEX
         /// <param name="req">The request packet</param>
         /// <returns>Response packet. The resposne packet is null if the MSE did not send back any response, or the response is corrupted</returns>
         /// <exception cref="ObexRequestException"> due to an underlying issue such as connection loss, invalid server response</exception>
-        public async Task<OBEXPacket> RunObexRequest(OBEXPacket req)
+        public async Task<ObexPacket> RunObexRequest(ObexPacket req)
         {
             if (!Conntected)
             {
@@ -75,7 +75,7 @@ namespace MyPhone.OBEX
             }
 
             Opcode requestOpcode = req.Opcode;
-            OBEXPacket? response = null;
+            ObexPacket? response = null;
             int c = 0;
 
             do
@@ -88,8 +88,8 @@ namespace MyPhone.OBEX
                 _writer.WriteBuffer(buf);
                 await _writer.StoreAsync();
 
-                OBEXPacket subResponse;
-                subResponse = await OBEXPacket.ReadFromStream(_reader);
+                ObexPacket subResponse;
+                subResponse = await ObexPacket.ReadFromStream(_reader);
 
                 var bytes = subResponse.ToBuffer().ToArray();
                 Console.WriteLine("Reply packet:");
@@ -132,7 +132,7 @@ namespace MyPhone.OBEX
                         throw new ObexRequestException($"The {requestOpcode} request failed with opcode ${subResponse.Opcode}");
                 }
                 
-                req = new OBEXPacket(requestOpcode, _connectionIdHeader!);
+                req = new ObexPacket(requestOpcode, _connectionIdHeader!);
             } while (c < 10);
       
             Console.WriteLine("Maultiple GET over 10 times, abort!");

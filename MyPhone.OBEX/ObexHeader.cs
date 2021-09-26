@@ -6,7 +6,7 @@ using Windows.Storage.Streams;
 
 namespace MyPhone.OBEX
 {
-    public interface IOBEXHeader
+    public interface IObexHeader
     {
         HeaderId HeaderId { get; }
 
@@ -26,16 +26,16 @@ namespace MyPhone.OBEX
 
     }
 
-    public abstract class OBEXHeader<T> : IOBEXHeader
+    public abstract class ObexHeader<T> : IObexHeader
     {
         public HeaderId HeaderId { get; protected set; }
 
-        protected OBEXHeader(HeaderId headerId) 
+        protected ObexHeader(HeaderId headerId) 
         {
             HeaderId = headerId;
         }
 
-        protected OBEXHeader(HeaderId headerId, T value) : this(headerId)
+        protected ObexHeader(HeaderId headerId, T value) : this(headerId)
         {
             Value = value;
         }
@@ -53,7 +53,7 @@ namespace MyPhone.OBEX
 
     }
 
-    public class Int32ValueHeader : OBEXHeader<int>
+    public class Int32ValueHeader : ObexHeader<int>
     {
         public Int32ValueHeader(HeaderId headerId) : base(headerId) { }
 
@@ -93,7 +93,7 @@ namespace MyPhone.OBEX
         }
     }
 
-    public class AsciiStringValueHeader : OBEXHeader<string>
+    public class AsciiStringValueHeader : ObexHeader<string>
     {
         public AsciiStringValueHeader(HeaderId headerId) : base(headerId) { }
 
@@ -117,7 +117,7 @@ namespace MyPhone.OBEX
         }
     }
 
-    public class BodyHeader : OBEXHeader<string>
+    public class BodyHeader : ObexHeader<string>
     {
         public BodyHeader(HeaderId headerId) : base(headerId) { }
 
@@ -140,7 +140,7 @@ namespace MyPhone.OBEX
         }
     }
 
-    public class Utf8StringValueHeader : OBEXHeader<string>
+    public class Utf8StringValueHeader : ObexHeader<string>
     {
         public Utf8StringValueHeader(HeaderId headerId) : base(headerId) { }
 
@@ -165,7 +165,7 @@ namespace MyPhone.OBEX
         }
     }
 
-    public class UnicodeStringValueHeader : OBEXHeader<string>
+    public class UnicodeStringValueHeader : ObexHeader<string>
     {
         public UnicodeStringValueHeader(HeaderId headerId) : base(headerId) { }
 
@@ -191,7 +191,7 @@ namespace MyPhone.OBEX
         }
     }
 
-    public class BytesHeader : OBEXHeader<byte[]>
+    public class BytesHeader : ObexHeader<byte[]>
     {
         public BytesHeader(HeaderId headerId) : base(headerId) { }
 

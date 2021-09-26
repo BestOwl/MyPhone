@@ -6,7 +6,7 @@ using Windows.Storage.Streams;
 
 namespace MyPhone.OBEX
 {
-    public class AppParamHeader : IOBEXHeader
+    public class AppParamHeader : IObexHeader
     {
 
         public HeaderId HeaderId => HeaderId.ApplicationParameters;
