@@ -16,6 +16,8 @@ namespace MyPhone.OBEX
 
         public Guid ServiceUuid { get; set; }
 
+        public ObexServiceUuid TargetObexService { get; set; }
+
         public bool Connected
         {
             get => _socket != null;
@@ -34,9 +36,10 @@ namespace MyPhone.OBEX
         //    -  the SDP Attribute Type value in the most significant 5 bits.
         public const byte _sdpServiceNameAttributeType = (4 << 3) | 5;
 
-        public BluetoothObexClientSession(BluetoothDevice bluetoothDevice, Guid serviceUuid)
+        public BluetoothObexClientSession(BluetoothDevice bluetoothDevice, Guid rfcommServiceUuid, ObexServiceUuid targetObexService)
         {
-            ServiceUuid = serviceUuid;
+            ServiceUuid = rfcommServiceUuid;
+            TargetObexService = targetObexService;
             _device = bluetoothDevice;
         }
 
@@ -105,11 +108,15 @@ namespace MyPhone.OBEX
             ObexClient = CreateObexClient(socket);
             try
             {
-                await ObexClient.Connect();
+                await ObexClient.Connect(TargetObexService);
             }
             catch (ObexRequestException ex)
             {
-                throw new BluetoothObexSessionException($"Failed to connect to service: {ServiceUuid}");
+                if (ex.Opcode == Opcode.OBEX_UNAUTHORIZED)
+                {
+                    throw new BluetoothObexSessionException($"Connected to OBEX server successfully, but the server refuse to provide service because you are not a authorized user.", ex);
+                }
+                throw new BluetoothObexSessionException($"Failed to connect to service: {ServiceUuid}. {ex.Message}", ex);
             }
             _socket = socket;
         }

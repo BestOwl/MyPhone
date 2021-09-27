@@ -44,7 +44,7 @@ namespace MyPhone.Demo
             DrawLine();
             try
             {
-                await mapClient.MasClient.Connect();
+                await mapClient.MasClient.Connect(ObexServiceUuid.MessageAccess);
             }
             catch (ObexRequestException ex)
             {

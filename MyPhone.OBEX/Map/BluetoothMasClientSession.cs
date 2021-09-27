@@ -11,7 +11,7 @@ namespace MyPhone.OBEX.Map
     {
         public static readonly Guid MAP_Id = new Guid("00001132-0000-1000-8000-00805f9b34fb");
 
-        public BluetoothMasClientSession(BluetoothDevice bluetoothDevice) : base(bluetoothDevice, MAP_Id)
+        public BluetoothMasClientSession(BluetoothDevice bluetoothDevice) : base(bluetoothDevice, MAP_Id, ObexServiceUuid.MessageAccess)
         {
         }
 

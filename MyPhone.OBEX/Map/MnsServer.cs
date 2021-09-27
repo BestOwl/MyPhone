@@ -18,7 +18,7 @@ namespace MyPhone.OBEX
 
     public class MnsServer : ObexServer
     {
-        public MnsServer(IInputStream inputStream, IOutputStream outputStream) : base(inputStream, outputStream)
+        public MnsServer(IInputStream inputStream, IOutputStream outputStream) : base(inputStream, outputStream, ObexServiceUuid.MessageNotification)
         { }
 
         public delegate void MnsMessageReceivedEventHandler(object sender, MessageReceivedEventArgs e);

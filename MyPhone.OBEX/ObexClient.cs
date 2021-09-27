@@ -25,16 +25,17 @@ namespace MyPhone.OBEX
         /// <summary>
         /// Send OBEX Connect packet to the server.
         /// </summary>
+        /// <param name="targetUuid">A 16-length byte array indicates the UUID of the target service.</param>
         /// <exception cref="InvalidOperationException">The Connect method can call only once and it is already called before.</exception>
         /// <exception cref="ObexRequestException">The request failed due to an underlying issue such as connection issue, or the server reply with a invalid response</exception>
-        public async Task Connect()
+        public async Task Connect(ObexServiceUuid targetService)
         {
             if (Conntected)
             {
                 throw new InvalidOperationException("ObexClient is already connected to a ObexServer");
             }
 
-            ObexConnectPacket packet = new ObexConnectPacket();
+            ObexConnectPacket packet = new ObexConnectPacket(targetService);
             var buf = packet.ToBuffer();
 
             Console.WriteLine("Sending OBEX Connection request to server:");
@@ -51,8 +52,17 @@ namespace MyPhone.OBEX
             Console.WriteLine("Reply packet:");
             Console.WriteLine(BitConverter.ToString(bytes));
             Console.WriteLine($"ResponseCode: {response.Opcode}");
+            response.PrintHeaders();
 
-            _connectionIdHeader = (Int32ValueHeader)response.Headers[HeaderId.ConnectionId];
+            if (response.Opcode != Opcode.Success && response.Opcode != Opcode.SuccessAlt)
+            {
+                throw new ObexRequestException($"Unable to connect to the target OBEX service.", response.Opcode);
+            }
+
+            if (response.Headers.ContainsKey(HeaderId.ConnectionId))
+            {
+                _connectionIdHeader = (Int32ValueHeader)response.Headers[HeaderId.ConnectionId];
+            }
             Conntected = true;
         }
 
@@ -86,7 +96,10 @@ namespace MyPhone.OBEX
             do
             {
                 Console.WriteLine($"Sending request packet: {++c}");
-                req.Headers[HeaderId.ConnectionId] = _connectionIdHeader!;
+                if (_connectionIdHeader != null)
+                {
+                    req.Headers[HeaderId.ConnectionId] = _connectionIdHeader;
+                }
                 var buf = req.ToBuffer();
                 Console.WriteLine(BitConverter.ToString(buf.ToArray()));
                 Console.WriteLine("Opcode: " + req.Opcode);
@@ -131,14 +144,21 @@ namespace MyPhone.OBEX
                             {
                                 ((BodyHeader)response.Headers[HeaderId.Body]).Value += ((BodyHeader)subResponse.Headers[HeaderId.Body]).Value;
                             }
+                            else
+                            {
+                                if (subResponse.Headers.ContainsKey(HeaderId.Body))
+                                {
+                                    response.Headers[HeaderId.Body] = subResponse.Headers[HeaderId.Body];
+                                }
+                            }
                         }
                         break;
                     default:
-                        throw new ObexRequestException($"The {requestOpcode} request failed with opcode ${subResponse.Opcode}");
+                        throw new ObexRequestException($"The {requestOpcode} request failed with opcode {subResponse.Opcode}");
                 }
-                
+
                 req = new ObexPacket(requestOpcode, _connectionIdHeader!);
-            } while (c < 10);
+            } while (true);
       
             Console.WriteLine("Maultiple GET over 10 times, abort!");
             return response;
