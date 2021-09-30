@@ -1,4 +1,4 @@
-﻿using GoodTimeStudio.MyPhone.Models;
+﻿using GoodTimeStudio.MyPhone.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

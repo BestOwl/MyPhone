@@ -129,10 +129,10 @@
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Models\BindableBase.cs" />
-    <Compile Include="Models\BluetoothDeviceListViewModel.cs" />
-    <Compile Include="Models\CallPageViewModel.cs" />
-    <Compile Include="Models\OOBEPageViewModel.cs" />
+    <Compile Include="ViewModels\BindableBase.cs" />
+    <Compile Include="ViewModels\BluetoothDeviceListViewModel.cs" />
+    <Compile Include="ViewModels\CallPageViewModel.cs" />
+    <Compile Include="ViewModels\OOBEPageViewModel.cs" />
     <Compile Include="OOBEPage.xaml.cs">
       <DependentUpon>OOBEPage.xaml</DependentUpon>
     </Compile>

@@ -7,7 +7,7 @@ using Windows.ApplicationModel.Calls;
 using Windows.Devices.Enumeration;
 using Windows.UI.Core;
 
-namespace GoodTimeStudio.MyPhone.Models
+namespace GoodTimeStudio.MyPhone.ViewModels
 {
     public class BluetoothDeviceListViewModel : BindableBase
     {

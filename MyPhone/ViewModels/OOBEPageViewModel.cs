@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
 
-namespace GoodTimeStudio.MyPhone.Models
+namespace GoodTimeStudio.MyPhone.ViewModels
 {
     public class OOBEPageViewModel : BindableBase
     {

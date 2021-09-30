@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.Calls;
 using Windows.Devices.Enumeration;
 
-namespace GoodTimeStudio.MyPhone.Models
+namespace GoodTimeStudio.MyPhone.ViewModels
 {
     public class TestPageViewModel : BindableBase
     {

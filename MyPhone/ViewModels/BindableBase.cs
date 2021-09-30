@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GoodTimeStudio.MyPhone.Models
+namespace GoodTimeStudio.MyPhone.ViewModels
 {
     public class BindableBase : INotifyPropertyChanged
     {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.Calls;
 using Windows.UI.Xaml;
 
-namespace GoodTimeStudio.MyPhone.Models
+namespace GoodTimeStudio.MyPhone.ViewModels
 {
     public class CallPageViewModel : BindableBase
     {
