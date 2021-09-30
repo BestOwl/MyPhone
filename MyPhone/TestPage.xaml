@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:call="using:Windows.ApplicationModel.Calls"
     xmlns:device="using:Windows.Devices.Enumeration"
-    xmlns:model="using:GoodTimeStudio.MyPhone.Models"
+    xmlns:model="using:GoodTimeStudio.MyPhone.ViewModels"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
