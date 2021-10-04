@@ -30,7 +30,6 @@ namespace GoodTimeStudio.MyPhone
     /// </summary>
     sealed partial class App : Application
     {
-        private ApplicationViewTitleBar _TitleBar;
         private Frame rootFrame;
         
         private static App Instance;
@@ -93,7 +92,6 @@ namespace GoodTimeStudio.MyPhone
         private async Task InitApp(IActivatedEventArgs e)
         {
             InitAppPage(e);
-            SetupTitleBar();
             await DeviceManager.Init();
             await EnsureTrayAppIsRunning();
         }
@@ -155,39 +153,6 @@ namespace GoodTimeStudio.MyPhone
 
             // 确保当前窗口处于活动状态
             Window.Current.Activate();
-        }
-
-        private void SetupTitleBar()
-        {
-            //draw into the title bar
-            CoreApplication.GetCurrentView().TitleBar.ExtendViewIntoTitleBar = true;
-
-            //remove the solid-colored backgrounds behind the caption controls and system back button
-            _TitleBar = ApplicationView.GetForCurrentView().TitleBar;
-            _TitleBar.ButtonBackgroundColor = Colors.Transparent;
-            _TitleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
-
-            var uiSettings = new UISettings();
-            uiSettings.ColorValuesChanged += UiSettings_ColorValuesChanged;
-            SetupSystemCaptionColor(uiSettings);
-        }
-
-        private void SetupSystemCaptionColor(UISettings settings)
-        {
-            var color = settings.GetColorValue(UIColorType.Background);
-            if (color == Colors.White)
-            {
-                _TitleBar.ButtonForegroundColor = Colors.Black;
-            }
-            else
-            {
-                _TitleBar.ButtonForegroundColor = Colors.White;
-            }
-        }
-
-        private void UiSettings_ColorValuesChanged(UISettings sender, object args)
-        {
-            SetupSystemCaptionColor(sender);
         }
 
         /// <summary>
