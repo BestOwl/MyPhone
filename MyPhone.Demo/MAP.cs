@@ -10,12 +10,17 @@ using Windows.Storage.Streams;
 using System.Runtime.InteropServices.WindowsRuntime;
 using MyPhone.OBEX;
 using MixERP.Net.VCards.Models;
+using MyPhone.OBEX.Map;
+using System.Collections.Concurrent;
 
 namespace MyPhone.Demo
 {
     class MAP
     {
-        
+        static BluetoothMasClientSession MasClientSession;
+        static BluetoothMnsServerSession MnsServerSession;
+        static ConcurrentQueue<string> NewMessageQueue = new ConcurrentQueue<string>();
+
         public async static Task Main(string[] args)
         {
         select:
@@ -27,39 +32,30 @@ namespace MyPhone.Demo
             else if (deviceId == "q")
                 return;
 
-
-            MapClient mapClient = new MapClient();
-            bool success;
-
-
-            DrawLine();
-            success = await mapClient.ClientBTConnect(deviceId);
-            Console.WriteLine($"ClientBTConnect success is: {success}");
-            if (!success)
+            try
             {
-                Console.WriteLine("Not able to locally connect to the selected device BT hardware id.");
+                DrawLine();
+                BluetoothDevice BTDevice = await BluetoothDevice.FromIdAsync(deviceId);
+                MasClientSession = new BluetoothMasClientSession(BTDevice);
+                await MasClientSession.Connect();
+                Console.WriteLine($"MAS service connected");
+
+                DrawLine();
+                MnsServerSession = new BluetoothMnsServerSession();
+                await MnsServerSession.StartServer();
+                Console.WriteLine("MNS server started");
+            }
+            catch (BluetoothObexSessionException ex)
+            {
+                Console.WriteLine(ex.Message);
                 goto restart;
             }
 
             DrawLine();
             try
             {
-                await mapClient.MasClient.Connect(ObexServiceUuid.MessageAccess);
-            }
-            catch (ObexRequestException ex)
-            {
-                Console.WriteLine("Not able to remotely connect to the selected device based on MAS protocol. " + ex.Message);
-                goto restart;
-            }
-            Console.WriteLine($"MAS service connected");
-
-            DrawLine();
-            await mapClient.BuildPcMns();
-
-            DrawLine();
-            try
-            {
-                await mapClient.MasClient.SetNotificationRegistration(true);
+                await MasClientSession.ObexClient.SetNotificationRegistration(true);
+                MnsServerSession.ClientAccepted += MnsServerSession_ClientAccepted;
             }
             catch (ObexRequestException ex)
             {
@@ -68,19 +64,27 @@ namespace MyPhone.Demo
             }
             Console.WriteLine($"RemoteNotificationRegister success");
 
-
             Console.WriteLine();
             DrawLine();
-            Console.WriteLine("Message Notification Service established, waiting for event");
+            Console.WriteLine("Message Access Service and Message Notification Service established, waiting for event");
             Console.WriteLine("Press any key to abort");
             DrawLine();
 
             while (!Console.KeyAvailable)
             {
-                if (mapClient.RequestQueue.TryDequeue(out string handle))
+                if (NewMessageQueue.TryDequeue(out string handle))
                 {
                     Console.WriteLine("event received");
-                    BMessage bMsg = await mapClient.MasClient.GetMessage(handle);
+                    BMessage bMsg;
+                    try
+                    {
+                        bMsg = await MasClientSession.ObexClient.GetMessage(handle);
+                    }
+                    catch (ObexRequestException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                        goto restart;
+                    }
 
                     DrawLine();
                     Console.WriteLine("New message received");
@@ -117,10 +121,10 @@ namespace MyPhone.Demo
             Console.WriteLine("Enter q to exit or other keys to try again...");
             var c = Console.ReadKey();
 
-            if (mapClient.BT_MNS_Provider != null)
-                mapClient.BT_MNS_Provider.StopAdvertising();
-
-            mapClient.Disconnect("Task done. Disconnect device. ");
+            if (MnsServerSession != null)
+                MnsServerSession.Dispose();
+            if (MasClientSession != null)
+                MasClientSession.Dispose();
 
             if (c.KeyChar.Equals('q'))
             {
@@ -130,6 +134,16 @@ namespace MyPhone.Demo
             {
                 goto select;
             }
+        }
+
+        private static void MnsServerSession_ClientAccepted(BluetoothObexServerSession<MnsServer> sender, BluetoothObexServerSessionClientAcceptedEventArgs<MnsServer> e)
+        {
+            e.ObexServer.MessageReceived += ObexServer_MessageReceived;
+        }
+
+        private static void ObexServer_MessageReceived(object sender, MessageReceivedEventArgs e)
+        {
+            NewMessageQueue.Enqueue(e.MessageHandle);
         }
 
         private static void DrawLine()

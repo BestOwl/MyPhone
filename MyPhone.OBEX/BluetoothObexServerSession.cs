@@ -8,8 +8,24 @@ using Windows.Networking.Sockets;
 
 namespace MyPhone.OBEX
 {
+    public class BluetoothObexServerSessionClientAcceptedEventArgs<T> where T : ObexServer
+    {
+        public HostName ClientHostName { get; set; }
+
+        public T ObexServer { get; set; }
+
+        public BluetoothObexServerSessionClientAcceptedEventArgs(HostName clientHostName, T obexServer)
+        {
+            ClientHostName = clientHostName ?? throw new ArgumentNullException(nameof(clientHostName));
+            ObexServer = obexServer ?? throw new ArgumentNullException(nameof(obexServer));
+        }
+    }
+
     public abstract class BluetoothObexServerSession<T> : IDisposable where T : ObexServer
     {
+        public delegate void BluetoothObexServerSessionClientAcceptedEventHandler(
+            BluetoothObexServerSession<T> sender, BluetoothObexServerSessionClientAcceptedEventArgs<T> e);
+        public event BluetoothObexServerSessionClientAcceptedEventHandler? ClientAccepted;
 
         public Guid ServiceUuid { get; set; }
 
@@ -49,6 +65,8 @@ namespace MyPhone.OBEX
             socketListener.ConnectionReceived += SocketListener_ConnectionReceived;
 
             _serviceProvider = await RfcommServiceProvider.CreateAsync(RfcommServiceId.FromUuid(ServiceUuid));
+            await socketListener.BindServiceNameAsync(_serviceProvider.ServiceId.AsString(), 
+                SocketProtectionLevel.BluetoothEncryptionWithAuthentication);
             _serviceProvider.StartAdvertising(socketListener);
 
             _socketListener = socketListener;
@@ -60,7 +78,10 @@ namespace MyPhone.OBEX
             {
                 _serviceProvider!.StopAdvertising();
             }
-            _connections[args.Socket.Information.RemoteAddress] = StartObexServer(args.Socket);
+            T obexServer = StartObexServer(args.Socket);
+            _connections[args.Socket.Information.RemoteAddress] = obexServer;
+            ClientAccepted?.Invoke(this, new BluetoothObexServerSessionClientAcceptedEventArgs<T>(
+                args.Socket.Information.RemoteAddress, obexServer));
         }
 
         protected abstract T StartObexServer(StreamSocket clientSocket);
