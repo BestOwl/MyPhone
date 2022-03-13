@@ -1,5 +1,4 @@
-﻿using GoodTimeStudio.MyPhone.ViewModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -48,18 +47,18 @@ namespace GoodTimeStudio.MyPhone
                 return false;
             }
 
-            string result = await App.SendRequest("goodtimestudio.myphone.trayapp://connect/" + deviceInfo.Id);
-            if (result.StartsWith("goodtimestudio.myphone://connect/"))
-            {
-                if (result.Substring(result.LastIndexOf('/') + 1) == "true")
-                {
-                    DeviceInfo = deviceInfo;
-                    var settings = ApplicationData.Current.LocalSettings.Values;
-                    settings["deviceId"] = deviceInfo.Id;
-                    LineWatcher.Start();
-                    return true;
-                }
-            }
+            //string result = await App.SendRequest("goodtimestudio.myphone.trayapp://connect/" + deviceInfo.Id);
+            //if (result.StartsWith("goodtimestudio.myphone://connect/"))
+            //{
+            //    if (result.Substring(result.LastIndexOf('/') + 1) == "true")
+            //    {
+            //        DeviceInfo = deviceInfo;
+            //        var settings = ApplicationData.Current.LocalSettings.Values;
+            //        settings["deviceId"] = deviceInfo.Id;
+            //        LineWatcher.Start();
+            //        return true;
+            //    }
+            //}
             return false;
         }
 

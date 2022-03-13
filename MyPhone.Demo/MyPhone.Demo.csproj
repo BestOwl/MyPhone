@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <StartupObject>MyPhone.Demo.PBAP</StartupObject>
+    <RootNamespace>GoodTimeStudio.MyPhone.Demo</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
