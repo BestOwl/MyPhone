@@ -1,0 +1,15 @@
+﻿ExtractIcon
+GetModuleHandle
+
+// Windowing
+SendMessage
+SetWindowSubclass
+DefSubclassProc
+SetForegroundWindow
+
+// NotifyIcon and ContextMenu
+Shell_NotifyIcon
+CreatePopupMenu
+TrackPopupMenuEx
+InsertMenuItem
+SetMenu
