@@ -1,4 +1,8 @@
-﻿using Microsoft.UI.Xaml;
+﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using GoodTimeStudio.MyPhone.RootPages.OOBE;
+using GoodTimeStudio.MyPhone.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml;
 
 
 // To learn more about WinUI, the WinUI project structure,
@@ -29,12 +33,17 @@ namespace GoodTimeStudio.MyPhone
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+            // Register services
+            Ioc.Default.ConfigureServices(new ServiceCollection()
+                .AddSingleton<ISettingsService, SettingsService>()
+                .AddSingleton<IDeviceService, DeviceService>()
+                .AddSingleton<IAppDispatcherService, AppDispatcherService>()
+                .AddTransient<IDevicePairDialogService, DevicePairDialogService>()
+                .AddTransient<OobePageViewModel>()
+                .BuildServiceProvider());
+
             m_window = new MainWindow();
             m_window.Activate();
-
-
-
-            
         }
 
         

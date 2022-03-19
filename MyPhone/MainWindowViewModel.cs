@@ -10,30 +10,8 @@ namespace GoodTimeStudio.MyPhone
 {
     public partial class MainWindowViewModel : ObservableObject
     {
-        [ObservableProperty]
-        private ObservableCollection<NavigationMenu> navigationMenus;
-
-        public MainWindowViewModel()
-        {
-            navigationMenus = new ObservableCollection<NavigationMenu>()
-            {
-                new NavigationMenu(name:"Call", glyphIcon: "\uE717"),
-                new NavigationMenu(name:"Message", glyphIcon: "\uE8BD"),
-                new NavigationMenu(name:"Debug", glyphIcon: "\uEBE8"),
-            };
-        }
+        
     }
 
-    public class NavigationMenu
-    {
-        public string Name { get; set; }
-
-        public string GlyphIcon { get; set; }
-
-        public NavigationMenu(string name, string glyphIcon)
-        {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            GlyphIcon = glyphIcon ?? throw new ArgumentNullException(nameof(glyphIcon));
-        }
-    }
+    
 }

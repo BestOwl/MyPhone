@@ -6,6 +6,7 @@ SendMessage
 SetWindowSubclass
 DefSubclassProc
 SetForegroundWindow
+GetDpiForWindow
 
 // NotifyIcon and ContextMenu
 Shell_NotifyIcon

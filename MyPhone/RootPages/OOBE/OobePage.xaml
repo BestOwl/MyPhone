@@ -1,0 +1,83 @@
+﻿<Page
+    x:Class="GoodTimeStudio.MyPhone.RootPages.OOBE.OobePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:GoodTimeStudio.MyPhone.RootPages.OOBE"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:GoodTimeStudio.MyPhone.Controls"
+    xmlns:convert="using:CommunityToolkit.WinUI.UI.Converters"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <convert:BoolNegationConverter x:Key="BoolNegation" />
+        <convert:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+        <convert:BoolToObjectConverter x:Key="BoolNegationToVisibility"
+                                       TrueValue="Collapsed" 
+                                       FalseValue="Visible" />
+    </Page.Resources>
+    <Grid>
+        <StackPanel MinWidth="350" MaxWidth="450" Spacing="10"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+            <TextBlock Style="{StaticResource HeaderTextBlockStyle}"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Text="Welcome to&#x0a;My Phone Assistant" 
+                       TextAlignment="Center" />
+            <TextBlock Text="Make phone calls and send/receive SMS on your PC"
+                       Style="{StaticResource BaseTextBlockStyle}"
+                       TextAlignment="Center"/>
+
+            <TextBlock Text="Before we get started, we need to connect to your phone"
+                       TextAlignment="Center"
+                       Style="{ThemeResource TitleTextBlockStyle}" Margin="0,20,0,10"/>
+
+            <Border BorderThickness="1" 
+                    BorderBrush="{StaticResource SystemControlTransientBorderBrush}" 
+                    Padding="20"
+                    CornerRadius="10"
+                    Background="{ThemeResource SystemControlTransientBackgroundBrush}">
+                <controls:BluetoothDeviceListView x:Name="bluetoothDeviceList" 
+                                                  MaxHeight="250"
+                                                  SelectedDevice="{x:Bind ViewModel.SelectedDevice, Mode=TwoWay}"/>
+            </Border>
+
+
+            <Button Width="150" Margin="0,10,0,0"
+                    Style="{StaticResource AccentButtonStyle}"
+                    HorizontalAlignment="Center"
+                    Command="{x:Bind ViewModel.DeviceConnectCommand}"
+                    IsEnabled="{x:Bind ViewModel.EnableConnectButton, Mode=OneWay}">
+                <Grid>
+                    <TextBlock Text="Connect" 
+                               Visibility="{x:Bind ViewModel.Connecting, Mode=OneWay, Converter={StaticResource BoolNegationToVisibility}}"/>
+                    <ProgressRing Foreground="White" Height="20" Width="20"
+                                  Visibility="{x:Bind ViewModel.Connecting, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"/>
+                </Grid>
+            </Button>
+
+            <Border CornerRadius="10" 
+                    Background="#FFEBB5" 
+                    Padding="20, 5, 10, 5" 
+                    HorizontalAlignment="Center"
+                    Visibility="{x:Bind ViewModel.ErrorTextVisbility, Mode=OneWay}">
+                <Grid Width="275">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="20" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon FontFamily="{ThemeResource SymbolThemeFontFamily}" 
+                          Glyph="&#xEB90;" 
+                          Foreground="Red" />
+                    <TextBlock Grid.Column="2" 
+                               TextWrapping="WrapWholeWords"
+                               Text="{x:Bind ViewModel.ErrorText, Mode=OneWay}"/>
+                </Grid>
+                
+            </Border>
+
+        </StackPanel>
+    </Grid>
+</Page>
