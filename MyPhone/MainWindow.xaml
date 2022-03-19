@@ -8,7 +8,9 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     mc:Ignorable="d">
 
-    <Grid x:Name="windowRoot" x:FieldModifier="private">
+    <Grid x:Name="windowRoot" 
+          x:FieldModifier="private"
+          Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -19,7 +21,7 @@
                 Background="Transparent"
                 Height="40"
                 Margin="48,0,120,0">
-            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+            <StackPanel Orientation="Horizontal">
                 <Image x:Name="AppFontIcon"
                     HorizontalAlignment="Left" 
                     VerticalAlignment="Center"

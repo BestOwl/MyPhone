@@ -52,8 +52,8 @@ namespace GoodTimeStudio.MyPhone
 
             // Hide default title bar.
             ExtendsContentIntoTitleBar = true;
-            //SetTitleBar(AppTitleBar); // Set XAML element as a draggable region.
-            
+            SetTitleBar(AppTitleBar); // Set XAML element as a draggable region.
+
             //Register a handler for when the window changes focus
             Activated += MainWindow_Activated;
 
