@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyPhone.OBEX", "MyPhone.OBE
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyPhone", "MyPhone\MyPhone.csproj", "{62469C1E-8526-46F2-863F-32091ADC9A70}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyPhone.IntegrationTest", "MyPhone.IntegrationTest\MyPhone.IntegrationTest.csproj", "{4877115A-BBB6-4957-920B-38739F68E0D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,22 @@ Global
 		{62469C1E-8526-46F2-863F-32091ADC9A70}.Release|x86.ActiveCfg = Release|x86
 		{62469C1E-8526-46F2-863F-32091ADC9A70}.Release|x86.Build.0 = Release|x86
 		{62469C1E-8526-46F2-863F-32091ADC9A70}.Release|x86.Deploy.0 = Release|x86
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Debug|x64.Build.0 = Debug|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Debug|x86.Build.0 = Debug|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Release|ARM64.Build.0 = Release|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Release|x64.ActiveCfg = Release|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Release|x64.Build.0 = Release|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Release|x86.ActiveCfg = Release|Any CPU
+		{4877115A-BBB6-4957-920B-38739F68E0D5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
