@@ -66,9 +66,9 @@ namespace GoodTimeStudio.MyPhone.Pages.Diagnosis
             watch.Start();
         }
 
-        private async void _DeviceWatcher_Removed(DeviceWatcher sender, DeviceInformationUpdate args)
+        private void _DeviceWatcher_Removed(DeviceWatcher sender, DeviceInformationUpdate args)
         {
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, () =>
             {
                 var de = ViewModel.PLTDevices.Where(d => d.Id == args.Id).FirstOrDefault();
                 if (de != null)
@@ -78,17 +78,17 @@ namespace GoodTimeStudio.MyPhone.Pages.Diagnosis
             });
         }
 
-        private async void _DeviceWatcher_Added(DeviceWatcher sender, DeviceInformation args)
+        private void _DeviceWatcher_Added(DeviceWatcher sender, DeviceInformation args)
         {
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, () =>
             {
                 ViewModel.PLTDevices.Add(args);
             });
         }
 
-        private async void _watcher_LineAdded(PhoneLineWatcher sender, PhoneLineWatcherEventArgs args)
+        private void _watcher_LineAdded(PhoneLineWatcher sender, PhoneLineWatcherEventArgs args)
         {
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, () =>
             {
                 ViewModel.PhoneLines.Add(args.LineId);
             });
