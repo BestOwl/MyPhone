@@ -56,7 +56,7 @@ namespace GoodTimeStudio.MyPhone.RootPages.OOBE
             ErrorText = null;
             try
             {
-                if (await deviceService.Connect(selectedDevice!.DeviceInformation))
+                if (await deviceService.ConnectAsync(selectedDevice!.DeviceInformation))
                 {
                     settingsService.SetValue(settingsService.KeyOobeIsCompleted, true);
                     OobeCompletedEvent?.Invoke(this, new EventArgs());

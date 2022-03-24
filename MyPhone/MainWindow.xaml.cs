@@ -38,16 +38,18 @@ namespace GoodTimeStudio.MyPhone
         private NotifyIcon NotifyIcon;
         private DestroyIconSafeHandle _hIcon; // TODO: destory icon on exit
 
-        private readonly ISettingsService SettingsService;
+        private readonly IDeviceService deviceService;
+        private readonly ISettingsService settingsService;
         private bool OobeCompleted;
 
-        public MainWindow()
+        public MainWindow(IDeviceService deviceService, ISettingsService settingsService)
         {
             Instance = this;
             this.InitializeComponent();
-            SettingsService = Ioc.Default.GetRequiredService<ISettingsService>();
+            this.deviceService = deviceService;
+            this.settingsService = settingsService;
             Title = AppTitleDisplayName;
-            OobeCompleted = SettingsService.GetValue<bool>(SettingsService.KeyOobeIsCompleted);
+            OobeCompleted = settingsService.GetValue<bool>(settingsService.KeyOobeIsCompleted);
 
 
             // Hide default title bar.
@@ -97,8 +99,15 @@ namespace GoodTimeStudio.MyPhone
 
             NotifyIcon = new NotifyIcon(WindowHandle, unsafe_hIcon);
 
-            if (OobeCompleted)
+            OnLaunch();
+        }
+
+        private async void OnLaunch()
+        {
+            var currentDev = await deviceService.GetCurrentDeviceAsync();
+            if (OobeCompleted && currentDev != null)
             {
+                _ = deviceService.ReconnectAsync();
                 rootFrame.Navigate(typeof(MainPage));
             }
             else

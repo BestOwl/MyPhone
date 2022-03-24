@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using GoodTimeStudio.MyPhone.Pages.Call;
 using GoodTimeStudio.MyPhone.RootPages.OOBE;
 using GoodTimeStudio.MyPhone.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,9 +41,11 @@ namespace GoodTimeStudio.MyPhone
                 .AddSingleton<IAppDispatcherService, AppDispatcherService>()
                 .AddTransient<IDevicePairDialogService, DevicePairDialogService>()
                 .AddTransient<OobePageViewModel>()
+                .AddTransient<MainWindow>()
+                .AddTransient<CallPageViewModel>()
                 .BuildServiceProvider());
 
-            m_window = new MainWindow();
+            m_window = Ioc.Default.GetRequiredService<MainWindow>();
             m_window.Activate();
         }
 
