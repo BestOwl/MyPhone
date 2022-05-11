@@ -7,9 +7,9 @@ namespace MyPhone.UnitTest.ViewModels
     {
         private CallPageViewModel ViewModel;
 
-        public TestCallPageViewModel()
+        public TestCallPageViewModel(CallPageViewModel callPageViewModel)
         {
-            ViewModel = new CallPageViewModel();
+            ViewModel = callPageViewModel;
         }
 
         private void InputOneNine()

@@ -9,15 +9,15 @@ using System.Xml;
 ILog logger = LogManager.GetLogger("TestRunner");
 //Get log4net config in assembly
 XmlDocument xml = new XmlDocument();
-xml.LoadXml(MyPhone.IntegrationTest.Properties.Resources.log4net);
+xml.LoadXml(MyPhone.Test.Properties.Resources.log4net);
 XmlConfigurator.Configure(xml.DocumentElement);
 
-logger.Info("MyPhone Intergration Test");
+logger.Info("   MyPhone Test Utility  ");
 logger.Info("=========================");
 
 var testTypes = Assembly.GetExecutingAssembly()
     .GetTypes()
-    .Where(t => t.GetCustomAttributes(typeof(IntergrationTestAttribute), true).Length > 0)
+    .Where(t => t.GetCustomAttributes(typeof(TestAttribute), true).Length > 0)
     .ToList();
 
 List<Type> tests = new List<Type>();
@@ -30,7 +30,7 @@ while (true)
 {
     Console.WriteLine();
     logger.Info("*************************");
-    logger.Info("Available test tasks:");
+    logger.Info("Available tests:");
     for (int i = 0; i < tests.Count; i++)
     {
         logger.Info(" " + i + ":  " + tests[i].Name);
@@ -68,8 +68,8 @@ async Task RunTestTask(Type testType, ConstructorInfo constructorInfo, IEnumerab
     Dictionary<MethodInfo, bool> testMethods = testMethodEnum.ToDictionary(m => m, m => false);
 
     logger.Info("-------------------------");
-    logger.InfoFormat("Running test task for [{0}]", testType.Name);
-    logger.InfoFormat("There are {0} cases in this test task: ", testMethods.Count);
+    logger.InfoFormat("Running test [{0}]", testType.Name);
+    logger.InfoFormat("There are {0} test cases in this test: ", testMethods.Count);
     int i = 0;
     foreach (MethodInfo info in testMethods.Keys)
     {

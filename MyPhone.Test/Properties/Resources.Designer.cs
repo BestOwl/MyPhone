@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MyPhone.IntegrationTest.Properties {
+namespace MyPhone.Test.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace MyPhone.IntegrationTest.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MyPhone.IntegrationTest.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MyPhone.Test.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -66,7 +66,7 @@ namespace MyPhone.IntegrationTest.Properties {
         ///  &lt;appender name=&quot;console&quot; type=&quot;log4net.Appender.ConsoleAppender&quot;&gt;
         ///
         ///    &lt;layout type=&quot;log4net.Layout.PatternLayout&quot;&gt;
-        ///      &lt;conversionPattern value=&quot;%date %-5level [%logger]# %message%newline&quot; /&gt;
+        ///      &lt;conversionPattern value=&quot;%-5level [%logger]# %message%newline&quot; /&gt;
         ///    &lt;/layout&gt;
         ///  &lt;/appender&gt;
         ///
@@ -75,7 +75,7 @@ namespace MyPhone.IntegrationTest.Properties {
         ///    &lt;file value=&quot;logs\&quot; /&gt;
         ///    &lt;datePattern value=&quot;dd-MM-yyyy&apos;.log&apos;&quot; /&gt;
         ///    &lt;staticLogFileName value=&quot;false&quot; /&gt;
-        ///     [rest of string was truncated]&quot;;.
+        ///    &lt;appen [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string log4net {
             get {

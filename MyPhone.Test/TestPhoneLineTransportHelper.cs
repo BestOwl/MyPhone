@@ -13,7 +13,7 @@ using Xunit;
 
 namespace MyPhone.IntegrationTest
 {
-    [IntergrationTest]
+    [Test]
     public class TestPhoneLineTransportHelper
     {
         private readonly ILog logger = LogManager.GetLogger(typeof(TestPhoneLineTransportHelper).Name);

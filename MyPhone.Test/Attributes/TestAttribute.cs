@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace MyPhone.IntegrationTest.Attributes
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class IntergrationTestAttribute : Attribute
+    public class TestAttribute : Attribute
     {
     }
 }
