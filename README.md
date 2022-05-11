@@ -1,6 +1,6 @@
 # My Phone
 
-**My Phone** is a desktop app that allows you to link your mobile phone (supports Android, iOS, and Windows Phone) to your Windows 10/11 PC via Bluetooth without installing a companion app on your mobile phone. 
+***My Phone*** is a desktop application that allows you to link your phone (supports Android, iOS, and Windows Phone) to your Windows 10/11 PC via Bluetooth without having to install a companion app on your phone. 
 
 ![Screenshot: Main Page](https://user-images.githubusercontent.com/8947026/167852799-461d9f41-0609-4809-813a-d87a08acc924.png)
 
