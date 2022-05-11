@@ -1,14 +1,10 @@
-# My Phone Assistant
+# My Phone
 
-**My Phone** is just a simplified copy cat of *Your Phone* developed by Microsoft, but supports iOS, Windows Phone, and any other mobile devices come with Bluetooth HFP (hands-free profile) feature.
+**My Phone** is a desktop app that allows you to link your mobile phone (supports Android, iOS, and Windows Phone) to your Windows 10/11 PC via Bluetooth without installing a companion app on your mobile phone. 
 
-![Screenshot: Main UI](https://github.com/BestOwl/MyPhone/raw/master/docs/Screenshot_1.png)
+![Screenshot: Main Page](https://user-images.githubusercontent.com/8947026/167852799-461d9f41-0609-4809-813a-d87a08acc924.png)
 
-![Screenshot: Incoming Call](https://github.com/BestOwl/MyPhone/raw/master/docs/Screenshot_2.png)
-
-![Screenshot: Call UI](https://github.com/BestOwl/MyPhone/raw/master/docs/Screenshot_3.png)
-
-
+![Calling UI](https://user-images.githubusercontent.com/8947026/167856802-42f7ebc3-1ff9-4f62-a1b9-70edfde65b1f.png)
 
 ## Features
 
@@ -17,79 +13,56 @@
 - [ ] Phonebook access
 - [ ] Notifications 
 
-#### Features compared with *Your Phone*
+### Features comparison with *Phone Link (a.k.a. Your Phone)*
 
-| Feature                  | Your Phone    | My Phone                                                     |
+| Feature                  | Phone Link    | My Phone                                                     |
 | ------------------------ | ------------- | ------------------------------------------------------------ |
 | Calling                  | ✔             | ✔                                                            |
 | SMS messaging            | ✔             | ✔<sup>1</sup>                                                |
 | Phonebook access         | ✔             | ✔<sup>1</sup>                                                |
-| Notifications            | ✔             | ✔<sup>1</sup>                                                |
+| App Notifications        | ✔             | ✔<sup>2</sup>                                                |
 | Share photos and files   | ✔             | ❌                                                            |
-| Use mobile apps from PC  | ✔<sup>2</sup> | ❌                                                            |
+| Use mobile apps from PC  | ✔<sup>3</sup> | ❌                                                            |
 | Supported mobile devices | ⚠Android Only | ✔Android, iOS, Windows Phone, and all Bluetooth-HFP-enabled devices |
 
-- `1`: will be implemented in the future
-
-- `2`: only available for selected Android devices 
-
-
-
-Keep in mind that **My Phone** was built only because Microsoft *Your Phone* does not support iOS, Windows Phone and other devices. If you are an Android user, you'd better use *Your Phone*.
-
-
+- `1`: will be implemented in v1.0 this summer
+- `2`: will be implemented in the future
+- `3`: only available for some selected Android devices 
 
 ## Implementation 
-
-### Project structure
-
-| Project                    | Type                             | Description                                                  |
-| -------------------------- | -------------------------------- | ------------------------------------------------------------ |
-| *MyPhone.TrayApp.XamlHost* | C++ UWP Project                  | XAML island host                                             |
-| *MyPhone.TrayApp*          | C++ Win32 Project                | Main app logic, system tray UI and UWP "broker". Enable the UWP app to call Win32 APIs and keeping the app running in the background. Use XAML island to make the system tray UI has the same look and feel as native UWP system apps. This project handles main app logic including Bluetooth HFP stuff. |
-| *MyPhone*                  | C# UWP Project                   | Main app UI                                                  |
-| *PackageProject*           | Desktop Bridge Packaging Project | Generate MSIX app package                                    |
-
-### Bluetooth HFP
-
+### Hands-Free Profile (HFP)
 This app use Windows Runtime APIs: `Windows.ApplicationModel.Calls` , `Windows.Devices.Bluetooth` and `Windows.Devices.Enumeration` to make the HFP works.
 
-1. Use ``Windows.Devices.Enumeration` API to enumerate available `PhoneLineTransportDevice` (paired Bluetooth devices that support HFP),
+1. Use ``Windows.Devices.Enumeration` API to enumerate available `PhoneLineTransportDevice` (i.e. paired Bluetooth devices that support HFP),
 2. Call `PhoneLineTransportDevice.RegisterApp` to register the device for HFP
-3. Then the system will handle the rest (establishing HFP Service Level Connection and etc.) for you.
+3. Call `PhoneLineTransportDevice.Connect` to connect to the deivice (establishes HFP Service Level Connection).
+4. Now you can receive and answer phone calls on your PC.
+5. To make phone call, use `Windows.Devices.Enumeration` API to enumerate available `PhoneLine`, then call `PhoneLine.Dial`
 
-Note that *Your Phone* use the same APIs mentioned above.
+Note that Microsoft's *Phone Link* use the same APIs mentioned above.
 
-### Self-implemented HFP stack?
+#### The HFP stack
+The above APIs have very limited functionality. They can only be only used for call control. If you need to handle raw audio stream or something else, you need to write a custom **user-mode** profile driver ([more information here](https://github.com/BestOwl/MyPhone/issues/1)).
 
-Self-implementing a HFP stack is a little bit problematic because the only way to establish a SCO audio connection and transfer audio is to write a custom **user-mode** profile driver and let the end-user to install it. That's quite inconvenient for end-users to use this app.
-
-Actually, I did try to implement HFP stack before. I managed to establish the HFP Service Level Connection (SLC) and successfully make the phone call via SLC, but failed to establish SCO audio connection and transfer any audio due to the reason above. If you're interested in how to establish HFP Service Level Connection, you may find the demo project `MyPhone.CLI` in `legacy` branch.  
-
-
+Actually, I did try to implement HFP stack before but eventually gave up because the MSIX package does not support installing drivers. I managed to establish the HFP Service Level Connection (SLC) and successfully make the phone call via SLC, but failed to establish SCO audio connection and transfer any audio. If you're interested in how to establish HFP Service Level Connection, you may find the [source code here](MyPhone.Demo/HFP.cs).   
 
 ## System requirement
 
-- Windows 10 version 1903 (build 10.0.18362) or above
+- Windows 10 Version 1903 (build 10.0.18362) and later
 
-  
 
 ## Contributing
 
 ### Requirements
 
-- Windows 10 version 1903 or above.
-- Visual Studio 2019 with .NET, UWP and C++ workload
+- Windows 10 Version 1903 and later.
+- Visual Studio 2022 with .NET and UWP workload (.NET 6 SDK and Windows SDK 10.0.19041.0)
+- [Single-project MSIX Packaging Tools extension](https://docs.microsoft.com/en-us/windows/apps/windows-app-sdk/single-project-msix?tabs=csharp#install-the-single-project-msix-packaging-tools)
 
 ### Build
 
 1. Clone repo
-   `git clone --recursive https://github.com/BestOwl/MyPhone.git`
+   `git clone https://github.com/BestOwl/MyPhone.git`
 2. Open `MyPhone.sln` with Visual Studio
-3. Set `PackageProject` as startup project
-4. Set build architecture to ARM, x86 or x64. (AnyCPU is not supported)
-5. Build and run 
-
-
-
-Feel free to contribute some code :)
+3. Set `MyPhone` as startup project
+4. Run `MyPhone (Package)`
