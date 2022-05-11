@@ -89,7 +89,7 @@ namespace GoodTimeStudio.MyPhone
                 AppTitle.Foreground = defaultForegroundBrush;
             }
         }
-        
+
         private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
         {
             this.Hide(enableEfficiencyMode: true);

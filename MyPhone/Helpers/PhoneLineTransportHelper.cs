@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Calls;
 using Windows.Devices.Bluetooth;
@@ -38,7 +36,7 @@ namespace GoodTimeStudio.MyPhone.Helpers
 
             const string deviceInterfaceBluetoothAddressKey = "System.DeviceInterface.Bluetooth.DeviceAddress";
             var phoneLineDevsInfo = await DeviceInformation.FindAllAsync(PhoneLineTransportDevice.GetDeviceSelector(), new string[] { deviceInterfaceBluetoothAddressKey });
-            DeviceInformation? matchPhoneLineDevInfo = phoneLineDevsInfo.Where(dev => 
+            DeviceInformation? matchPhoneLineDevInfo = phoneLineDevsInfo.Where(dev =>
             {
                 string? phoneLineDevAddress = (string?)dev.Properties[deviceInterfaceBluetoothAddressKey];
                 if (ulong.TryParse(phoneLineDevAddress, NumberStyles.HexNumber, null, out ulong address))

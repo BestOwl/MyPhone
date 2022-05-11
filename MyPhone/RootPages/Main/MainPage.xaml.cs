@@ -24,7 +24,7 @@ namespace GoodTimeStudio.MyPhone.RootPages.Main
 
         private void NavigationViewControl_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
-            NavigationMenu item = (NavigationMenu)args.SelectedItem; 
+            NavigationMenu item = (NavigationMenu)args.SelectedItem;
             switch (item.Name)
             {
                 case "Call":

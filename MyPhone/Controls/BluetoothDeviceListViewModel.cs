@@ -1,18 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using GoodTimeStudio.MyPhone.Models;
 using Microsoft.UI.Dispatching;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Media.Imaging;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.Calls;
-using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
 
 namespace GoodTimeStudio.MyPhone.Controls
@@ -43,7 +34,7 @@ namespace GoodTimeStudio.MyPhone.Controls
 
             string bluttoothSelector = "System.Devices.Aep.ProtocolId:=\"{E0CBF06C-CD8B-4647-BB8A-263B43F0F974}\" AND (System.Devices.Aep.CanPair:=System.StructuredQueryType.Boolean#True OR System.Devices.Aep.IsPaired:=System.StructuredQueryType.Boolean#True)";
             _DeviceWatcher = DeviceInformation.CreateWatcher(bluttoothSelector, null, DeviceInformationKind.AssociationEndpoint);
-            
+
             _DeviceWatcher.Added += _DeviceWatcher_Added;
             _DeviceWatcher.Removed += _DeviceWatcher_Removed;
             _DeviceWatcher.Updated += _DeviceWatcher_Updated;
@@ -78,7 +69,7 @@ namespace GoodTimeStudio.MyPhone.Controls
                 }
             });
         }
-            
+
 
         private void _DeviceWatcher_Added(DeviceWatcher sender, DeviceInformation args)
         {

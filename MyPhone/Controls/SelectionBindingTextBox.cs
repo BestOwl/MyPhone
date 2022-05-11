@@ -1,10 +1,5 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GoodTimeStudio.MyPhone.Controls
 {
@@ -49,13 +44,13 @@ namespace GoodTimeStudio.MyPhone.Controls
 
         public int BindableSelectionStart
         {
-            get => (int) GetValue(BindableSelectionStartProperty);
+            get => (int)GetValue(BindableSelectionStartProperty);
             set => SetValue(BindableSelectionStartProperty, value);
         }
 
         public int BindableSelectionLength
         {
-            get => (int) GetValue(BindableSelectionLengthProperty);
+            get => (int)GetValue(BindableSelectionLengthProperty);
             set => SetValue(BindableSelectionLengthProperty, value);
         }
 

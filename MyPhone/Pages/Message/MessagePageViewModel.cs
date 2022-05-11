@@ -1,13 +1,9 @@
-﻿using GoodTimeStudio.MyPhone.Models;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using GoodTimeStudio.MyPhone.Models;
 using MixERP.Net.VCards.Models;
 using MyPhone.OBEX;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GoodTimeStudio.MyPhone.Pages.Message
 {

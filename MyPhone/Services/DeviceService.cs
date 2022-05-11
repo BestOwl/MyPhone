@@ -1,11 +1,7 @@
 ﻿using GoodTimeStudio.MyPhone.Helpers;
-using Microsoft.UI.Xaml;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Calls;
 using Windows.Devices.Bluetooth;
@@ -42,12 +38,12 @@ namespace GoodTimeStudio.MyPhone.Services
             // we must check currentDevice is not null again
             if (currentDevice != null)
             {
-                
+
                 List<PhoneLine> phoneLinesAvailable = new List<PhoneLine>();
                 var lineEnumerationCompletion = new TaskCompletionSource<bool>();
 
                 PhoneLineWatcher phoneLineWatcher = await CreatePhoneLineWatcherAsync();
-                phoneLineWatcher.LineAdded += async (o, args) => 
+                phoneLineWatcher.LineAdded += async (o, args) =>
                 {
                     phoneLinesAvailable.Add(await PhoneLine.FromIdAsync(args.LineId));
                 };
@@ -66,7 +62,7 @@ namespace GoodTimeStudio.MyPhone.Services
                 phoneLineWatcher.Stop();
                 System.Diagnostics.Debug.WriteLine("PhoneLineWatcher stopped");
             }
-            
+
         }
         #endregion Init PhoneLine
 
@@ -121,7 +117,7 @@ namespace GoodTimeStudio.MyPhone.Services
             }
             await pltd.RequestAccessAsync();
             pltd.RegisterApp();
-            
+
             if (await pltd.ConnectAsync())
             {
                 settingsService.SetValue(settingsService.KeyCurrentBluetoothDeviceId, bt.DeviceId);

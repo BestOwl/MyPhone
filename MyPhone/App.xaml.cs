@@ -49,9 +49,9 @@ namespace GoodTimeStudio.MyPhone
             m_window.Activate();
         }
 
-        
 
-        
+
+
 
     }
 }

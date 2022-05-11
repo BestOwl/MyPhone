@@ -1,11 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.ApplicationModel.Calls;
 using Windows.Devices.Enumeration;
 
 namespace GoodTimeStudio.MyPhone.Pages.Diagnosis
@@ -39,8 +34,8 @@ namespace GoodTimeStudio.MyPhone.Pages.Diagnosis
         public bool IsWorking
         {
             get => _IsWorking;
-            set 
-            { 
+            set
+            {
                 SetProperty(ref _IsWorking, value);
                 OnPropertyChanged("IsNotWorking");
             }

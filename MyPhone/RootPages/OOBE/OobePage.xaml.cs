@@ -1,18 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
+﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using GoodTimeStudio.MyPhone.RootPages.Main;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Xaml;
-using CommunityToolkit.Mvvm.DependencyInjection;
-using GoodTimeStudio.MyPhone.Services;
-using System.Threading.Tasks;
-using GoodTimeStudio.MyPhone.RootPages.Main;
+using System;
 
 // https://go.microsoft.com/fwlink/?LinkId=234238 上介绍了“空白页”项模板
 

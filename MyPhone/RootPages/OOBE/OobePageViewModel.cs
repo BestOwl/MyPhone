@@ -3,10 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using GoodTimeStudio.MyPhone.Models;
 using GoodTimeStudio.MyPhone.Services;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 
@@ -45,7 +41,7 @@ namespace GoodTimeStudio.MyPhone.RootPages.OOBE
         {
             get => errorText != null;
         }
-        
+
         public IAsyncRelayCommand DeviceConnectCommand;
 
         public event EventHandler? OobeCompletedEvent;
