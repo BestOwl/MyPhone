@@ -7,45 +7,49 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid>
-        <NavigationView x:Name="NavigationViewControl"
-                        IsTitleBarAutoPaddingEnabled="False"            
-                        IsBackButtonVisible="Visible"           
-                        AlwaysShowHeader="False"
-                        PaneDisplayMode="Left"
-                        IsPaneToggleButtonVisible="False"
-                        OpenPaneLength="80"
-                        Canvas.ZIndex="0"
-                        MenuItemsSource="{x:Bind ViewModel.NavigationMenus, Mode=OneWay}"
-                        SelectionChanged="NavigationViewControl_SelectionChanged">
-            <NavigationView.Resources>
-                <ResourceDictionary>
-                    <Thickness x:Key="NavigationViewItemContentPresenterMargin">0</Thickness>
-                    <Thickness x:Key="NavigationViewItemExpandChevronMargin">0</Thickness>
-                    <x:Double x:Key="NavigationViewSelectionIndicatorHeight">24</x:Double>
-                </ResourceDictionary>
-            </NavigationView.Resources>
+    <Page.Resources>
+        <!--This top margin is the height of the custom TitleBar-->
+        <Thickness x:Key="NavigationViewContentMargin">0,44,0,0</Thickness>
 
-            <NavigationView.MenuItemTemplate>
-                <DataTemplate x:DataType="local:NavigationMenu">
-                    <NavigationViewItem Height="72" Tag="{x:Bind Name}">
-                        <StackPanel VerticalAlignment="Center"
-                                    Margin="0,0,8,0"
-                                    Spacing="6">
-                            <!--TODO: Better center align method. Align without -2,0,-8,0 margin-->
+        <Thickness x:Key="NavigationViewItemContentPresenterMargin">0</Thickness>
+        <Thickness x:Key="NavigationViewItemExpandChevronMargin">0</Thickness>
+        <x:Double x:Key="NavigationViewSelectionIndicatorHeight">24</x:Double>
+    </Page.Resources>
 
-                            <FontIcon FontFamily="{StaticResource SymbolThemeFontFamily}" 
-                                      Glyph="{x:Bind GlyphIcon}"
-                                      HorizontalAlignment="Center" />
-                            <TextBlock Text="{x:Bind Name}" HorizontalAlignment="Center"/>
-                        </StackPanel>
-                    </NavigationViewItem>
-                </DataTemplate>
-            </NavigationView.MenuItemTemplate>
+    <NavigationView 
+        IsTitleBarAutoPaddingEnabled="False"            
+        IsBackButtonVisible="Visible"           
+        PaneDisplayMode="Left"
+        IsPaneToggleButtonVisible="False"
+        OpenPaneLength="80"
+        Canvas.ZIndex="0"
+        IsSettingsVisible="False"
+        MenuItemsSource="{x:Bind ViewModel.NavigationMenus, Mode=OneWay}"
+        FooterMenuItemsSource="{x:Bind ViewModel.NavigationFooterMenus, Mode=OneWay}"
+        SelectionChanged="NavigationViewControl_SelectionChanged">
 
-            <Grid>
-                <Frame x:Name="contentFrame" />
-            </Grid>
-        </NavigationView>
-    </Grid>
+        <NavigationView.MenuItemTemplate>
+            <DataTemplate x:DataType="local:NavigationMenu">
+                <NavigationViewItem Height="72" Tag="{x:Bind Name}">
+                    <StackPanel 
+                        VerticalAlignment="Center"
+                        Margin="0,0,8,0"
+                        Spacing="6">
+                        <!--TODO: Better center align method. Align without 0,0,8,0 margin-->
+
+                        <FontIcon 
+                            FontFamily="{StaticResource SymbolThemeFontFamily}" 
+                            Glyph="{x:Bind GlyphIcon}"
+                            HorizontalAlignment="Center" />
+                        <TextBlock Text="{x:Bind Name}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </NavigationViewItem>
+            </DataTemplate>
+        </NavigationView.MenuItemTemplate>
+        
+        <Grid>
+            <Frame x:Name="contentFrame" />
+        </Grid>
+
+    </NavigationView>
 </Page>

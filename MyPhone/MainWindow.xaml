@@ -6,21 +6,37 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:tb="using:H.NotifyIcon"
     mc:Ignorable="d">
-
+    
     <Grid x:Name="windowRoot" 
           x:FieldModifier="private"
           Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+
+        <Grid.Resources>
+            <XamlUICommand
+                x:Key="OpenAppCommand"
+                ExecuteRequested="OpenAppCommand_ExecuteRequested"
+                Label="Open My Phone"
+                Description="Open My Phone" />
+            <XamlUICommand 
+                x:Key="ExitCommand"
+                ExecuteRequested="ExitCommand_ExecuteRequested"
+                Label="Exit"
+                Description="Exit">
+                <XamlUICommand.IconSource>
+                    <SymbolIconSource Symbol="Cancel" />
+                </XamlUICommand.IconSource>
+            </XamlUICommand>
+        </Grid.Resources>
+        
         <Border x:Name="AppTitleBar"
                 IsHitTestVisible="True"
                 VerticalAlignment="Top"
                 Background="Transparent"
                 Height="40"
-                Margin="48,0,120,0">
+                Canvas.ZIndex="1"
+                Margin="48,4,0,0">
             <StackPanel Orientation="Horizontal">
                 <Image x:Name="AppFontIcon"
                     HorizontalAlignment="Left" 
@@ -31,11 +47,25 @@
                 <TextBlock x:Name="AppTitle"
                     Text="{x:Bind AppTitleDisplayName}"
                     VerticalAlignment="Center"
-                    Margin="12, 0, 0, 0"
+                    Margin="12,0,0,0"
                     Style="{StaticResource CaptionTextBlockStyle}" />
             </StackPanel>
         </Border>
+        
         <Frame x:Name="rootFrame"
-               Grid.Row="1" />
+               Canvas.ZIndex="0"/>
+
+        <tb:TaskbarIcon
+            ToolTipText="{x:Bind AppTitleDisplayName}"
+            IconSource="/Assets/Icon.ico"
+            MenuActivation="LeftOrRightClick"
+            DoubleClickCommand="{StaticResource OpenAppCommand}">
+            <tb:TaskbarIcon.ContextFlyout>
+                <MenuFlyout>
+                    <MenuFlyoutItem Command="{StaticResource OpenAppCommand}" />
+                    <MenuFlyoutItem Command="{StaticResource ExitCommand}" />
+                </MenuFlyout>
+            </tb:TaskbarIcon.ContextFlyout>
+        </tb:TaskbarIcon>
     </Grid>
 </Window>

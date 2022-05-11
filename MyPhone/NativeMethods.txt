@@ -1,16 +1,3 @@
-﻿ExtractIcon
-GetModuleHandle
-
-// Windowing
-SendMessage
-SetWindowSubclass
-DefSubclassProc
-SetForegroundWindow
+﻿// Windowing
 GetDpiForWindow
-
-// NotifyIcon and ContextMenu
-Shell_NotifyIcon
-CreatePopupMenu
-TrackPopupMenuEx
-InsertMenuItem
-SetMenu
+SetForegroundWindow

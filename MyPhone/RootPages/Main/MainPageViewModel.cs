@@ -13,6 +13,9 @@ namespace GoodTimeStudio.MyPhone.RootPages.Main
         [ObservableProperty]
         private ObservableCollection<NavigationMenu> navigationMenus;
 
+        [ObservableProperty]
+        private ObservableCollection<NavigationMenu> navigationFooterMenus;
+
         public MainPageViewModel()
         {
             navigationMenus = new ObservableCollection<NavigationMenu>()
@@ -20,6 +23,11 @@ namespace GoodTimeStudio.MyPhone.RootPages.Main
                 new NavigationMenu(name:"Call", glyphIcon: "\uE717"),
                 new NavigationMenu(name:"Message", glyphIcon: "\uE8BD"),
                 new NavigationMenu(name:"Debug", glyphIcon: "\uEBE8"),
+            };
+
+            navigationFooterMenus = new ObservableCollection<NavigationMenu>()
+            {
+                new NavigationMenu(name: "Settings", glyphIcon: "\uE713")
             };
         }
     }
