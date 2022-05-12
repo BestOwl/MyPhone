@@ -14,7 +14,6 @@ namespace MyPhone.UnitTest
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IAppDispatcherService, DummyAppDispatcherService>();
             services.AddSingleton<IDeviceService, DummyDeviceService>();
 
             services.AddTransient<CallPageViewModel>();

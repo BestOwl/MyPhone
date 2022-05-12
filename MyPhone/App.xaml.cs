@@ -16,7 +16,7 @@ namespace GoodTimeStudio.MyPhone
     /// </summary>
     public partial class App : Application
     {
-        private Window m_window;
+        private Window? m_window;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -24,7 +24,7 @@ namespace GoodTimeStudio.MyPhone
         /// </summary>
         public App()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
         /// <summary>
@@ -32,13 +32,13 @@ namespace GoodTimeStudio.MyPhone
         /// will be used such as when the application is launched to open a specific file.
         /// </summary>
         /// <param name="args">Details about the launch request and process.</param>
-        protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
+        protected override void OnLaunched(LaunchActivatedEventArgs args)
         {
             // Register services
             Ioc.Default.ConfigureServices(new ServiceCollection()
                 .AddSingleton<ISettingsService, SettingsService>()
                 .AddSingleton<IDeviceService, DeviceService>()
-                .AddSingleton<IAppDispatcherService, AppDispatcherService>()
+                .AddSingleton<DeviceManager>()
                 .AddTransient<IDevicePairDialogService, DevicePairDialogService>()
                 .AddTransient<OobePageViewModel>()
                 .AddTransient<MainWindow>()

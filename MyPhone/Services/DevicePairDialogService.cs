@@ -1,56 +1,63 @@
 ﻿using GoodTimeStudio.MyPhone.Controls;
+using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Threading.Tasks;
 using System.Timers;
 
 namespace GoodTimeStudio.MyPhone.Services
 {
-    public class DevicePairDialogService : IDevicePairDialogService
+    public sealed class DevicePairDialogService : IDevicePairDialogService, IDisposable
     {
         private DevicePairDialog? dialog;
-        private Timer? timer;
-
-        private readonly IAppDispatcherService appDispatcherService;
-
-        public DevicePairDialogService(IAppDispatcherService appDispatcherService)
-        {
-            this.appDispatcherService = appDispatcherService;
-        }
+        private Timer? _timer;
 
         public async Task<bool> ShowPairDialogAsync(string deviceName, string pairPIN, TimeSpan? timeout = null)
         {
-            dialog = new DevicePairDialog(deviceName, pairPIN);
-
-            // Currently, to show a content dialog in WinUI3, you must manually set the XamlRoot on the dialog to the root of the XAML host
-            // https://docs.microsoft.com/en-us/windows/winui/api/microsoft.ui.xaml.controls.contentdialog?view=winui-3.0#contentdialog-in-appwindow-or-xaml-islands
-            dialog.XamlRoot = MainWindow.Instance.XamlRoot;
-
-            if (timeout != null)
+            TaskCompletionSource<ContentDialogResult> tcs = new TaskCompletionSource<ContentDialogResult>();
+            MainWindow.WindowDispatcher.TryEnqueue(async () =>
             {
-                timer = new Timer(timeout.Value.TotalMilliseconds);
-                timer.Elapsed += Timer_Elapsed;
-                timer.Start();
-            }
+                dialog = new DevicePairDialog(deviceName, pairPIN);
 
-            var result = await dialog.ShowAsync();
-            return result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary;
+                // Currently, to show a content dialog in WinUI3, you must manually set the XamlRoot on the dialog to the root of the XAML host
+                // https://docs.microsoft.com/en-us/windows/winui/api/microsoft.ui.xaml.controls.contentdialog?view=winui-3.0#contentdialog-in-appwindow-or-xaml-islands
+                dialog.XamlRoot = MainWindow.XamlRoot;
+
+                if (timeout != null)
+                {
+                    _timer = new Timer(timeout.Value.TotalMilliseconds);
+                    _timer.Elapsed += Timer_Elapsed;
+                    _timer.Start();
+                }
+
+                var result = await dialog.ShowAsync();
+                tcs.SetResult(result);
+            });
+
+            return await tcs.Task == ContentDialogResult.Primary;
         }
 
         private void Timer_Elapsed(object? sender, ElapsedEventArgs e)
         {
-            timer!.Stop();
-            timer.Elapsed -= Timer_Elapsed;
-            timer.Dispose();
+            _timer!.Stop();
+            _timer.Elapsed -= Timer_Elapsed;
+            _timer.Dispose();
             HideDialog();
         }
 
         public void HideDialog()
         {
-            appDispatcherService.GetDispatcherQueue().TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, () =>
+            MainWindow.WindowDispatcher.TryEnqueue(() =>
             {
                 dialog?.Hide();
             });
         }
 
+        public void Dispose()
+        {
+            if (_timer != null)
+            {
+                _timer.Dispose();
+            }
+        }
     }
 }

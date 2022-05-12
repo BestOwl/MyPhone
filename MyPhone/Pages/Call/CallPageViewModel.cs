@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GoodTimeStudio.MyPhone.Services;
 using System;
 using System.Threading.Tasks;
 
@@ -8,13 +7,11 @@ namespace GoodTimeStudio.MyPhone.Pages.Call
 {
     public partial class CallPageViewModel : ObservableObject
     {
-        private readonly IDeviceService deviceService;
-        private readonly IAppDispatcherService dispatcherService;
+        private readonly DeviceManager _deviceManager;
 
-        public CallPageViewModel(IDeviceService deviceService, IAppDispatcherService dispatcherService)
+        public CallPageViewModel(DeviceManager deviceManager)
         {
-            this.deviceService = deviceService;
-            this.dispatcherService = dispatcherService;
+            _deviceManager = deviceManager;
         }
 
         [ObservableProperty]
@@ -90,7 +87,7 @@ namespace GoodTimeStudio.MyPhone.Pages.Call
         {
             if (PhoneNumber != null)
             {
-                await deviceService.CallAsync(PhoneNumber);
+                await _deviceManager.CallAsync(PhoneNumber);
             }
         }
 

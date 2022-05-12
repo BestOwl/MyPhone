@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Calls;
+using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
 
 namespace GoodTimeStudio.MyPhone.Services
@@ -11,66 +12,48 @@ namespace GoodTimeStudio.MyPhone.Services
     public interface IDeviceService
     {
         /// <summary>
-        /// Get the <see cref="DeviceInformation"/> of a previsouly registered device
+        /// Get the <see cref="CurrentDeviceInformation"/> of a current registered device
         /// </summary>
-        /// <returns>Previsouly registered device. Return null if there is no device registered previsously</returns>
-        Task<DeviceInformation?> GetCurrentDeviceAsync();
+        /// <returns>Current registered device. Return null if there is no device registered</returns>
+        Task<CurrentDeviceInformation?> GetCurrentRegisteredDeviceAsync();
 
         /// <summary>
-        /// Connect to phone device
-        /// </summary>
-        /// <param name="deviceInformation">The information of the device to be connected</param>
-        /// <returns>Whether connected to the device succesfully</returns>
-        /// <exception cref="ParingCanceledException">Throws when the user cancel the pairing, or the pairing failed because of other reasons</exception>
-        /// <exception cref="UnauthorizedAccessException">Throws when the operating system denied the access to the device</exception>
-        Task<bool> ConnectAsync(DeviceInformation deviceInformation);
-
-        /// <summary>
-        /// Reconnect to a previsously registered phone device
-        /// </summary>
-        /// <returns>True if reconnect successfully</returns>
-        /// <exception cref="InvalidOperationException">Throws if there is not device registered previously.</exception>
-        Task<bool> ReconnectAsync();
-
-        /// <summary>
-        /// Create a <see cref="DeviceWatcher"/> to enumerate supported devices
+        /// Create a <see cref="DeviceWatcher"/> to enumerate supported devices' <see cref="DeviceInformation"/>
         /// </summary>
         /// <returns></returns>
         DeviceWatcher CreateDeviceWatcher();
+
+        /// <summary>
+        /// Pair the Bluetooth device with its <see cref="DeviceInformation"/>.
+        /// </summary>
+        /// <param name="deviceInformation">The <see cref="DeviceInformation"/> of a <see cref="BluetoothDevice"/>.</param>
+        /// <returns>The pair result</returns>
+        Task<DevicePairingResult> PairDeviceAsync(DeviceInformation deviceInformation);
+
+        /// <summary>
+        /// Register a Bluetooth device with its <see cref="DeviceInformation"/>
+        /// </summary>
+        /// <param name="deviceInformation">The <see cref="DeviceInformation"/> of a <see cref="BluetoothDevice"/>. This device must be paired.</param>
+        /// <returns>The newly registered <see cref="CurrentDeviceInformation"/>. Returns null if failed</returns>
+        /// <exception cref="UnauthorizedAccessException">Throws when the operating system denied the access to the device</exception>
+        Task<CurrentDeviceInformation?> RegisterDeviceAsync(DeviceInformation deviceInformation);
 
         /// <summary>
         /// Create a <see cref="PhoneLineWatcher"/> to enumerate available phone lines
         /// </summary>
         /// <returns></returns>
         Task<PhoneLineWatcher> CreatePhoneLineWatcherAsync();
-
-        /// <summary>
-        /// Call the given phone number via the given phone line.
-        /// </summary>
-        /// <param name="phoneNumber"></param>
-        /// <exception cref="OperationCanceledException">Thorws if calling request timeout or the phone line is currently not available.</exception>
-        Task CallAsync(string phoneNumber);
     }
 
-    public class ParingCanceledException : ApplicationException
+    public class CurrentDeviceInformation
     {
-        public DevicePairingResult PairingResult;
+        public BluetoothDevice BluetoothDevice { get; private set; }
+        public PhoneLineTransportDevice PhoneLineTransportDevice { get; private set; }
 
-        public ParingCanceledException(DevicePairingResult result)
+        public CurrentDeviceInformation(BluetoothDevice bluetoothDevice, PhoneLineTransportDevice phoneLineTransportDevice)
         {
-            PairingResult = result;
+            BluetoothDevice = bluetoothDevice ?? throw new ArgumentNullException(nameof(bluetoothDevice));
+            PhoneLineTransportDevice = phoneLineTransportDevice ?? throw new ArgumentNullException(nameof(phoneLineTransportDevice));
         }
-
-        public ParingCanceledException(DevicePairingResult result, string? message) : base(message)
-        {
-            PairingResult = result;
-        }
-
-        public ParingCanceledException(DevicePairingResult result, string? message, Exception? innerException) : base(message, innerException)
-        {
-            PairingResult = result;
-        }
-
-
     }
 }

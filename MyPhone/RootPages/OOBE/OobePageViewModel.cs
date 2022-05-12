@@ -10,15 +10,15 @@ namespace GoodTimeStudio.MyPhone.RootPages.OOBE
 {
     public partial class OobePageViewModel : ObservableObject
     {
-        public OobePageViewModel(IDeviceService deviceService, ISettingsService settingsService)
+        public OobePageViewModel(DeviceManager deviceManager, ISettingsService settingsService)
         {
-            this.deviceService = deviceService;
-            this.settingsService = settingsService;
+            _deviceManager = deviceManager;
+            _settingsService = settingsService;
             DeviceConnectCommand = new AsyncRelayCommand(Connect);
         }
 
-        private readonly IDeviceService deviceService;
-        private readonly ISettingsService settingsService;
+        private readonly DeviceManager _deviceManager;
+        private readonly ISettingsService _settingsService;
 
         [ObservableProperty]
         [AlsoNotifyChangeFor(nameof(EnableConnectButton))]
@@ -52,9 +52,9 @@ namespace GoodTimeStudio.MyPhone.RootPages.OOBE
             ErrorText = null;
             try
             {
-                if (await deviceService.ConnectAsync(selectedDevice!.DeviceInformation))
+                if (await _deviceManager.ConnectAsync(selectedDevice!.DeviceInformation))
                 {
-                    settingsService.SetValue(settingsService.KeyOobeIsCompleted, true);
+                    _settingsService.SetValue(_settingsService.KeyOobeIsCompleted, true);
                     OobeCompletedEvent?.Invoke(this, new EventArgs());
                 }
             }
@@ -62,7 +62,7 @@ namespace GoodTimeStudio.MyPhone.RootPages.OOBE
             {
                 ErrorText = "Sorry, but we do not have the permission to connect your phone. " + ex.Message;
             }
-            catch (ParingCanceledException ex)
+            catch (DeviceParingException ex)
             {
                 ErrorText = "Failed to pair \"" + selectedDevice!.Name + " \". Reason: "
                        + ex.PairingResult.Status.ToString();

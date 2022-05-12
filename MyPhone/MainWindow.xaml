@@ -45,7 +45,7 @@
                     Width="16" 
                     Height="16"/>
                 <TextBlock x:Name="AppTitle"
-                    Text="{x:Bind AppTitleDisplayName}"
+                    Text="{x:Bind local:MainWindow.AppTitleDisplayName}"
                     VerticalAlignment="Center"
                     Margin="12,0,0,0"
                     Style="{StaticResource CaptionTextBlockStyle}" />
@@ -56,7 +56,7 @@
                Canvas.ZIndex="0"/>
 
         <tb:TaskbarIcon
-            ToolTipText="{x:Bind AppTitleDisplayName}"
+            ToolTipText="{x:Bind local:MainWindow.AppTitleDisplayName}"
             IconSource="/Assets/Icon.ico"
             MenuActivation="LeftOrRightClick"
             DoubleClickCommand="{StaticResource OpenAppCommand}">

@@ -3,6 +3,7 @@ using GoodTimeStudio.MyPhone.RootPages.OOBE;
 using GoodTimeStudio.MyPhone.Services;
 using H.NotifyIcon;
 using Microsoft.UI;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
@@ -16,28 +17,33 @@ using Windows.Win32;
 namespace GoodTimeStudio.MyPhone
 {
     /// <summary>
-    /// An empty window that can be used on its own or navigated to within a Frame.
+    /// The main window of My Phone. Only one instance will be created.
     /// </summary>
     public sealed partial class MainWindow : Window
     {
-        public static MainWindow Instance { get; private set; }
-        public string AppTitleDisplayName { get => Windows.ApplicationModel.Package.Current.DisplayName; }
-        public XamlRoot XamlRoot { get => windowRoot.XamlRoot; }
+        public static XamlRoot XamlRoot { get => _instance.windowRoot.XamlRoot; }
+        public static DispatcherQueue WindowDispatcher { get => _instance.DispatcherQueue; }
+        public static string AppTitleDisplayName { get => Windows.ApplicationModel.Package.Current.DisplayName; }
 
-        private readonly IDeviceService deviceService;
-        private readonly ISettingsService settingsService;
-        private bool OobeCompleted;
+        private readonly IDeviceService _deviceService;
+        private readonly ISettingsService _settingsService;
+        private readonly DeviceManager _deviceManager;
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        private static MainWindow _instance;
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        private bool _oobeCompleted;
         private IntPtr hWnd;
 
-        public MainWindow(IDeviceService deviceService, ISettingsService settingsService)
+        public MainWindow(IDeviceService deviceService, ISettingsService settingsService, DeviceManager deviceManager)
         {
-            Instance = this;
-            this.InitializeComponent();
-            this.deviceService = deviceService;
-            this.settingsService = settingsService;
+            _instance = this;
+            InitializeComponent();
+            _deviceService = deviceService;
+            _settingsService = settingsService;
+            _deviceManager = deviceManager;
             Title = AppTitleDisplayName;
-            OobeCompleted = settingsService.GetValue<bool>(settingsService.KeyOobeIsCompleted);
-
+            _oobeCompleted = settingsService.GetValue<bool>(settingsService.KeyOobeIsCompleted);
 
             // Hide default title bar.
             ExtendsContentIntoTitleBar = true;
@@ -63,10 +69,8 @@ namespace GoodTimeStudio.MyPhone
 
         private async void OnLaunch()
         {
-            var currentDev = await deviceService.GetCurrentDeviceAsync();
-            if (OobeCompleted && currentDev != null)
+            if (_oobeCompleted && await _deviceManager.InitAsync())
             {
-                _ = deviceService.ReconnectAsync();
                 rootFrame.Navigate(typeof(MainPage));
             }
             else

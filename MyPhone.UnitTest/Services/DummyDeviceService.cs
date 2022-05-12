@@ -11,16 +11,6 @@ namespace MyPhone.UnitTest.Services
 {
     internal class DummyDeviceService : IDeviceService
     {
-        public Task CallAsync(string phoneNumber)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> ConnectAsync(DeviceInformation deviceInformation)
-        {
-            throw new NotImplementedException();
-        }
-
         public DeviceWatcher CreateDeviceWatcher()
         {
             throw new NotImplementedException();
@@ -31,12 +21,17 @@ namespace MyPhone.UnitTest.Services
             throw new NotImplementedException();
         }
 
-        public Task<DeviceInformation?> GetCurrentDeviceAsync()
+        public Task<CurrentDeviceInformation?> GetCurrentRegisteredDeviceAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> ReconnectAsync()
+        public Task<DevicePairingResult> PairDeviceAsync(DeviceInformation deviceInformation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CurrentDeviceInformation?> RegisterDeviceAsync(DeviceInformation deviceInformation)
         {
             throw new NotImplementedException();
         }
