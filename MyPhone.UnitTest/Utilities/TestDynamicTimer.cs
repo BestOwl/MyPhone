@@ -86,5 +86,25 @@ namespace MyPhone.UnitTest.Utilities
             timer.Stop();
             Assert.True(count > 30);
         }
+
+        [Fact]
+        public async Task TestOneLongInterval()
+        {
+            var schedules = new[]
+            {
+                new DynamicTimerSchedule(TimeSpan.FromSeconds(2), 5),
+            };
+            DynamicTimer timer = new DynamicTimer(schedules);
+            int count = 0;
+            timer.Elapsed += (object? sender, DynamicTimerElapsedEventArgs e) =>
+            {
+                count++;
+            };
+
+            timer.Start();
+            await Task.Delay(12000);
+            timer.Stop();
+            Assert.Equal(5, count);
+        }
     }
 }
