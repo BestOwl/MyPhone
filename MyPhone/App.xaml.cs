@@ -4,6 +4,7 @@ using GoodTimeStudio.MyPhone.RootPages.OOBE;
 using GoodTimeStudio.MyPhone.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
+using Microsoft.Windows.AppLifecycle;
 
 
 // To learn more about WinUI, the WinUI project structure,
@@ -46,12 +47,12 @@ namespace GoodTimeStudio.MyPhone
                 .BuildServiceProvider());
 
             m_window = Ioc.Default.GetRequiredService<MainWindow>();
-            m_window.Activate();
+
+            AppActivationArguments activationArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
+            if (activationArgs.Kind != ExtendedActivationKind.StartupTask)
+            {
+                m_window.Activate();
+            }
         }
-
-
-
-
-
     }
 }
