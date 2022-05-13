@@ -37,9 +37,20 @@ jobs:
       # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.0.2
+        
+      # Use cache to speed up CI build
+      - name: Restore NuGet cache
+        id: nuget-cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       # Restore the application to populate the obj folder with RuntimeIdentifiers
-      - name: Restore the application
+      - name: Restore the application (NuGet)
+        if: steps.nuget-cache.outputs.cache-hit != 'true'
         run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
         env:
           Configuration: ${{ matrix.configuration }}
