@@ -1,11 +1,6 @@
 ﻿using GoodTimeStudio.MyPhone.Helpers;
 using log4net;
 using MyPhone.IntegrationTest.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.ApplicationModel.Calls;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
@@ -72,7 +67,7 @@ namespace MyPhone.IntegrationTest
             BluetoothDevice bth = await BluetoothDevice.FromIdAsync(devInfo.Id);
             PhoneLineTransportDevice? phoneLine = await PhoneLineTransportHelper.GetPhoneLineTransportFromBluetoothDevice(bth);
             Assert.NotNull(phoneLine);
-            
+
             DeviceInformation phoneLineDevInfo = await DeviceInformation.CreateFromIdAsync(phoneLine!.DeviceId);
             Assert.Equal(bth.Name, phoneLineDevInfo.Name);
             logger.InfoFormat("Corresponding PhoneLineTransportDevice: {0}", phoneLineDevInfo.Id);

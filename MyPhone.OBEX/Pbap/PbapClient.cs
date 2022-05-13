@@ -1,7 +1,6 @@
 using MixERP.Net.VCards;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
@@ -76,4 +75,3 @@ namespace MyPhone.OBEX
 
     }
 }
-                                                                                                                                                           

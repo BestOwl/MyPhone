@@ -1,9 +1,5 @@
 ﻿using GoodTimeStudio.MyPhone.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,8 +19,8 @@ namespace MyPhone.UnitTest.Utilities
         public async Task TestThreeDifferentInterval()
         {
             // 2.4 seconds in total
-            var schedules = new[] 
-            { 
+            var schedules = new[]
+            {
                 new DynamicTimerSchedule(TimeSpan.FromSeconds(0.1), 4),
                 new DynamicTimerSchedule(TimeSpan.FromSeconds(0.2), 4),
                 new DynamicTimerSchedule(TimeSpan.FromSeconds(0.3), 4),

@@ -1,7 +1,5 @@
 ﻿using MixERP.Net.VCards;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace MyPhone.OBEX
 {

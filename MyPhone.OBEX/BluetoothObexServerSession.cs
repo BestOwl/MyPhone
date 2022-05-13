@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.Rfcomm;
 using Windows.Networking;
@@ -65,7 +64,7 @@ namespace MyPhone.OBEX
             socketListener.ConnectionReceived += SocketListener_ConnectionReceived;
 
             _serviceProvider = await RfcommServiceProvider.CreateAsync(RfcommServiceId.FromUuid(ServiceUuid));
-            await socketListener.BindServiceNameAsync(_serviceProvider.ServiceId.AsString(), 
+            await socketListener.BindServiceNameAsync(_serviceProvider.ServiceId.AsString(),
                 SocketProtectionLevel.BluetoothEncryptionWithAuthentication);
             _serviceProvider.StartAdvertising(socketListener);
 

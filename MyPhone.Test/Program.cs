@@ -151,7 +151,7 @@ async Task<bool> RunTestCase(MethodInfo method, object instance, int caseId)
             }
             return false;
         }
-        
+
     });
 
     NextPage();

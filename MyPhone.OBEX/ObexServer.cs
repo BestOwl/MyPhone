@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
@@ -49,9 +48,9 @@ namespace MyPhone.OBEX
                                 }
                             }
                         }
-                        
+
                     }
-                    
+
                     Console.WriteLine("Not support operation code: " + packet.Opcode);
                     Console.WriteLine("MSE should send Connect request first");
                     packet = new ObexPacket(Opcode.OBEX_UNAVAILABLE);
