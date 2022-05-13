@@ -61,7 +61,7 @@ jobs:
                 /p:PackageCertificatePassword="${{ secrets.TESTING_PFX_PASSPHRASE }}" `
                 /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
         env:
-          Appx_Bundle: Always
+          Appx_Bundle: Never
           Appx_Package_Build_Mode: SideloadOnly
           Appx_Package_Dir: Packages\
           Configuration: ${{ matrix.configuration }}
