@@ -13,7 +13,7 @@ namespace MyPhone.OBEX
 
         public LinkedList<AppParameter> AppParameters;
 
-        public AppParamHeader() 
+        public AppParamHeader()
         {
             AppParameters = new LinkedList<AppParameter>();
         }
@@ -38,7 +38,7 @@ namespace MyPhone.OBEX
 
         public void FromBytes(byte[] bytes)
         {
-            for (int i = 0; i < bytes.Length; )
+            for (int i = 0; i < bytes.Length;)
             {
                 AppParamTagId tagId = (AppParamTagId)bytes[i++];
                 byte len = bytes[i++];
@@ -77,7 +77,7 @@ namespace MyPhone.OBEX
                 throw new NotSupportedException("String more that 126 bytes is not allowed");
             }
             Content = Encoding.UTF8.GetBytes(text);
-            Length = (byte) count;
+            Length = (byte)count;
         }
 
         public AppParameter(AppParamTagId tagId, byte[] value)
@@ -88,7 +88,7 @@ namespace MyPhone.OBEX
                 throw new NotSupportedException($"Array more that {_MAX_LEN} bytes is not allowed");
             }
             Content = value;
-            Length = (byte) value.Length;
+            Length = (byte)value.Length;
         }
 
         public AppParameter(AppParamTagId tagId, byte value) : this(tagId, new byte[] { value }) { }

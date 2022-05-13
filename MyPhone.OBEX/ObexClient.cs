@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
@@ -159,7 +157,7 @@ namespace MyPhone.OBEX
 
                 req = new ObexPacket(requestOpcode, _connectionIdHeader!);
             } while (true);
-      
+
             Console.WriteLine("Maultiple GET over 10 times, abort!");
             return response;
         }

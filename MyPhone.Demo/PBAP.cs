@@ -1,8 +1,6 @@
 ﻿using MyPhone.OBEX;
 using MyPhone.OBEX.Pbap;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
@@ -31,7 +29,7 @@ namespace MyPhone.Demo
 
             try
             {
-                 await PbapClientSession.Connect();
+                await PbapClientSession.Connect();
             }
             catch (BluetoothObexSessionException ex)
             {

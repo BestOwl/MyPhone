@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using MixERP.Net.VCards.Models;
+using MyPhone.OBEX;
+using MyPhone.OBEX.Map;
+using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
-using Windows.Devices.Bluetooth.Rfcomm;
 using Windows.Devices.Enumeration;
-using Windows.Networking.Sockets;
-using Windows.Storage.Streams;
-using System.Runtime.InteropServices.WindowsRuntime;
-using MyPhone.OBEX;
-using MixERP.Net.VCards.Models;
-using MyPhone.OBEX.Map;
-using System.Collections.Concurrent;
 
 namespace MyPhone.Demo
 {
@@ -163,8 +157,8 @@ namespace MyPhone.Demo
 
             string ent = Console.ReadLine();
 
-            if (ent == "i") { return await SelectiPhone();  }
-            else if(ent=="q") { return "q"; }
+            if (ent == "i") { return await SelectiPhone(); }
+            else if (ent == "q") { return "q"; }
             else
             {
 

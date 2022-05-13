@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Windows.Storage.Streams;
@@ -69,7 +68,7 @@ namespace MyPhone.OBEX
             Console.WriteLine("Sending GetMessage request ");
 
             ObexPacket resp = await RunObexRequest(packet);
-            
+
             // "EndOfBody" has been copied to "Body" by ObexClient
             string bMsgStr = ((BodyHeader)resp.Headers[HeaderId.Body]).Value!;
 

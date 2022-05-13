@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Calls;
-using Windows.ApplicationModel.Contacts;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.Rfcomm;
 using Windows.Devices.Enumeration;
@@ -140,7 +139,8 @@ namespace MyPhone.Demo
             var watcher = store.RequestLineWatcher();
             var phoneLines = new List<PhoneLine>();
             var lineEnumerationCompletion = new TaskCompletionSource<bool>();
-            watcher.LineAdded += async (o, args) => {
+            watcher.LineAdded += async (o, args) =>
+            {
                 var line = await PhoneLine.FromIdAsync(args.LineId);
                 phoneLines.Add(line);
             };
@@ -368,7 +368,8 @@ namespace MyPhone.Demo
 
         public static void ReceiveLoop(DataReader reader)
         {
-            Task t = Task.Run(async () => {
+            Task t = Task.Run(async () =>
+            {
                 StringBuilder receiveBuffer = new StringBuilder();
                 while (true)
                 {

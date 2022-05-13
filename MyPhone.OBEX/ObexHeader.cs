@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Text;
-using Windows.Storage.Streams;
 
 namespace MyPhone.OBEX
 {
@@ -30,7 +28,7 @@ namespace MyPhone.OBEX
     {
         public HeaderId HeaderId { get; protected set; }
 
-        protected ObexHeader(HeaderId headerId) 
+        protected ObexHeader(HeaderId headerId)
         {
             HeaderId = headerId;
         }
@@ -69,7 +67,7 @@ namespace MyPhone.OBEX
             {
                 Value = BitConverter.ToInt32(bytes, 0);
             }
-            
+
         }
 
         public override byte[]? ToBytes()

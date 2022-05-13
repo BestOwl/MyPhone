@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MyPhone.OBEX
+﻿namespace MyPhone.OBEX
 {
     public enum HeaderId : byte
     {
@@ -185,7 +181,7 @@ namespace MyPhone.OBEX
         public static readonly byte CHARSET_UTF8 = 0x01;
 
         public static readonly byte ATTACHMENT_OFF = 0x00;
-        public static readonly byte ATTACHMENT_ON  = 0x01;
+        public static readonly byte ATTACHMENT_ON = 0x01;
     }
 
 }

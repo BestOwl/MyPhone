@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "MyPhone (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "MyPhone (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
