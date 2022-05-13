@@ -58,7 +58,7 @@ jobs:
                 /p:Configuration=$env:Configuration /p:Platform=$env:Platform `
                 /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle `
                 /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx `
-                /p:PackageCertificatePassword=${{ secrets.TESTING_PFX_PASSPHRASE }} `
+                /p:PackageCertificatePassword="${{ secrets.TESTING_PFX_PASSPHRASE }}" `
                 /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
         env:
           Appx_Bundle: Always
