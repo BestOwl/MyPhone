@@ -1,0 +1,73 @@
+
+
+name: WinUI 3 MSIX app
+
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Release]
+        platform: [x64, x86, ARM64]
+
+    runs-on: windows-latest
+    
+    env:
+      Solution_Name: MyPhone
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Install the .NET Core workload
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+
+      # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      # Restore the application to populate the obj folder with RuntimeIdentifiers
+      - name: Restore the application
+        run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
+        env:
+          Configuration: ${{ matrix.configuration }}
+
+      # Decode the base 64 encoded pfx and save the Signing_Certificate
+      - name: Decode the pfx
+        run: |
+          $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.TESTING_PFX_BASE_ENCODED }}")
+          $certificatePath = "GitHubActionsWorkflow.pfx"
+          [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+
+      # Create the app package by building and packaging the project
+      - name: Create the app package
+        run: msbuild $env:Solution_Name /p:Configuration=$env:Configuration /p:Platform=$env:Platform /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
+        env:
+          Appx_Bundle: Never
+          Appx_Package_Build_Mode: SideloadOnly
+          Appx_Package_Dir: Packages\
+          Configuration: ${{ matrix.configuration }}
+          Platform: ${{ matrix.platform }}
+
+      # Remove the pfx
+      - name: Remove the pfx
+        run: Remove-Item -path GitHubActionsWorkflow.pfx
+
+      # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
+      - name: Upload MSIX package
+        uses: actions/upload-artifact@v2
+        with:
+          name: MSIX Package
+          path: ${{ env.Solution_Name }}\\Packages
