@@ -13,6 +13,8 @@
     <Nullable>enable</Nullable>
     <ApplicationIcon>Assets\Icon.ico</ApplicationIcon>
     <SupportedOSPlatformVersion>10.0.18362.0</SupportedOSPlatformVersion>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Controls\DevicePairDialog.xaml" />
