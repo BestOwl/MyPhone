@@ -46,7 +46,7 @@ namespace GoodTimeStudio.MyPhone.RootPages.OOBE
 
         public event EventHandler? OobeCompletedEvent;
 
-        public async Task<bool> Connect()
+        public async Task Connect()
         {
             Connecting = true;
             ErrorText = null;
@@ -56,6 +56,10 @@ namespace GoodTimeStudio.MyPhone.RootPages.OOBE
                 {
                     _settingsService.SetValue(_settingsService.KeyOobeIsCompleted, true);
                     OobeCompletedEvent?.Invoke(this, new EventArgs());
+                }
+                else
+                {
+                    ErrorText = "Unable to connect to your phone, please try again.";
                 }
             }
             catch (UnauthorizedAccessException ex)
@@ -69,7 +73,6 @@ namespace GoodTimeStudio.MyPhone.RootPages.OOBE
             }
 
             Connecting = false;
-            return true;
         }
 
 

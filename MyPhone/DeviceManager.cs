@@ -37,7 +37,6 @@ namespace GoodTimeStudio.MyPhone
             }
 
             _currentDevice = currentDevice;
-            _taskInitPhoneLine = InitPhoneLine();
             if (!await ReconnectAsync())
             {
                 ScheduleReconnect();
@@ -78,10 +77,13 @@ namespace GoodTimeStudio.MyPhone
                 throw new InvalidOperationException("Does not support this device");
             }
 
-            var paringResult = await _deviceService.PairDeviceAsync(deviceInformation);
-            if (paringResult.Status != DevicePairingResultStatus.Paired)
+            if (!_deviceService.IsPaired(deviceInformation))
             {
-                throw new DeviceParingException(paringResult);
+                var paringResult = await _deviceService.PairDeviceAsync(deviceInformation);
+                if (paringResult.Status != DevicePairingResultStatus.Paired)
+                {
+                    throw new DeviceParingException(paringResult);
+                }
             }
 
             CurrentDeviceInformation? registeredDevice = await _deviceService.RegisterDeviceAsync(deviceInformation);
@@ -92,6 +94,7 @@ namespace GoodTimeStudio.MyPhone
 
             _currentDevice = registeredDevice;
             _currentDevice.BluetoothDevice.ConnectionStatusChanged += BluetoothDevice_ConnectionStatusChanged;
+            _taskInitPhoneLine = InitPhoneLine();
             return true;
         }
 
@@ -110,6 +113,7 @@ namespace GoodTimeStudio.MyPhone
             bool success = await _currentDevice.PhoneLineTransportDevice.ConnectAsync();
             if (success)
             {
+                _taskInitPhoneLine = InitPhoneLine();
                 _currentDevice.BluetoothDevice.ConnectionStatusChanged += BluetoothDevice_ConnectionStatusChanged;
             }
             return success;

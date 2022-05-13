@@ -17,14 +17,14 @@ namespace GoodTimeStudio.MyPhone.RootPages.OOBE
 
         public OobePage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
             ViewModel = Ioc.Default.GetRequiredService<OobePageViewModel>();
             ViewModel.OobeCompletedEvent += ViewModel_OobeCompletedEvent;
         }
 
         private void ViewModel_OobeCompletedEvent(object? sender, EventArgs e)
         {
-            this.Frame.Navigate(typeof(MainPage));
+            Frame.Navigate(typeof(MainPage));
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)

@@ -24,6 +24,13 @@ namespace GoodTimeStudio.MyPhone.Services
         DeviceWatcher CreateDeviceWatcher();
 
         /// <summary>
+        /// Check whether the given Bluetooth device is paired
+        /// </summary>
+        /// <param name="deviceInformation">The <see cref="DeviceInformation"/> of a <see cref="BluetoothDevice"/></param>
+        /// <returns>True if the device is paired, false otherwise.</returns>
+        bool IsPaired(DeviceInformation deviceInformation);
+
+        /// <summary>
         /// Pair the Bluetooth device with its <see cref="DeviceInformation"/>.
         /// </summary>
         /// <param name="deviceInformation">The <see cref="DeviceInformation"/> of a <see cref="BluetoothDevice"/>.</param>

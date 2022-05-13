@@ -36,6 +36,11 @@ namespace GoodTimeStudio.MyPhone.Services
             return new CurrentDeviceInformation(btd, pltd);
         }
 
+        public bool IsPaired(DeviceInformation deviceInformation)
+        {
+            return deviceInformation.Pairing.IsPaired;
+        }
+
         public async Task<DevicePairingResult> PairDeviceAsync(DeviceInformation deviceInformation)
         {
             if (deviceInformation == null)
