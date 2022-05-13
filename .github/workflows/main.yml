@@ -15,15 +15,11 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        configuration: [Release]
-        platform: [x64, x86, ARM64]
-
     runs-on: windows-latest
     
     env:
       Solution_Name: MyPhone
+      Configuration: Release
 
     steps:
       - uses: actions/checkout@v3
@@ -41,8 +37,6 @@ jobs:
       # Restore the application to populate the obj folder with RuntimeIdentifiers
       - name: Restore the application
         run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
-        env:
-          Configuration: ${{ matrix.configuration }}
 
       # Decode the base 64 encoded pfx and save the Signing_Certificate
       - name: Decode the pfx
@@ -56,16 +50,17 @@ jobs:
         run: |
             msbuild $env:Solution_Name `
                 /p:Configuration=$env:Configuration /p:Platform=$env:Platform `
-                /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode /p:AppxBundle=$env:Appx_Bundle `
+                /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode `
+                /p:AppxBundle=$env:Appx_Bundle /p:AppxBundlePlatforms=$env:Appx_Bundle_Platforms`
                 /p:PackageCertificateKeyFile=GitHubActionsWorkflow.pfx `
                 /p:PackageCertificatePassword="${{ secrets.TESTING_PFX_PASSPHRASE }}" `
                 /p:AppxPackageDir="$env:Appx_Package_Dir" /p:GenerateAppxPackageOnBuild=true
         env:
           Appx_Bundle: Always
+          Appx_Bundle_Platforms: x64|x86|ARM64
           Appx_Package_Build_Mode: SideloadOnly
           Appx_Package_Dir: Packages\
-          Configuration: ${{ matrix.configuration }}
-          Platform: ${{ matrix.platform }}
+          Platform: x64
 
       # Remove the pfx
       - name: Remove the pfx
