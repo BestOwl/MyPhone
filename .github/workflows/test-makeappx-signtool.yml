@@ -35,7 +35,7 @@ jobs:
           commit: f02bad99bfa4906f28d09fc0c26362975ca74117
           branch: github-action-ci
           name: ${{ env.Artifact_Name }}
-      - run: mv env:Artifact_Name $env:Unsigned_Packages_Path
+      - run: mv $env:Artifact_Name $env:Unsigned_Packages_Path
         
       - name: Prepare workspace
         run: |
