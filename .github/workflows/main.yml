@@ -106,7 +106,7 @@ jobs:
           cp .\$env:Unsigned_Packages_Path\*\*.msix $env:Bundling_Workspace_Path
           $files = ls $env:Bundling_Workspace_Path | Sort-Object -Property Name -Descending
           $bundleName = $files[0].Name
-          $bundleName.Substring(0, $bundleName.LastIndexOf('_'))
+          $bundleName = $bundleName.Substring(0, $bundleName.LastIndexOf('_'))
           foreach ($f in $files) {
             $beginIndex = $f.Name.LastIndexOf('_')
             $endIndex = $f.Name.LastIndexOf('.')
@@ -115,7 +115,7 @@ jobs:
           $bundleName += ".msixbundle"
           Write-Output "Making MSIX bundle ${bundleName}"
           MakeAppx bundle /d $env:Bundling_Workspace_Path /p "${env:Bundle_Install_Path}\${bundleName}"
-          "{MSIX_Bunde_FileName}={$bundleName}" >> $env:GITHUB_ENV
+          "MSIX_Bunde_FileName=$bundleName" >> $env:GITHUB_ENV
          
       # Decode the base 64 encoded pfx and save the Signing_Certificate
       - name: Decode the pfx
@@ -127,7 +127,7 @@ jobs:
           
       - name: Sign the bundle
         run: |
-          SignTool sign /fd SHA256 /a /f GitHubActionsWorkflow.pfx /p "${{ secrets.TESTING_PFX_PASSPHRASE }}" "${{ env.MSIX_Bunde_FileName }}"
+          SignTool sign /fd SHA256 /a /f GitHubActionsWorkflow.pfx /p "${{ secrets.TESTING_PFX_PASSPHRASE }}" "${env:Bundle_Install_Path}\${{ env.MSIX_Bunde_FileName }}"
       
       # Remove the pfx
       - name: Post Decode the pfx
@@ -147,6 +147,8 @@ jobs:
           Write-Output "Content path: $contentPath"
           Write-Output "Copying install scripts"
           cp "$contentPath\*.ps1" $env:Bundle_Install_Path
+          Write-Output "Copying debug symbols"
+          cp .\$env:Unsigned_Packages_Path\*\*.msixsym $env:Bundle_Install_Path
           Write-Output "Copying dependencies and resources"
           ls ${contentPath | Where-Object -Property Attributes -eq Directory |  cp -Recurse -Destination $env:Bundle_Install_Path
           Write-Output "Generating public certificate from secrets"
