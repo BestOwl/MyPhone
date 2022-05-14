@@ -1,0 +1,166 @@
+
+
+name: WinUI 3 MSIX app
+
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
+env:
+  Unsigned_Artifact_Name: MSIX Package
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Release]
+        platform: [x64, x86, ARM64]
+
+    runs-on: windows-latest
+    
+    env:
+      Solution_Name: MyPhone
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Install the .NET Core workload
+      - name: Install .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+
+      # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      # Restore the application to populate the obj folder with RuntimeIdentifiers
+      - name: Restore the application
+        run: msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
+        env:
+          Configuration: ${{ matrix.configuration }}
+
+      # Create the app package by building and packaging the project
+      - name: Create the app package
+        run: |
+            msbuild $env:Solution_Name `
+                /p:Configuration=$env:Configuration `
+                /p:Platform=$env:Platform `
+                /p:UapAppxPackageBuildMode=$env:Appx_Package_Build_Mode `
+                /p:AppxBundle=$env:Appx_Bundle `
+                /p:AppxPackageDir="$env:Appx_Package_Dir" `
+                /p:GenerateAppxPackageOnBuild=true
+        env:
+          Appx_Bundle: Never
+          Appx_Package_Build_Mode: SideloadOnly
+          Appx_Package_Dir: Packages\
+          Configuration: ${{ matrix.configuration }}
+          Platform: ${{ matrix.platform }}
+
+      # Upload the MSIX package: https://github.com/marketplace/actions/upload-a-build-artifact
+      - name: Upload MSIX package
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.Unsigned_Artifact_Name }}
+          path: ${{ env.Solution_Name }}\\Packages
+          
+          
+          
+          
+          
+  bundle:
+    name: Bundle and sign the MSIX package
+    runs-on: windows-latest
+    needs: build
+    
+    env:
+      Bundling_Workspace_Path: BundlingWorkspace
+      Bundle_Install_Path: BundlePackage
+      Unsigned_Packages_Path: Packages
+    
+    steps:
+      - name: Setup VS Dev Environment
+        uses: seanmiddleditch/gha-setup-vsdevenv@v4
+        
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3.0.0
+        with: 
+          name: ${{ env.Unsigned_Artifact_Name }}
+          path: ${{ env.Unsigned_Packages_Path }}
+        
+      - name: Prepare workspace
+        run: |
+          mkdir $env:Bundle_Install_Path
+          mkdir $env:Bundling_Workspace_Path
+          Write-Output "Current worksapce structure:"
+          ls
+        
+      - name: Bundle package
+        run: |
+          cp "${env:Unsigned_Packages_Path}\*\*.msix" $env:Bundling_Workspace_Path -Verbose
+          $files = ls $env:Bundling_Workspace_Path | Sort-Object -Property Name -Descending
+          $bundleName = $files[0].Name
+          $bundleName = $bundleName.Substring(0, $bundleName.LastIndexOf('_'))
+          foreach ($f in $files) {
+            $beginIndex = $f.Name.LastIndexOf('_')
+            $endIndex = $f.Name.LastIndexOf('.')
+            $bundleName += $f.Name.Substring($beginIndex, $endIndex - $beginIndex)
+          }
+          $bundleName += ".msixbundle"
+          Write-Output "Making MSIX bundle ${bundleName}"
+          MakeAppx bundle /d $env:Bundling_Workspace_Path /p "${env:Bundle_Install_Path}\${bundleName}"
+          "MSIX_Bunde_FileName=$bundleName" >> $env:GITHUB_ENV
+         
+      # Decode the base 64 encoded pfx and save the Signing_Certificate
+      - name: Decode the pfx
+        id: decode-pfx
+        run: |
+          $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.TESTING_PFX_BASE64_ENCODED }}")
+          $certificatePath = "GitHubActionsWorkflow.pfx"
+          [IO.File]::WriteAllBytes($certificatePath, $pfx_cert_byte)
+          
+      - name: Sign the bundle
+        run: |
+          SignTool sign /fd SHA256 /a /f GitHubActionsWorkflow.pfx /p "${{ secrets.TESTING_PFX_PASSPHRASE }}" "${env:Bundle_Install_Path}\${{ env.MSIX_Bunde_FileName }}"
+      
+      # Remove the pfx
+      - name: Post Decode the pfx
+        if: ${{ steps.decode-pfx.outcome == 'success' || steps.decode-pfx.outcome == 'failure' }}
+        run: Remove-Item -path GitHubActionsWorkflow.pfx
+          
+      - name: Prepare for upload
+        run: |
+          $files = ls $env:Unsigned_Packages_Path | Sort-Object -Property Name -Descending
+          $contentPath = $files[0].Name
+          $contentPath = "${env:Unsigned_Packages_Path}\$contentPath"
+          Write-Output "Content source path: $contentPath"
+          Write-Output "Copying install scripts"
+          cp "$contentPath\*.ps1" $env:Bundle_Install_Path -Verbose
+          Write-Output "Copying debug symbols"
+          cp "${env:Unsigned_Packages_Path}\*\*.msixsym" $env:Bundle_Install_Path -Verbose
+          Write-Output "Copying dependencies and resources"
+          ls $contentPath | Where-Object -Property Attributes -eq Directory |  cp -Recurse -Destination $env:Bundle_Install_Path -Verbose
+          Write-Output "Downloading public certificate"
+          $public_cert_byte = [System.Convert]::FromBase64String("${{ secrets.TESTING_PUBLIC_CERT_BASE64_ENCODED }}")
+          $public_cert_path = "${env:Bundle_Install_Path}\MyPhoneTestingCert_GithubAction.cer"
+          [IO.File]::WriteAllBytes("$public_cert_path", $public_cert_byte)
+          Write-Output "Downloaded public certificate at $public_cert_path"
+          $artifactName = $env:MSIX_Bunde_FileName.Substring(0, $env:MSIX_Bunde_FileName.LastIndexOf('.'))
+          "Bundle_Artifact_Name=$artifactName" >> $env:GITHUB_ENV
+
+      - name: Delete old unsigned artifact
+        uses: GeekyEggo/delete-artifact@v1.0.0
+        with:
+          name: ${{ env.Unsigned_Artifact_Name }}
+          
+      - name: Upload signed MSIX package bundle
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.Bundle_Artifact_Name }}
+          path: ${{ env.Bundle_Install_Path }}
