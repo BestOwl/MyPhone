@@ -11,7 +11,9 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-
+env:
+  Artifact_Name: MSIX Package
+  
 jobs:
   bundle:
     name: Bundle and sign the MSIX package
@@ -33,7 +35,7 @@ jobs:
           commit: f02bad99bfa4906f28d09fc0c26362975ca74117
           branch: github-action-ci
           name: ${{ env.Artifact_Name }}
-          path: ${{ env.Unsigned_Packages_Path }}
+      - run: mv ${{ env.Artifact_Name }} $env:Unsigned_Packages_Path
         
       - name: Prepare workspace
         run: |
@@ -44,7 +46,7 @@ jobs:
         
       - name: Bundle package
         run: |
-          cp .\$env:Unsigned_Packages_Path\*\*.msix $env:Bundling_Workspace_Path
+          cp "${env:Unsigned_Packages_Path}\*\*.msix" $env:Bundling_Workspace_Path
           $files = ls $env:Bundling_Workspace_Path | Sort-Object -Property Name -Descending
           $bundleName = $files[0].Name
           $bundleName = $bundleName.Substring(0, $bundleName.LastIndexOf('_'))
