@@ -106,11 +106,11 @@ jobs:
           cp .\$env:Unsigned_Packages_Path\*\*.msix $env:Bundling_Workspace_Path
           $files = ls $env:Bundling_Workspace_Path | Sort-Object -Property Name -Descending
           $env:bundleName = $files[0].Name
-          $env:bundleName.Substring(0, $bundleName.LastIndexOf('_'))
+          $env:bundleName.Substring(0, $env:bundleName.LastIndexOf('_'))
           foreach ($f in $files) {
             $beginIndex = $f.Name.LastIndexOf('_')
             $endIndex = $f.Name.LastIndexOf('.')
-            $bundleName += $f.Name.Substring($beginIndex, $endIndex - $beginIndex)
+            $env:bundleName += $f.Name.Substring($beginIndex, $endIndex - $beginIndex)
           }
           $env:bundleName += ".msixbundle"
           Write-Output "Making MSIX bundle ${env:bundleName}"
