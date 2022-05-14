@@ -1,0 +1,25 @@
+# Test MakeAppx and SignTool
+
+name: FindMakeAppxSignTool
+
+on:
+  push:
+    branches: [ experiments/test-makeappx-signtool ]
+  pull_request:
+    branches: [ experiments/test-makeappx-signtool ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+
+jobs:
+  bundle:
+    runs-on: windows-latest
+
+    steps:
+      # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.0.2
+      
+      - name: MakeAppx
+        run: MakeAppx
