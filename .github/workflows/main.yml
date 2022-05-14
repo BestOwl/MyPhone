@@ -67,8 +67,12 @@ jobs:
       - name: Upload MSIX package
         uses: actions/upload-artifact@v2
         with:
-          name: $env:Artifact_Name
+          name: ${{ env:Artifact_Name }}
           path: ${{ env.Solution_Name }}\\Packages
+          
+          
+          
+          
           
   bundle:
     name: Bundle and sign the MSIX package
@@ -86,7 +90,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v3.0.0
         with: 
-          name: $env:Artifact_Name
+          name: ${{ env:Artifact_Name }}
         
       - name: Prepare workspace
         run: |
@@ -130,11 +134,11 @@ jobs:
       - name: Delete old unsigned artifact
         uses: GeekyEggo/delete-artifact@v1.0.0
         with:
-          name: $env:Artifact_Name
+          name: ${{ env:Artifact_Name }}
           
       - name: Upload signed MSIX package bundle
         uses: actions/upload-artifact@v2
         with:
-          name: $env:Artifact_Name
-          path: $env:Bundle_Path
+          name: ${{ env:Artifact_Name }}
+          path: ${{ env:Bundle_Path }}
     
