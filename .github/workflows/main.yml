@@ -119,7 +119,7 @@ jobs:
       
       # Remove the pfx
       - name: Post Decode the pfx
-        if: ${{ steps.decode-pfx.outcome == success || steps.decode-pfx.outcome == failure }}
+        if: ${{ steps.decode-pfx.outcome == 'success' || steps.decode-pfx.outcome == 'failure' }}
         run: Remove-Item -path GitHubActionsWorkflow.pfx
         
       - name: Delete old unsigned artifact
