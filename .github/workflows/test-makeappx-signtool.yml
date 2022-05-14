@@ -36,8 +36,7 @@ jobs:
           branch: github-action-ci
           name: ${{ env.Artifact_Name }}
           path: ${{ env.Unsigned_Packages_Path }}
-      - run: mv "$env:Unsigned_Packages_Path\$env:Artifact_Name" $env:Unsigned_Packages_Path
-        
+
       - name: Prepare workspace
         run: |
           mkdir $env:Bundle_Install_Path
