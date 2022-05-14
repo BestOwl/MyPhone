@@ -83,7 +83,10 @@ jobs:
           $contentPath = $files[0].Name
           $contentPath = "${env:Unsigned_Packages_Path}\$contentPath"
           Write-Output "Content path: $contentPath"
-          
+          Write-Output "Copying install scripts"
+          cp "$contentPath\*.ps1" $env:Bundle_Install_Path
+          Write-Output "Copying debug symbols"
+          cp "${env:Unsigned_Packages_Path}\*\*.msixsym" $env:Bundle_Install_Path
           
 
       - name: Delete old unsigned artifact
