@@ -89,10 +89,7 @@ jobs:
           cp .\$env:Unsigned_Packages_Path\*\*.msixsym $env:Bundle_Install_Path
           Write-Output "Copying dependencies and resources"
           ls ${contentPath | Where-Object -Property Attributes -eq Directory |  cp -Recurse -Destination $env:Bundle_Install_Path
-          Write-Output "Generating public certificate from secrets"
-          $public_cert_byte = [System.Convert]::FromBase64String("${{ secrets.TESTING_PUBLIC_CERT_BASE64_ENCODED }}")
-          $public_cert_path = "MyPhoneTestingCert_GithubAction.cer"
-          [IO.File]::WriteAllBytes("$public_cert_path", $public_cert_byte)
+          
 
       - name: Delete old unsigned artifact
         uses: GeekyEggo/delete-artifact@v1.0.0
