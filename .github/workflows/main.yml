@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
   
 env:
-  Artifact_Name: MSIX Package
+  Unsigned_Artifact_Name: MSIX Package
 
 jobs:
   build:
@@ -67,7 +67,7 @@ jobs:
       - name: Upload MSIX package
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.Artifact_Name }}
+          name: ${{ env.Unsigned_Artifact_Name }}
           path: ${{ env.Solution_Name }}\\Packages
           
           
@@ -91,7 +91,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v3.0.0
         with: 
-          name: ${{ env.Artifact_Name }}
+          name: ${{ env.Unsigned_Artifact_Name }}
           path: ${{ env.Unsigned_Packages_Path }}
         
       - name: Prepare workspace
@@ -134,12 +134,12 @@ jobs:
         if: ${{ steps.decode-pfx.outcome == 'success' || steps.decode-pfx.outcome == 'failure' }}
         run: Remove-Item -path GitHubActionsWorkflow.pfx
           
-      - name: Gathering files
+      - name: Prepare for upload
         run: |
           $files = ls $env:Unsigned_Packages_Path | Sort-Object -Property Name -Descending
           $contentPath = $files[0].Name
           $contentPath = "${env:Unsigned_Packages_Path}\$contentPath"
-          Write-Output "Content path: $contentPath"
+          Write-Output "Content source path: $contentPath"
           Write-Output "Copying install scripts"
           cp "$contentPath\*.ps1" $env:Bundle_Install_Path -Verbose
           Write-Output "Copying debug symbols"
@@ -151,14 +151,16 @@ jobs:
           $public_cert_path = "${env:Bundle_Install_Path}\MyPhoneTestingCert_GithubAction.cer"
           [IO.File]::WriteAllBytes("$public_cert_path", $public_cert_byte)
           Write-Output "Downloaded public certificate at $public_cert_path"
-          
+          $artifactName = $env:MSIX_Bunde_FileName.Substring(0, $env:MSIX_Bunde_FileName.LastIndexOf('.'))
+          "Bundle_Artifact_Name=$artifactName" >> $env:GITHUB_ENV
+
       - name: Delete old unsigned artifact
         uses: GeekyEggo/delete-artifact@v1.0.0
         with:
-          name: ${{ env.Artifact_Name }}
+          name: ${{ env.Unsigned_Artifact_Name }}
           
       - name: Upload signed MSIX package bundle
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.Artifact_Name }}
+          name: ${{ env.Bundle_Artifact_Name }}
           path: ${{ env.Bundle_Install_Path }}
