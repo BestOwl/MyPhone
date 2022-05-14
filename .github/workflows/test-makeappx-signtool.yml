@@ -14,11 +14,91 @@ on:
 
 jobs:
   bundle:
+    name: Bundle and sign the MSIX package
     runs-on: windows-latest
-
+    
+    env:
+      Bundling_Workspace_Path: BundlingWorkspace
+      Bundle_Install_Path: BundlePackage
+      Unsigned_Packages_Path: Packages
+    
     steps:
       - name: Setup VS Dev Environment
         uses: seanmiddleditch/gha-setup-vsdevenv@v4
+        
+      - name: Download build artifacts
+        uses: dawidd6/action-download-artifact@v2
+        with: 
+          workflow: main.yml
+          commit: f02bad99bfa4906f28d09fc0c26362975ca74117
+          branch: github-action-ci
+          name: ${{ env.Artifact_Name }}
+          path: ${{ env.Unsigned_Packages_Path }}
+        
+      - name: Prepare workspace
+        run: |
+          mkdir $env:Bundle_Install_Path
+          mkdir $env:Bundling_Workspace_Path
+          Write-Output "Current worksapce structure:"
+          ls
+        
+      - name: Bundle package
+        run: |
+          cp .\$env:Unsigned_Packages_Path\*\*.msix $env:Bundling_Workspace_Path
+          $files = ls $env:Bundling_Workspace_Path | Sort-Object -Property Name -Descending
+          $bundleName = $files[0].Name
+          $bundleName = $bundleName.Substring(0, $bundleName.LastIndexOf('_'))
+          foreach ($f in $files) {
+            $beginIndex = $f.Name.LastIndexOf('_')
+            $endIndex = $f.Name.LastIndexOf('.')
+            $bundleName += $f.Name.Substring($beginIndex, $endIndex - $beginIndex)
+          }
+          $bundleName += ".msixbundle"
+          Write-Output "Making MSIX bundle ${bundleName}"
+          MakeAppx bundle /d $env:Bundling_Workspace_Path /p "${env:Bundle_Install_Path}\${bundleName}"
+          "MSIX_Bunde_FileName=$bundleName" >> $env:GITHUB_ENV
+         
+      # Decode the base 64 encoded pfx and save the Signing_Certificate
+      - name: Decode the pfx
+        id: decode-pfx
+        run: |
+          $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.TESTING_PFX_BASE64_ENCODED }}")
+          $certificatePath = "GitHubActionsWorkflow.pfx"
+          [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+          
+      - name: Sign the bundle
+        run: |
+          SignTool sign /fd SHA256 /a /f GitHubActionsWorkflow.pfx /p "${{ secrets.TESTING_PFX_PASSPHRASE }}" "${env:Bundle_Install_Path}\${{ env.MSIX_Bunde_FileName }}"
       
-      - name: MakeAppx
-        run: MakeAppx
+      # Remove the pfx
+      - name: Post Decode the pfx
+        if: ${{ steps.decode-pfx.outcome == 'success' || steps.decode-pfx.outcome == 'failure' }}
+        run: Remove-Item -path GitHubActionsWorkflow.pfx
+          
+      - name: Gathering files
+        run: |
+          $files = ls $env:Unsigned_Packages_Path | Sort-Object -Property Name -Descending
+          $contentPath = $files[0].Name
+          $contentPath = "${env:Unsigned_Packages_Path}\$contentPath"
+          Write-Output "Content path: $contentPath"
+          Write-Output "Copying install scripts"
+          cp "$contentPath\*.ps1" $env:Bundle_Install_Path
+          Write-Output "Copying debug symbols"
+          cp .\$env:Unsigned_Packages_Path\*\*.msixsym $env:Bundle_Install_Path
+          Write-Output "Copying dependencies and resources"
+          ls ${contentPath | Where-Object -Property Attributes -eq Directory |  cp -Recurse -Destination $env:Bundle_Install_Path
+          Write-Output "Generating public certificate from secrets"
+          $public_cert_byte = [System.Convert]::FromBase64String("${{ secrets.TESTING_PUBLIC_CERT_BASE64_ENCODED }}")
+          $public_cert_path = "MyPhoneTestingCert_GithubAction.cer"
+          [IO.File]::WriteAllBytes("$public_cert_path", $public_cert_byte)
+
+      - name: Delete old unsigned artifact
+        uses: GeekyEggo/delete-artifact@v1.0.0
+        with:
+          name: ${{ env.Artifact_Name }}
+          
+      - name: Upload signed MSIX package bundle
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.Artifact_Name }}
+          path: ${{ env.Bundle_Install_Path }}
