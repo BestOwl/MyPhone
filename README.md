@@ -2,9 +2,11 @@
 
 ***My Phone*** is a desktop application that allows you to link your phone (supports Android, iOS, and Windows Phone) to your Windows 10/11 PC via Bluetooth without having to install a companion app on your phone. 
 
-![Screenshot: Main Page](https://user-images.githubusercontent.com/8947026/167852799-461d9f41-0609-4809-813a-d87a08acc924.png)
+[![WinUI 3 MSIX app](https://github.com/BestOwl/MyPhone/actions/workflows/main.yml/badge.svg)](https://github.com/BestOwl/MyPhone/actions/workflows/main.yml)
 
-![Calling UI](https://user-images.githubusercontent.com/8947026/167856802-42f7ebc3-1ff9-4f62-a1b9-70edfde65b1f.png)
+![Screenshot: Main Page](https://user-images.githubusercontent.com/8947026/168443434-8b001b6b-1428-4b08-8ac5-3751f650059c.png)
+
+![Screenshot: Calling UI](https://user-images.githubusercontent.com/8947026/167856802-42f7ebc3-1ff9-4f62-a1b9-70edfde65b1f.png)
 
 ## Features
 
