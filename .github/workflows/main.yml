@@ -34,7 +34,7 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
-      # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+      # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.0.2
 
@@ -67,3 +67,67 @@ jobs:
         with:
           name: MSIX Package
           path: ${{ env.Solution_Name }}\\Packages
+          
+  bundle:
+    name: Bundle and sign the MSIX package
+    runs-on: windows-latest
+    
+    env:
+      Bundling_Workspace_Path: BundlingWorkspace
+      Bundle_Path: BundlePackage
+    
+    steps:
+      - name: Setup VS Dev Environment
+        uses: seanmiddleditch/gha-setup-vsdevenv@v4
+        
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3.0.0
+        
+      - name: Prepare workspace
+        run: |
+          mkdir $env:Bundle_Path
+          mkdir $env:Bundling_Workspace_Path
+          ls
+        
+      - name: Bundle package
+        run: |
+          cp .\Packages\*\*.msix $env:Bundling_Workspace_Path
+          $files = ls $env:Bundling_Workspace_Path | Sort-Object -Property Name -Descending
+          $env:bundleName = $files[0].Name
+          $env:bundleName.Substring(0, $bundleName.LastIndexOf('_'))
+          foreach ($f in $files) {
+            $beginIndex = $f.Name.LastIndexOf('_')
+            $endIndex = $f.Name.LastIndexOf('.')
+            $bundleName += $f.Name.Substring($beginIndex, $endIndex - $beginIndex)
+          }
+          $env:bundleName += ".msixbundle"
+          Write-Output "Making MSIX bundle ${env:bundleName}"
+          MakeAppx bundle /d $env:Bundling_Workspace_Path /p "${env:Bundle_Path}\${env:bundleName}"
+         
+      # Decode the base 64 encoded pfx and save the Signing_Certificate
+      - name: Decode the pfx
+        run: |
+          $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.TESTING_PFX_BASE64_ENCODED }}")
+          $certificatePath = "GitHubActionsWorkflow.pfx"
+          [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+          
+      - name: Sign the bundle
+        run: |
+          SignTool sign /fd SHA256 /a /f GitHubActionsWorkflow.pfx /p "${{ secrets.TESTING_PFX_PASSPHRASE }}" $env:bundleName 
+      
+      # Remove the pfx
+      - name: Post Decode the pfx
+        if: ${{ always() }}
+        run: Remove-Item -path GitHubActionsWorkflow.pfx
+        
+      - name: Delete old unsigned artifact
+        uses: GeekyEggo/delete-artifact@v1.0.0
+        with:
+          name: MSIX Package
+          
+      - name: Upload signed MSIX package bundle
+        uses: actions/upload-artifact@v2
+        with:
+          name: MSIX Package
+          path: $env:Bundle_Path
+    
