@@ -46,7 +46,7 @@ jobs:
         
       - name: Bundle package
         run: |
-          cp "${env:Unsigned_Packages_Path}\*\*.msix" $env:Bundling_Workspace_Path
+          cp "${env:Unsigned_Packages_Path}\*\*.msix" $env:Bundling_Workspace_Path -Verbose
           $files = ls $env:Bundling_Workspace_Path | Sort-Object -Property Name -Descending
           $bundleName = $files[0].Name
           $bundleName = $bundleName.Substring(0, $bundleName.LastIndexOf('_'))
@@ -66,7 +66,7 @@ jobs:
         run: |
           $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.TESTING_PFX_BASE64_ENCODED }}")
           $certificatePath = "GitHubActionsWorkflow.pfx"
-          [IO.File]::WriteAllBytes("$certificatePath", $pfx_cert_byte)
+          [IO.File]::WriteAllBytes($certificatePath, $pfx_cert_byte)
           
       - name: Sign the bundle
         run: |
@@ -84,16 +84,16 @@ jobs:
           $contentPath = "${env:Unsigned_Packages_Path}\$contentPath"
           Write-Output "Content path: $contentPath"
           Write-Output "Copying install scripts"
-          cp "$contentPath\*.ps1" $env:Bundle_Install_Path
+          cp "$contentPath\*.ps1" $env:Bundle_Install_Path -Verbose
           Write-Output "Copying debug symbols"
-          cp "${env:Unsigned_Packages_Path}\*\*.msixsym" $env:Bundle_Install_Path
+          cp "${env:Unsigned_Packages_Path}\*\*.msixsym" $env:Bundle_Install_Path -Verbose
           Write-Output "Copying dependencies and resources"
-          ls $contentPath | Where-Object -Property Attributes -eq Directory |  cp -Recurse -Destination $env:Bundle_Install_Path
-          Write-Output "Generating public certificate from secrets"
+          ls $contentPath | Where-Object -Property Attributes -eq Directory |  cp -Recurse -Destination $env:Bundle_Install_Path -Verbose
+          Write-Output "Downloading public certificate"
           $public_cert_byte = [System.Convert]::FromBase64String("${{ secrets.TESTING_PUBLIC_CERT_BASE64_ENCODED }}")
-          $public_cert_path = "MyPhoneTestingCert_GithubAction.cer"
+          $public_cert_path = "${env:Bundle_Install_Path}\MyPhoneTestingCert_GithubAction.cer"
           [IO.File]::WriteAllBytes("$public_cert_path", $public_cert_byte)
-
+          Write-Output "Downloaded public certificate at $public_cert_path"
       - name: Delete old unsigned artifact
         uses: GeekyEggo/delete-artifact@v1.0.0
         with:
@@ -104,3 +104,4 @@ jobs:
         with:
           name: ${{ env.Artifact_Name }}
           path: ${{ env.Bundle_Install_Path }}
+
