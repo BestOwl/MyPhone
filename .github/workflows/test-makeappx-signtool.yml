@@ -17,12 +17,15 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # Add MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v1.0.2
-        
-      - name: VSWhere
-        run: vswhere
+      - name: Setup Visual Studio Developer Command Prompt
+        run: |
+          $installationPath = vswhere.exe -latest -property installationPath
+          if ($installationPath -and (test-path "$installationPath\Common7\Tools\vsdevcmd.bat")) {
+            & "${env:COMSPEC}" /s /c "`"$installationPath\Common7\Tools\vsdevcmd.bat`" -no_logo && set" | foreach-object {
+              $name, $value = $_ -split '=', 2
+              set-content env:\"$name" $value
+            }
+          }
       
       - name: MakeAppx
         run: MakeAppx
