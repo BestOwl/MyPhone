@@ -11,7 +11,9 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
+  
+env:
+  Artifact_Name: MSIX Package
 
 jobs:
   build:
@@ -65,7 +67,7 @@ jobs:
       - name: Upload MSIX package
         uses: actions/upload-artifact@v2
         with:
-          name: MSIX Package
+          name: $env:Artifact_Name
           path: ${{ env.Solution_Name }}\\Packages
           
   bundle:
@@ -83,12 +85,15 @@ jobs:
         
       - name: Download build artifacts
         uses: actions/download-artifact@v3.0.0
+        with: 
+          name: $env:Artifact_Name
         
       - name: Prepare workspace
         run: |
           mkdir $env:Bundle_Path
           mkdir $env:Bundling_Workspace_Path
-          ls
+          Write-Output "Current worksapce structure:"
+          ls -R
         
       - name: Bundle package
         run: |
@@ -125,11 +130,11 @@ jobs:
       - name: Delete old unsigned artifact
         uses: GeekyEggo/delete-artifact@v1.0.0
         with:
-          name: MSIX Package
+          name: $env:Artifact_Name
           
       - name: Upload signed MSIX package bundle
         uses: actions/upload-artifact@v2
         with:
-          name: MSIX Package
+          name: $env:Artifact_Name
           path: $env:Bundle_Path
     
