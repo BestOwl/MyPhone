@@ -71,6 +71,7 @@ jobs:
   bundle:
     name: Bundle and sign the MSIX package
     runs-on: windows-latest
+    needs: build
     
     env:
       Bundling_Workspace_Path: BundlingWorkspace
@@ -106,6 +107,7 @@ jobs:
          
       # Decode the base 64 encoded pfx and save the Signing_Certificate
       - name: Decode the pfx
+        id: decode-pfx
         run: |
           $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.TESTING_PFX_BASE64_ENCODED }}")
           $certificatePath = "GitHubActionsWorkflow.pfx"
@@ -117,7 +119,7 @@ jobs:
       
       # Remove the pfx
       - name: Post Decode the pfx
-        if: ${{ always() }}
+        if: ${{ steps.decode-pfx.outcome == success || steps.decode-pfx.outcome == failure }}
         run: Remove-Item -path GitHubActionsWorkflow.pfx
         
       - name: Delete old unsigned artifact
