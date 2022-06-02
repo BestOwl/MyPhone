@@ -50,7 +50,7 @@ namespace GoodTimeStudio.MyPhone.Utilities
                     if (_schedules.MoveNext())
                     {
                         DynamicTimerSchedule schedule = _schedules.Current;
-                        _timer.Interval = schedule.Interval.Milliseconds;
+                        _timer.Interval = schedule.Interval.TotalMilliseconds;
                         _currentTryCount = schedule.TryCount;
                     }
                     else

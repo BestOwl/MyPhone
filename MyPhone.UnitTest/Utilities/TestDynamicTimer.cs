@@ -102,5 +102,27 @@ namespace MyPhone.UnitTest.Utilities
             timer.Stop();
             Assert.Equal(5, count);
         }
+
+        [Fact]
+        public async Task TestSubsequentZeroMilliseconds()
+        {
+            var schedules = new[]
+            {
+                new DynamicTimerSchedule(new TimeSpan(0, 0, 0, 1, 0), 2),
+                new DynamicTimerSchedule(new TimeSpan(0, 0, 0, 1, 0), 2),
+
+            };
+            DynamicTimer timer = new DynamicTimer(schedules);
+            int count = 0;
+            timer.Elapsed += (object? sender, DynamicTimerElapsedEventArgs e) =>
+            {
+                count++;
+            };
+
+            timer.Start();
+            await Task.Delay(7000);
+            timer.Stop();
+            Assert.Equal(4, count);
+        }
     }
 }
