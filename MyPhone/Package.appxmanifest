@@ -4,8 +4,9 @@
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
   xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
-  IgnorableNamespaces="uap rescap desktop">
+  IgnorableNamespaces="uap rescap com desktop">
 
   <Identity
     Name="11602GoodTimeStudio.MyPhoneAssistant"
@@ -40,15 +41,32 @@
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"  Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
+		
       <Extensions>
         <desktop:Extension Category="windows.startupTask" Executable="MyPhone.exe" EntryPoint="Windows.FullTrustApplication">
           <desktop:StartupTask TaskId="MyPhone" Enabled="true" DisplayName="My Phone" />
         </desktop:Extension>
+
+		<!--Specify which CLSID to activate when toast clicked-->
+		<desktop:Extension Category="windows.toastNotificationActivation">
+			<desktop:ToastNotificationActivation ToastActivatorCLSID="d1060544-865e-471f-b8a4-cc4836858d62" />
+		</desktop:Extension>
+
+		<!--Register COM CLSID LocalServer32 registry key-->
+		<com:Extension Category="windows.comServer">
+			<com:ComServer>
+				<com:ExeServer Executable="MyPhone.exe" Arguments="-ToastActivated" DisplayName="MyPhone Toast Activator">
+					<com:Class Id="d1060544-865e-471f-b8a4-cc4836858d62" DisplayName="MyPhone Toast Activator"/>
+				</com:ExeServer>
+			</com:ComServer>
+		</com:Extension>
       </Extensions>
+
     </Application>
   </Applications>
 
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
+	<rescap:Capability Name="phoneLineTransportManagement" />
   </Capabilities>
 </Package>

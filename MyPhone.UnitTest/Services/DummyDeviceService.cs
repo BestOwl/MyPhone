@@ -23,6 +23,11 @@ namespace MyPhone.UnitTest.Services
             throw new NotImplementedException();
         }
 
+        public bool IsPaired(DeviceInformation deviceInformation)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<DevicePairingResult> PairDeviceAsync(DeviceInformation deviceInformation)
         {
             throw new NotImplementedException();

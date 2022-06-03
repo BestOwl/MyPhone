@@ -18,6 +18,7 @@ namespace GoodTimeStudio.MyPhone
         private Task? _taskInitPhoneLine;
         private PhoneLine? _selectedPhoneLine;
         private DynamicTimer? _reconnectTimer;
+        private BluetoothMapManager? _bluetoothMapManager;
 
         public DeviceManager(IDeviceService deviceService)
         {
@@ -95,6 +96,8 @@ namespace GoodTimeStudio.MyPhone
             _currentDevice = registeredDevice;
             _currentDevice.BluetoothDevice.ConnectionStatusChanged += BluetoothDevice_ConnectionStatusChanged;
             _taskInitPhoneLine = InitPhoneLine();
+            _bluetoothMapManager = new BluetoothMapManager(_currentDevice.BluetoothDevice);
+            await _bluetoothMapManager.ConnectAsync();
             return true;
         }
 
@@ -115,6 +118,8 @@ namespace GoodTimeStudio.MyPhone
             {
                 _taskInitPhoneLine = InitPhoneLine();
                 _currentDevice.BluetoothDevice.ConnectionStatusChanged += BluetoothDevice_ConnectionStatusChanged;
+                _bluetoothMapManager = new BluetoothMapManager(_currentDevice.BluetoothDevice);
+                await _bluetoothMapManager.ConnectAsync();
             }
             return success;
         }

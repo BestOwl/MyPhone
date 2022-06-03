@@ -53,7 +53,7 @@ namespace MyPhone.OBEX
             return ret;
         }
 
-        public async Task<BMessage> GetMessage(string messageHandle)
+        public async Task<BMessage> GetMessageAsync(string messageHandle)
         {
             ObexPacket packet = new ObexPacket(
                 Opcode.GetAlter,

@@ -29,7 +29,7 @@ namespace MyPhone.Demo
 
             try
             {
-                await PbapClientSession.Connect();
+                await PbapClientSession.ConnectAsync();
             }
             catch (BluetoothObexSessionException ex)
             {

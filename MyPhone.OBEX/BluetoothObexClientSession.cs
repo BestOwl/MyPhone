@@ -45,7 +45,7 @@ namespace MyPhone.OBEX
         /// Establish bluetooth Rfcomm socket channel, and then initialize a ObexClient based on this socket.
         /// </summary>
         /// <exception cref="BluetoothObexSessionException">Failed to establish a bluetooth Rfcomm socket channel</exception>
-        public async Task Connect()
+        public async Task ConnectAsync()
         {
             // This should return a list of uncached Bluetooth services 
             // (so if the server was not active when paired, it will still be detected by this call

@@ -1,10 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.WinUI.Notifications;
 using GoodTimeStudio.MyPhone.Pages.Call;
 using GoodTimeStudio.MyPhone.RootPages.OOBE;
 using GoodTimeStudio.MyPhone.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
+using System;
+using System.Diagnostics;
 
 
 // To learn more about WinUI, the WinUI project structure,
@@ -33,7 +36,51 @@ namespace GoodTimeStudio.MyPhone
         /// will be used such as when the application is launched to open a specific file.
         /// </summary>
         /// <param name="args">Details about the launch request and process.</param>
-        protected override void OnLaunched(LaunchActivatedEventArgs args)
+        protected async override void OnLaunched(LaunchActivatedEventArgs args)
+        {
+            // Single-instance redirect, redirect Activated to the main instance 
+            AppInstance mainInstance = AppInstance.FindOrRegisterForKey("main");
+            AppInstance currentInstance = AppInstance.GetCurrent();
+            AppActivationArguments activationArgs = currentInstance.GetActivatedEventArgs();
+            if (mainInstance != currentInstance)
+            {
+                await mainInstance.RedirectActivationToAsync(activationArgs);
+                Process.GetCurrentProcess().Kill();
+                return;
+            }
+            mainInstance.Activated += MainInstance_RedirectedActivated;
+            ToastNotificationManagerCompat.OnActivated += ToastNotificationManagerCompat_OnActivated;
+
+            // Do not repeat app initialization when the Window already has content,
+            // just ensure that the window is active
+            if (m_window == null)
+            {
+                ConfigureServices();
+                m_window = Ioc.Default.GetRequiredService<MainWindow>();
+            }
+
+            if (activationArgs.Kind != ExtendedActivationKind.StartupTask)
+            {
+                m_window.Activate();
+            }
+        }
+
+        private void ToastNotificationManagerCompat_OnActivated(ToastNotificationActivatedEventArgsCompat e)
+        {
+            // TODO: activate main window and navigate to content
+            throw new NotImplementedException();
+        }
+
+        // Handle redirected OnActivated
+        private void MainInstance_RedirectedActivated(object? sender, AppActivationArguments e)
+        {
+            m_window!.DispatcherQueue.TryEnqueue(() =>
+            {
+                m_window.Activate();
+            });
+        }
+
+        private static void ConfigureServices()
         {
             // Register services
             Ioc.Default.ConfigureServices(new ServiceCollection()
@@ -44,15 +91,8 @@ namespace GoodTimeStudio.MyPhone
                 .AddTransient<OobePageViewModel>()
                 .AddTransient<MainWindow>()
                 .AddTransient<CallPageViewModel>()
+                .AddMessageToastNotification()
                 .BuildServiceProvider());
-
-            m_window = Ioc.Default.GetRequiredService<MainWindow>();
-
-            AppActivationArguments activationArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
-            if (activationArgs.Kind != ExtendedActivationKind.StartupTask)
-            {
-                m_window.Activate();
-            }
         }
     }
 }

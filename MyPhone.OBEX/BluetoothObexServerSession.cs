@@ -53,7 +53,7 @@ namespace MyPhone.OBEX
             _maxConnections = maxConnections;
         }
 
-        public async Task StartServer()
+        public async Task StartServerAsync()
         {
             if (ServerStarted)
             {

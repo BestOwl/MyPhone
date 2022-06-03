@@ -31,12 +31,12 @@ namespace MyPhone.Demo
                 DrawLine();
                 BluetoothDevice BTDevice = await BluetoothDevice.FromIdAsync(deviceId);
                 MasClientSession = new BluetoothMasClientSession(BTDevice);
-                await MasClientSession.Connect();
+                await MasClientSession.ConnectAsync();
                 Console.WriteLine($"MAS service connected");
 
                 DrawLine();
                 MnsServerSession = new BluetoothMnsServerSession();
-                await MnsServerSession.StartServer();
+                await MnsServerSession.StartServerAsync();
                 Console.WriteLine("MNS server started");
             }
             catch (BluetoothObexSessionException ex)
@@ -72,7 +72,7 @@ namespace MyPhone.Demo
                     BMessage bMsg;
                     try
                     {
-                        bMsg = await MasClientSession.ObexClient.GetMessage(handle);
+                        bMsg = await MasClientSession.ObexClient.GetMessageAsync(handle);
                     }
                     catch (ObexRequestException ex)
                     {
