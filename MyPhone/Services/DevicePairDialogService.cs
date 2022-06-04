@@ -1,4 +1,5 @@
 ﻿using GoodTimeStudio.MyPhone.Controls;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Threading.Tasks;
@@ -58,6 +59,15 @@ namespace GoodTimeStudio.MyPhone.Services
             {
                 _timer.Dispose();
             }
+        }
+    }
+
+    public static class DevicePairDialogServiceExtensions
+    {
+        public static IServiceCollection AddDevicePairDialog(this IServiceCollection services)
+        {
+            services.AddTransient<IDevicePairDialogService, DevicePairDialogService>();
+            return services;
         }
     }
 }

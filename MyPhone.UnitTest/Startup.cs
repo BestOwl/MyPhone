@@ -10,7 +10,7 @@ namespace MyPhone.UnitTest
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IDeviceService, DummyDeviceService>();
+            services.AddSingleton<IDevicePairingService, DummyDeviceService>();
             services.AddSingleton<DeviceManager>();
             services.AddTransient<CallPageViewModel>();
         }

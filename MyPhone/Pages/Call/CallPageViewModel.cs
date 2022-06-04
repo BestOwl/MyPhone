@@ -87,7 +87,14 @@ namespace GoodTimeStudio.MyPhone.Pages.Call
         {
             if (PhoneNumber != null)
             {
-                await _deviceManager.CallAsync(PhoneNumber);
+                if (_deviceManager.CallService != null)
+                {
+                    await _deviceManager.CallService.CallAsync(PhoneNumber);
+                }
+                else
+                {
+                    // TODO: what if CallService is not available 
+                }
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using Windows.Foundation.Collections;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Windows.Foundation.Collections;
 using Windows.Storage;
 
 namespace GoodTimeStudio.MyPhone.Services
@@ -9,7 +10,7 @@ namespace GoodTimeStudio.MyPhone.Services
     /// <remarks>
     /// This implementation requires package identity
     /// </remarks>
-    public sealed class SettingsService : ISettingsService
+    public sealed class AppDataLocalSettingsService : ISettingsService
     {
 
         /// <summary>
@@ -37,6 +38,15 @@ namespace GoodTimeStudio.MyPhone.Services
             {
                 SettingsStorage[key] = value;
             }
+        }
+    }
+
+    public static class AppDataLocalSettingsServiceExtensions
+    {
+        public static IServiceCollection AddAppDataLocalSettings(this IServiceCollection services)
+        {
+            services.AddTransient<ISettingsService, AppDataLocalSettingsService>();
+            return services;
         }
     }
 }

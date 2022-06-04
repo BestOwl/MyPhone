@@ -1,64 +1,64 @@
-﻿using GoodTimeStudio.MyPhone.Services;
+﻿using GoodTimeStudio.MyPhone.Helpers;
+using GoodTimeStudio.MyPhone.Services;
 using GoodTimeStudio.MyPhone.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Calls;
+using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
 
 namespace GoodTimeStudio.MyPhone
 {
     public class DeviceManager : IDisposable
     {
-        private readonly IDeviceService _deviceService;
+        private readonly IDevicePairingService _deviceService;
+        private readonly ISettingsService _settingsService;
 
-        private CurrentDeviceInformation? _currentDevice;
-        private Task? _taskInitPhoneLine;
-        private PhoneLine? _selectedPhoneLine;
-        private DynamicTimer? _reconnectTimer;
-        private BluetoothMapManager? _bluetoothMapManager;
+        private bool _inited;
+        private DeviceInformation? _currentDeviceInformation;
+        private BluetoothDevice? _currentDevice;
+        
+        public DeviceCallServiceProvider? CallService { get; private set; }
+        public DeviceSmsServiceProvider? SmsService { get; private set; }
 
-        public DeviceManager(IDeviceService deviceService)
+        public DeviceManager(IDevicePairingService deviceService, ISettingsService settingsService)
         {
+            _inited = false;
             _deviceService = deviceService;
+            _settingsService = settingsService;
         }
 
         /// <summary>
-        /// Attempt to initialize the <see cref="DeviceManager"/> with previously registered device.
+        /// Attempt to reconnect to a previously registered device.
         /// </summary>
         /// <returns>Returns true if a previously registered device is found, false otherwise.</returns>
-        public async Task<bool> InitAsync()
+        public async Task<bool> TryReconnectAsync()
         {
-            CurrentDeviceInformation? currentDevice = await _deviceService.GetCurrentRegisteredDeviceAsync();
-            if (currentDevice == null)
+            if (_inited)
+            {
+                throw new InvalidOperationException("DeviceManger is already connected to a device");
+            }
+
+            string? deviceId = _settingsService.GetValue<string>(_settingsService.KeyCurrentDeviceId);
+            if (string.IsNullOrEmpty(deviceId))
             {
                 return false;
             }
 
-            _currentDevice = currentDevice;
-            if (!await ReconnectAsync())
+            DeviceInformation deviceInformation = await DeviceInformation.CreateFromIdAsync(deviceId);
+            if (!_deviceService.IsPaired(deviceInformation))
             {
-                ScheduleReconnect();
+                return false;
             }
+
+            await InitializeDevice(deviceInformation);
+            _ = ConnectAllDeviceServices();
+            _inited = true;
             return true;
         }
 
-        static DynamicTimerSchedule[] s_schedules = new DynamicTimerSchedule[]
-        {
-            new DynamicTimerSchedule(TimeSpan.FromSeconds(15), 4), // T+1min
-            new DynamicTimerSchedule(TimeSpan.FromSeconds(30), 10), // T+1min -> T+6min (5min in total)
-            new DynamicTimerSchedule(TimeSpan.FromMinutes(1), 9), // T+6min -> T+15min (9min in total)
-            new DynamicTimerSchedule(TimeSpan.FromMinutes(3), 5), // T+15min -> T+30min (15min in total)
-            new DynamicTimerSchedule(TimeSpan.FromMinutes(5), 6), // T+30min -> T+60min (30min in total)
-            new DynamicTimerSchedule(TimeSpan.FromMinutes(10), 6), // T+1h -> T+2h (1h in total)
-            new DynamicTimerSchedule(TimeSpan.FromMinutes(30), 2), // T+2h -> T+3h (1min in total)
-            new DynamicTimerSchedule(TimeSpan.FromHours(1), 0), // T+3h -> 
-        };
-
         /// <summary>
-        /// Connect to a new phone device and register it, then initialize the <see cref="DeviceManager"/>
+        /// Connect and register the new device.
         /// </summary>
         /// <param name="deviceInformation">The <see cref="DeviceInformation"/> object obtained from <see cref="Windows.Devices.Enumeration"/> API</param>
         /// <returns>Whether connected to the device succesfully</returns>
@@ -69,6 +69,10 @@ namespace GoodTimeStudio.MyPhone
         /// <exception cref="UnauthorizedAccessException">Throws when the operating system denied the access to the device</exception>
         public async Task<bool> ConnectAsync(DeviceInformation deviceInformation)
         {
+            if (_inited)
+            {
+                throw new InvalidOperationException("DeviceManger is already connected to a device");
+            }
             if (deviceInformation == null)
             {
                 throw new ArgumentNullException(nameof(deviceInformation));
@@ -87,119 +91,58 @@ namespace GoodTimeStudio.MyPhone
                 }
             }
 
-            CurrentDeviceInformation? registeredDevice = await _deviceService.RegisterDeviceAsync(deviceInformation);
-            if (registeredDevice == null)
-            {
-                return false;
-            }
+            _settingsService.SetValue(_settingsService.KeyCurrentDeviceId, deviceInformation.Id);
 
-            _currentDevice = registeredDevice;
-            _currentDevice.BluetoothDevice.ConnectionStatusChanged += BluetoothDevice_ConnectionStatusChanged;
-            _taskInitPhoneLine = InitPhoneLine();
-            _bluetoothMapManager = new BluetoothMapManager(_currentDevice.BluetoothDevice);
-            await _bluetoothMapManager.ConnectAsync();
+            await InitializeDevice(deviceInformation);
+            await ConnectAllDeviceServices();
+            _inited = true;
             return true;
         }
 
-        public async Task<bool> ReconnectAsync()
+        private async Task InitializeDevice(DeviceInformation deviceInformation)
+        {
+            _currentDeviceInformation = deviceInformation;
+            _currentDevice = await BluetoothDevice.FromIdAsync(deviceInformation.Id);
+
+            PhoneLineTransportDevice? phoneLineTransportDevice = await PhoneLineTransportHelper.GetPhoneLineTransportFromBluetoothDevice(_currentDevice);
+            if (phoneLineTransportDevice != null)
+            {
+                DeviceAccessStatus accessStatus = await phoneLineTransportDevice.RequestAccessAsync();
+                if (accessStatus == DeviceAccessStatus.Allowed)
+                {
+                    CallService = new DeviceCallServiceProvider(_currentDevice, phoneLineTransportDevice);
+                }
+            }
+            SmsService = new DeviceSmsServiceProvider(_currentDevice);
+        }
+
+        /// <summary>
+        /// Connect to all device services.
+        /// </summary>
+        /// <returns>Whether all device service is connected successfully</returns>
+        /// <exception cref="InvalidOperationException">Throws if the client call this method in an invalid state</exception>
+        private async Task<bool> ConnectAllDeviceServices()
         {
             if (_currentDevice == null)
             {
-                throw new InvalidOperationException("DeviceManager has not been initialized.");
+                throw new InvalidOperationException("You must first call ConnectAsync or TryReconnect (return true).");
             }
 
-            await _currentDevice.PhoneLineTransportDevice.RequestAccessAsync();
-            if (!_currentDevice.PhoneLineTransportDevice.IsRegistered())
+            bool connected = true;
+            if (CallService != null)
             {
-                _currentDevice.PhoneLineTransportDevice.RegisterApp();
+                connected = connected && await CallService.ConnectAsync();
             }
-            bool success = await _currentDevice.PhoneLineTransportDevice.ConnectAsync();
-            if (success)
-            {
-                _taskInitPhoneLine = InitPhoneLine();
-                _currentDevice.BluetoothDevice.ConnectionStatusChanged += BluetoothDevice_ConnectionStatusChanged;
-                _bluetoothMapManager = new BluetoothMapManager(_currentDevice.BluetoothDevice);
-                await _bluetoothMapManager.ConnectAsync();
-            }
-            return success;
-        }
-
-        private void ScheduleReconnect()
-        {
-            _reconnectTimer = new DynamicTimer(s_schedules);
-            _reconnectTimer.Elapsed += _reconnectTimer_Elapsed;
-            _reconnectTimer.Start();
-        }
-
-        private async void _reconnectTimer_Elapsed(object? sender, DynamicTimerElapsedEventArgs e)
-        {
-            if (await ReconnectAsync())
-            {
-                _reconnectTimer!.Stop();
-            }
-        }
-
-        private void BluetoothDevice_ConnectionStatusChanged(Windows.Devices.Bluetooth.BluetoothDevice sender, object args)
-        {
-            if (sender.ConnectionStatus == Windows.Devices.Bluetooth.BluetoothConnectionStatus.Disconnected)
-            {
-                ScheduleReconnect();
-            }
+            connected = connected && await SmsService!.ConnectAsync();
+            return connected;
         }
 
         public void Dispose()
         {
-            _reconnectTimer?.Dispose();
+            CallService?.Dispose();
+            SmsService?.Dispose();
             GC.SuppressFinalize(this);
         }
-
-        public async Task CallAsync(string phoneNumber)
-        {
-            if (_taskInitPhoneLine == null)
-            {
-                throw new InvalidOperationException("DeviceManager has not been initialized.");
-            }
-
-            await _taskInitPhoneLine;
-            if (_selectedPhoneLine == null || !_selectedPhoneLine.CanDial)
-            {
-                throw new OperationCanceledException();
-            }
-            // TODO: Lookup contacts book for displayName
-            _selectedPhoneLine.Dial(phoneNumber, phoneNumber);
-        }
-
-        #region Init PhoneLine
-        // https://docs.microsoft.com/en-us/uwp/api/windows.applicationmodel.calls.phonelinewatcher?view=winrt-22000
-        private async Task InitPhoneLine()
-        {
-            Debug.Assert(_currentDevice != null);
-
-            List<PhoneLine> phoneLinesAvailable = new List<PhoneLine>();
-            var lineEnumerationCompletion = new TaskCompletionSource<bool>();
-
-            PhoneLineWatcher phoneLineWatcher = await _deviceService.CreatePhoneLineWatcherAsync();
-            phoneLineWatcher.LineAdded += async (o, args) =>
-            {
-                phoneLinesAvailable.Add(await PhoneLine.FromIdAsync(args.LineId));
-            };
-            phoneLineWatcher.Stopped += (o, args) => lineEnumerationCompletion.TrySetResult(false);
-            phoneLineWatcher.EnumerationCompleted += (o, args) => lineEnumerationCompletion.TrySetResult(true);
-            phoneLineWatcher.Start();
-
-            // Wait for enumeration completion
-            if (await lineEnumerationCompletion.Task)
-            {
-                _selectedPhoneLine = phoneLinesAvailable
-                    .Where(pl => pl.TransportDeviceId == _currentDevice!.PhoneLineTransportDevice.DeviceId)
-                    .FirstOrDefault();
-            }
-
-            phoneLineWatcher.Stop();
-            Debug.WriteLine("PhoneLineWatcher stopped");
-
-        }
-        #endregion Init PhoneLine
     }
 
     public class DeviceParingException : Exception

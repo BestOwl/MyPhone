@@ -15,7 +15,7 @@ namespace GoodTimeStudio.MyPhone
     /// <summary>
     /// Bluetooth Message Access Profile Manager
     /// </summary>
-    public class BluetoothMapManager
+    public class DeviceSmsServiceProvider : BaseDeviceServiceProvider
     {
         private readonly BluetoothDevice _device;
         private readonly IMessageNotificationService _notificationService;
@@ -23,7 +23,7 @@ namespace GoodTimeStudio.MyPhone
         private BluetoothMasClientSession _masClientSession;
         private BluetoothMnsServerSession _mnsServerSession;
 
-        public BluetoothMapManager(BluetoothDevice bluetoothDevice)
+        public DeviceSmsServiceProvider(BluetoothDevice bluetoothDevice) : base(bluetoothDevice)
         {
             _device = bluetoothDevice;
             _notificationService = Ioc.Default.GetRequiredService<IMessageNotificationService>();
@@ -31,11 +31,7 @@ namespace GoodTimeStudio.MyPhone
             _mnsServerSession = new BluetoothMnsServerSession();
         }
 
-        /// <summary>
-        /// Connect to the MAS service and start the MNS server
-        /// </summary>
-        /// <returns></returns>
-        public async Task ConnectAsync()
+        protected override async Task<bool> ConnectToServiceAsync()
         {
             await _masClientSession.ConnectAsync();
             await _mnsServerSession.StartServerAsync();
@@ -43,6 +39,7 @@ namespace GoodTimeStudio.MyPhone
             Debug.Assert(_masClientSession.ObexClient != null);
             await _masClientSession.ObexClient.SetNotificationRegistration(true);
             _mnsServerSession.ClientAccepted += _mnsServerSession_ClientAccepted;
+            return true;
         }
 
         private void _mnsServerSession_ClientAccepted(BluetoothObexServerSession<MnsServer> sender, BluetoothObexServerSessionClientAcceptedEventArgs<MnsServer> e)
@@ -56,6 +53,15 @@ namespace GoodTimeStudio.MyPhone
             BMessage message = await _masClientSession.ObexClient.GetMessageAsync(e.MessageHandle);
             _notificationService.ShowMessageNotification(message);
             Debug.WriteLine(message.Body);
+        }
+
+        public override void Dispose()
+        {
+            _masClientSession.Dispose();
+            _mnsServerSession.Dispose();
+
+            base.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

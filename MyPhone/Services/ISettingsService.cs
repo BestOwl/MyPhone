@@ -23,7 +23,6 @@ namespace GoodTimeStudio.MyPhone.Services
         T? GetValue<T>(string key);
 
         string KeyOobeIsCompleted => "OOBE.IsCompleted";
-        string KeyCurrentBluetoothDeviceId => "CurrentDevice.BluetoothDeviceId";
-        string KeyCurrentPhoneLineTransportDeviceId => "CurrentDevice.PhoneLineTransportDeviceId";
+        string KeyCurrentDeviceId => "CurrentDevice.DeviceInformation.Id";
     }
 }

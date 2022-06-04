@@ -6,7 +6,7 @@ using Windows.Devices.Enumeration;
 
 namespace MyPhone.UnitTest.Services
 {
-    internal class DummyDeviceService : IDeviceService
+    internal class DummyDeviceService : IDevicePairingService
     {
         public DeviceWatcher CreateDeviceWatcher()
         {

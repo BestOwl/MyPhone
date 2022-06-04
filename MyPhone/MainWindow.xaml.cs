@@ -29,7 +29,7 @@ namespace GoodTimeStudio.MyPhone
         public static DispatcherQueue WindowDispatcher { get => _instance.DispatcherQueue; }
         public static string AppTitleDisplayName { get => Windows.ApplicationModel.Package.Current.DisplayName; }
 
-        private readonly IDeviceService _deviceService;
+        private readonly IDevicePairingService _deviceService;
         private readonly ISettingsService _settingsService;
         private readonly DeviceManager _deviceManager;
 
@@ -43,7 +43,7 @@ namespace GoodTimeStudio.MyPhone
         private ISystemBackdropControllerWithTargets? _controller;
         private SystemBackdropConfiguration? _configuration;
 
-        public MainWindow(IDeviceService deviceService, ISettingsService settingsService, DeviceManager deviceManager) : base()
+        public MainWindow(IDevicePairingService deviceService, ISettingsService settingsService, DeviceManager deviceManager) : base()
         {
             InitializeComponent();
             _instance = this;
@@ -85,7 +85,7 @@ namespace GoodTimeStudio.MyPhone
 
         private async void OnLaunch()
         {
-            if (_oobeCompleted && await _deviceManager.InitAsync())
+            if (_oobeCompleted && await _deviceManager.TryReconnectAsync())
             {
                 rootFrame.Navigate(typeof(MainPage));
             }

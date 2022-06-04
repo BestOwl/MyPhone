@@ -84,14 +84,14 @@ namespace GoodTimeStudio.MyPhone
         {
             // Register services
             Ioc.Default.ConfigureServices(new ServiceCollection()
-                .AddSingleton<ISettingsService, SettingsService>()
-                .AddSingleton<IDeviceService, DeviceService>()
+                .AddAppDataLocalSettings()
+                .AddMessageToastNotification()
+                .AddDevicePairingService()
+                .AddDevicePairDialog()
                 .AddSingleton<DeviceManager>()
-                .AddTransient<IDevicePairDialogService, DevicePairDialogService>()
                 .AddTransient<OobePageViewModel>()
                 .AddTransient<MainWindow>()
                 .AddTransient<CallPageViewModel>()
-                .AddMessageToastNotification()
                 .BuildServiceProvider());
         }
     }
