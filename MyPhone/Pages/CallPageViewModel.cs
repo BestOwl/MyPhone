@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System;
 using System.Threading.Tasks;
 
-namespace GoodTimeStudio.MyPhone.Pages.Call
+namespace GoodTimeStudio.MyPhone.Pages
 {
     public partial class CallPageViewModel : ObservableObject
     {

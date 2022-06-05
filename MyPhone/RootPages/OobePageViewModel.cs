@@ -6,7 +6,7 @@ using System;
 using System.Threading.Tasks;
 
 
-namespace GoodTimeStudio.MyPhone.RootPages.OOBE
+namespace GoodTimeStudio.MyPhone.RootPages
 {
     public partial class OobePageViewModel : ObservableObject
     {

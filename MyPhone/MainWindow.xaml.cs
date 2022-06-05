@@ -1,5 +1,4 @@
-﻿using GoodTimeStudio.MyPhone.RootPages.Main;
-using GoodTimeStudio.MyPhone.RootPages.OOBE;
+﻿using GoodTimeStudio.MyPhone.RootPages;
 using GoodTimeStudio.MyPhone.Services;
 using GoodTimeStudio.MyPhone.Utilities;
 using H.NotifyIcon;

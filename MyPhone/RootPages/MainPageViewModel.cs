@@ -2,7 +2,7 @@
 using System;
 using System.Collections.ObjectModel;
 
-namespace GoodTimeStudio.MyPhone.RootPages.Main
+namespace GoodTimeStudio.MyPhone.RootPages
 {
     public partial class MainPageViewModel : ObservableObject
     {

@@ -3,7 +3,7 @@ using System;
 using System.Collections.ObjectModel;
 using Windows.Devices.Enumeration;
 
-namespace GoodTimeStudio.MyPhone.Pages.Diagnosis
+namespace GoodTimeStudio.MyPhone.Pages
 {
     public partial class DiagnosisPageViewModel : ObservableObject
     {

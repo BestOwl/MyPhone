@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.WinUI.Notifications;
-using GoodTimeStudio.MyPhone.Pages.Call;
-using GoodTimeStudio.MyPhone.RootPages.OOBE;
+using GoodTimeStudio.MyPhone.Pages;
+using GoodTimeStudio.MyPhone.RootPages ;
 using GoodTimeStudio.MyPhone.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;

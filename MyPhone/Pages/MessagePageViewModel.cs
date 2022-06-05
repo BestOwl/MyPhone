@@ -5,7 +5,7 @@ using MyPhone.OBEX;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace GoodTimeStudio.MyPhone.Pages.Message
+namespace GoodTimeStudio.MyPhone.Pages
 {
     public class MessagePageViewModel : ObservableObject
     {

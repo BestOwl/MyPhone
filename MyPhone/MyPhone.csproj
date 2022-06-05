@@ -18,11 +18,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Controls\DevicePairDialog.xaml" />
-    <None Remove="Pages\Call\CallPage.xaml" />
-    <None Remove="Pages\Diagnosis\DiagnosisPage.xaml" />
-    <None Remove="Pages\Message\MessagePage.xaml" />
-    <None Remove="RootPages\OOBE\BluetoothDeviceListView.xaml" />
-    <None Remove="RootPages\OOBE\OOBEPage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -60,22 +55,19 @@
     <ProjectReference Include="..\MyPhone.OBEX\MyPhone.OBEX.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Pages\Message\MessagePage.xaml">
+    <Page Update="Pages\MessagePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Pages\Call\CallPage.xaml">
+    <Page Update="Pages\CallPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Page Update="Pages\Diagnosis\DiagnosisPage.xaml">
+    <Page Update="Pages\DiagnosisPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="RootPages\" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="Controls\DevicePairDialog.xaml">

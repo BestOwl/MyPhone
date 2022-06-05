@@ -1,13 +1,11 @@
-﻿using GoodTimeStudio.MyPhone.Pages.Call;
-using GoodTimeStudio.MyPhone.Pages.Diagnosis;
-using GoodTimeStudio.MyPhone.Pages.Message;
+﻿using GoodTimeStudio.MyPhone.Pages;
 using Microsoft.UI.Xaml.Controls;
 
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
-namespace GoodTimeStudio.MyPhone.RootPages.Main
+namespace GoodTimeStudio.MyPhone.RootPages
 {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
