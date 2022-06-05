@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
-		<TargetPlatformMinVersion>10.0.18362.0</TargetPlatformMinVersion>
-    <StartupObject>MyPhone.Demo.PBAP</StartupObject>
+	<TargetPlatformMinVersion>10.0.18362.0</TargetPlatformMinVersion>
     <RootNamespace>GoodTimeStudio.MyPhone.Demo</RootNamespace>
+    <StartupObject>GoodTimeStudio.MyPhone.Demo.HFP</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MyPhone.OBEX\MyPhone.OBEX.csproj" />
+    <ProjectReference Include="..\..\MyPhone.OBEX\MyPhone.OBEX.csproj" />
   </ItemGroup>
 
 </Project>

@@ -10,9 +10,9 @@ using Windows.Devices.Enumeration;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 
-using static MyPhone.Demo.HFP.ServiceLevelConnectionState;
+using static GoodTimeStudio.MyPhone.Demo.HFP.ServiceLevelConnectionState;
 
-namespace MyPhone.Demo
+namespace GoodTimeStudio.MyPhone.Demo
 {
     /// <summary>
     /// Bluetooth HFPv1.7 HF implementation

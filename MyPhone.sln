@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyPhone.Demo", "MyPhone.Demo\MyPhone.Demo.csproj", "{C2A871A0-9940-48B9-A684-B7102F1B7B7B}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyPhone.OBEX", "MyPhone.OBEX\MyPhone.OBEX.csproj", "{10349EC2-9A05-4345-9E6F-26BC94A9EFC9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyPhone", "MyPhone\MyPhone.csproj", "{62469C1E-8526-46F2-863F-32091ADC9A70}"
@@ -23,15 +21,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C2A871A0-9940-48B9-A684-B7102F1B7B7B}.Debug|ARM64.ActiveCfg = Debug|Any CPU
-		{C2A871A0-9940-48B9-A684-B7102F1B7B7B}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{C2A871A0-9940-48B9-A684-B7102F1B7B7B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{C2A871A0-9940-48B9-A684-B7102F1B7B7B}.Release|ARM64.ActiveCfg = Release|Any CPU
-		{C2A871A0-9940-48B9-A684-B7102F1B7B7B}.Release|ARM64.Build.0 = Release|Any CPU
-		{C2A871A0-9940-48B9-A684-B7102F1B7B7B}.Release|x64.ActiveCfg = Release|Any CPU
-		{C2A871A0-9940-48B9-A684-B7102F1B7B7B}.Release|x64.Build.0 = Release|Any CPU
-		{C2A871A0-9940-48B9-A684-B7102F1B7B7B}.Release|x86.ActiveCfg = Release|Any CPU
-		{C2A871A0-9940-48B9-A684-B7102F1B7B7B}.Release|x86.Build.0 = Release|Any CPU
 		{10349EC2-9A05-4345-9E6F-26BC94A9EFC9}.Debug|ARM64.ActiveCfg = Debug|Any CPU
 		{10349EC2-9A05-4345-9E6F-26BC94A9EFC9}.Debug|ARM64.Build.0 = Debug|Any CPU
 		{10349EC2-9A05-4345-9E6F-26BC94A9EFC9}.Debug|x64.ActiveCfg = Debug|Any CPU

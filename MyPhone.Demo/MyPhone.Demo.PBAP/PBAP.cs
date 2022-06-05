@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
 
-namespace MyPhone.Demo
+namespace GoodTimeStudio.MyPhone.Demo
 {
     class PBAP
     {
