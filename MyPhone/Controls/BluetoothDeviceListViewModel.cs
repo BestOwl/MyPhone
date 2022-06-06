@@ -14,11 +14,11 @@ namespace GoodTimeStudio.MyPhone.Controls
         private DispatcherQueue _dispatcherQueue;
         private TaskCompletionSource<bool>? _waitForFullStop;
 
-        public ObservableCollection<DeviceInformationEx> Devices;
+        public ObservableCollection<ObservableDeviceInformation> Devices;
 
         public BluetoothDeviceListViewModel()
         {
-            Devices = new ObservableCollection<DeviceInformationEx>();
+            Devices = new ObservableCollection<ObservableDeviceInformation>();
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
 
             //var s1 = BluetoothDevice.GetDeviceSelectorFromClassOfDevice(BluetoothClassOfDevice.FromParts(BluetoothMajorClass.Phone, BluetoothMinorClass.PhoneCellular, BluetoothServiceCapabilities.TelephoneService));
@@ -76,7 +76,7 @@ namespace GoodTimeStudio.MyPhone.Controls
             // Since we have the collection databound to a UI element, we need to update the collection on the UI thread.
             _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
             {
-                Devices.Add(new DeviceInformationEx(args));
+                Devices.Add(new ObservableDeviceInformation(args));
             });
         }
 

@@ -12,7 +12,7 @@ namespace GoodTimeStudio.MyPhone
 {
     public class DeviceCallServiceProvider : BaseDeviceServiceProvider
     {
-        private PhoneLineTransportDevice _transportDevice;
+        public PhoneLineTransportDevice TransportDevice { get; }
 
         private Task? _taskInitPhoneLine;
         private PhoneLine? _selectedPhoneLine;
@@ -20,17 +20,17 @@ namespace GoodTimeStudio.MyPhone
         public DeviceCallServiceProvider(BluetoothDevice bluetoothDevice, PhoneLineTransportDevice phoneLineTransportDevice)
             : base(bluetoothDevice)
         {
-            _transportDevice = phoneLineTransportDevice;
+            TransportDevice = phoneLineTransportDevice;
         }
 
         protected override async Task<bool> ConnectToServiceAsync()
         {
-            await _transportDevice.RequestAccessAsync();
-            if (!_transportDevice.IsRegistered())
+            await TransportDevice.RequestAccessAsync();
+            if (!TransportDevice.IsRegistered())
             {
-                _transportDevice.RegisterApp();
+                TransportDevice.RegisterApp();
             }
-            bool success = await _transportDevice.ConnectAsync();
+            bool success = await TransportDevice.ConnectAsync();
             if (success)
             {
                 _taskInitPhoneLine = InitPhoneLine();
@@ -54,8 +54,19 @@ namespace GoodTimeStudio.MyPhone
             _selectedPhoneLine.Dial(phoneNumber, phoneNumber);
         }
 
+        public async Task<PhoneLine?> GetSelectedPhoneLineAsync()
+        {
+            if (_taskInitPhoneLine != null)
+            {
+                await _taskInitPhoneLine;
+                return _selectedPhoneLine;
+            }
+
+            return null;
+        }
+
         #region Init PhoneLine
-        private static async Task<PhoneLineWatcher> CreatePhoneLineWatcherAsync()
+        public static async Task<PhoneLineWatcher> CreatePhoneLineWatcherAsync()
         {
             PhoneCallStore store = await PhoneCallManager.RequestStoreAsync();
             PhoneLineWatcher watcher = store.RequestLineWatcher();
@@ -81,7 +92,7 @@ namespace GoodTimeStudio.MyPhone
             if (await lineEnumerationCompletion.Task)
             {
                 _selectedPhoneLine = phoneLinesAvailable
-                    .Where(pl => pl.TransportDeviceId == _transportDevice.DeviceId)
+                    .Where(pl => pl.TransportDeviceId == TransportDevice.DeviceId)
                     .FirstOrDefault();
             }
 

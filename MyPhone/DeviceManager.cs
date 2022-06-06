@@ -16,8 +16,8 @@ namespace GoodTimeStudio.MyPhone
 
         private bool _inited;
         private DeviceInformation? _currentDeviceInformation;
-        private BluetoothDevice? _currentDevice;
-        
+
+        public BluetoothDevice? CurrentDevice { get; private set; }
         public DeviceCallServiceProvider? CallService { get; private set; }
         public DeviceSmsServiceProvider? SmsService { get; private set; }
 
@@ -102,18 +102,18 @@ namespace GoodTimeStudio.MyPhone
         private async Task InitializeDevice(DeviceInformation deviceInformation)
         {
             _currentDeviceInformation = deviceInformation;
-            _currentDevice = await BluetoothDevice.FromIdAsync(deviceInformation.Id);
-
-            PhoneLineTransportDevice? phoneLineTransportDevice = await PhoneLineTransportHelper.GetPhoneLineTransportFromBluetoothDevice(_currentDevice);
+            CurrentDevice = await BluetoothDevice.FromIdAsync(deviceInformation.Id);
+            
+            PhoneLineTransportDevice? phoneLineTransportDevice = await PhoneLineTransportHelper.GetPhoneLineTransportFromBluetoothDevice(CurrentDevice);
             if (phoneLineTransportDevice != null)
             {
                 DeviceAccessStatus accessStatus = await phoneLineTransportDevice.RequestAccessAsync();
                 if (accessStatus == DeviceAccessStatus.Allowed)
                 {
-                    CallService = new DeviceCallServiceProvider(_currentDevice, phoneLineTransportDevice);
+                    CallService = new DeviceCallServiceProvider(CurrentDevice, phoneLineTransportDevice);
                 }
             }
-            SmsService = new DeviceSmsServiceProvider(_currentDevice);
+            SmsService = new DeviceSmsServiceProvider(CurrentDevice);
         }
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace GoodTimeStudio.MyPhone
         /// <exception cref="InvalidOperationException">Throws if the client call this method in an invalid state</exception>
         private async Task<bool> ConnectAllDeviceServices()
         {
-            if (_currentDevice == null)
+            if (CurrentDevice == null)
             {
                 throw new InvalidOperationException("You must first call ConnectAsync or TryReconnect (return true).");
             }
@@ -131,9 +131,9 @@ namespace GoodTimeStudio.MyPhone
             bool connected = true;
             if (CallService != null)
             {
-                connected = connected && await CallService.ConnectAsync();
+                connected = await CallService.ConnectAsync() && connected;
             }
-            connected = connected && await SmsService!.ConnectAsync();
+            connected = await SmsService!.ConnectAsync() && connected;
             return connected;
         }
 

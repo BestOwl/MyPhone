@@ -1,49 +1,214 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using GoodTimeStudio.MyPhone.Models;
+using GoodTimeStudio.MyPhone.Utilities;
+using Microsoft.UI.Dispatching;
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading.Tasks;
+using Windows.ApplicationModel.Calls;
+using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
 
 namespace GoodTimeStudio.MyPhone.Pages
 {
     public partial class DiagnosisPageViewModel : ObservableObject
     {
-        public ObservableCollection<Guid> PhoneLines = new ObservableCollection<Guid>();
-        public ObservableCollection<DeviceInformation> PLTDevices = new ObservableCollection<DeviceInformation>();
+        public ObservableBluetoothDevice BluetoothDevice { get; }
+        public ObservableCollection<ObservablePhoneLine> PhoneLines { get; }
+
+        public bool CallServiceSupported => _deviceManager.CallService != null;
+        public bool SmsServiceSupported => _deviceManager.SmsService != null;
+#pragma warning disable CA1822 // Mark members as static
+        public bool PhonebookServiceSupported => false;
+#pragma warning restore CA1822 // Mark members as static
+
+        #region Services State Overview
+        [ObservableProperty]
+        private DeviceServiceProviderInformation _callServiceInfo;
 
         [ObservableProperty]
-        private DeviceInformation selectedDevice;
+        private DeviceServiceProviderInformation _smsServiceInfo;
 
         [ObservableProperty]
-        private Guid selectedPhoneLine;
+        private DeviceServiceProviderInformation _phonebookServiceInfo;
+        #endregion
 
-        private string _RegistrationStatus;
-        public string RegistrationStatus
-        {
-            get => _RegistrationStatus;
-            set => SetProperty(ref _RegistrationStatus, "Registration status: " + value);
-        }
+        #region Call Service Additional Properties
+        [ObservableProperty]
+        private string? _phoneLineTransportDeviceId;
 
-        private string _ConnectionStatus;
-        public string ConnectionStatus
-        {
-            get => _ConnectionStatus;
-            set => SetProperty(ref _ConnectionStatus, "Connection status: " + value);
-        }
+        [ObservableProperty]
+        private bool _isPhoneLineRegistered;
 
-        private bool _IsWorking;
-        public bool IsWorking
+        [ObservableProperty]
+        private string _autoSelectedPhoneLineId;
+
+        [AlsoNotifyChangeFor(nameof(SelectedPhoneLineId))]
+        [ObservableProperty]
+        private ObservablePhoneLine? _selectedPhoneLine;
+
+        public string SelectedPhoneLineId => SelectedPhoneLine != null ? SelectedPhoneLine.Id.ToString() : "(none)";
+
+        [ObservableProperty]
+        private string? _phoneNumberBoxInputString;
+        #endregion
+
+        private readonly DeviceManager _deviceManager;
+        private Task<PhoneLineWatcher>? _createPhoneLineWatcherTask;
+        [DisallowNull]
+        private PhoneLineWatcher? _phoneLineWatcher;
+        private DispatcherQueue _dispatcherQueue;
+
+        public DiagnosisPageViewModel(DeviceManager deviceManager)
         {
-            get => _IsWorking;
-            set
+            Debug.Assert(deviceManager.CurrentDevice != null);
+
+            _deviceManager = deviceManager;
+            BluetoothDevice = new ObservableBluetoothDevice(deviceManager.CurrentDevice);
+            PhoneLines = new ObservableCollection<ObservablePhoneLine>();
+            _autoSelectedPhoneLineId = "(none)";
+            _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+
+            _callServiceInfo = new DeviceServiceProviderInformation();
+            _smsServiceInfo = new DeviceServiceProviderInformation();
+            _phonebookServiceInfo = new DeviceServiceProviderInformation();
+
+            if (_deviceManager.CallService != null)
             {
-                SetProperty(ref _IsWorking, value);
-                OnPropertyChanged("IsNotWorking");
+                CallServiceInfo.State = _deviceManager.CallService.State;
+                _createPhoneLineWatcherTask = DeviceCallServiceProvider.CreatePhoneLineWatcherAsync();
+                _deviceManager.CallService.ServiceProdiverStateChanged += CallService_ServiceProdiverStateChanged;
+                InitCallServiceInfo();
+                UpdateServiceInfo(_deviceManager.CallService, CallServiceInfo);
+            }
+            if (_deviceManager.SmsService != null)
+            {
+                SmsServiceInfo.State = _deviceManager.SmsService.State;
+                _deviceManager.SmsService.ServiceProdiverStateChanged += SmsService_ServiceProdiverStateChanged;
             }
         }
 
-        public bool IsNotWorking
+        public async void OnNavigatedTo()
         {
-            get => !IsWorking;
+            if (_createPhoneLineWatcherTask != null)
+            {
+                _phoneLineWatcher = await _createPhoneLineWatcherTask;
+                _phoneLineWatcher.LineAdded += _phoneLineWatcher_LineAdded;
+                _phoneLineWatcher.LineRemoved += _phoneLineWatcher_LineRemoved;
+                _createPhoneLineWatcherTask = null;
+            }
+
+            if (_phoneLineWatcher != null)
+            {
+                _phoneLineWatcher.Start();
+            }
+        }
+
+        public void OnNavigatedFrom()
+        {
+            if (_phoneLineWatcher != null)
+            {
+                _phoneLineWatcher.Stop();
+            }
+        }
+
+        private async void InitCallServiceInfo()
+        {
+            Debug.Assert(_deviceManager.CallService != null);
+
+            PhoneLineTransportDeviceId = _deviceManager.CallService.TransportDevice.DeviceId;
+            IsPhoneLineRegistered = _deviceManager.CallService.TransportDevice.IsRegistered();
+            PhoneLine? pl = await _deviceManager.CallService.GetSelectedPhoneLineAsync();
+            if (pl != null)
+            {
+                _autoSelectedPhoneLineId = pl.Id.ToString();
+            }
+        }
+
+        #region PhoneLineWatcher events
+        private void _phoneLineWatcher_LineRemoved(PhoneLineWatcher sender, PhoneLineWatcherEventArgs args)
+        {
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                PhoneLines.Remove(pl => pl.Id == args.LineId);
+            });
+        }
+
+        private void _phoneLineWatcher_LineAdded(PhoneLineWatcher sender, PhoneLineWatcherEventArgs args)
+        {
+            _dispatcherQueue.TryEnqueue(async () => 
+            {
+                PhoneLine phoneLine = await PhoneLine.FromIdAsync(args.LineId);
+                PhoneLines.Add(new ObservablePhoneLine(phoneLine));
+            });
+        }
+        #endregion
+
+        private static string GetNextRetryTimeDescriptionText(DateTime? nextRetryTime)
+        {
+            return $"Retry scheduled: {nextRetryTime}";
+        }
+
+        private static void UpdateServiceInfo(BaseDeviceServiceProvider serviceProvider, DeviceServiceProviderInformation info)
+        {
+            info.State = serviceProvider.State;
+
+            switch (info.State)
+            {
+                case DeviceServiceProviderState.RetryScheduled:
+                    info.StatusMessage = GetNextRetryTimeDescriptionText(serviceProvider.NextRetryTime);
+                    break;
+                case DeviceServiceProviderState.Idle:
+                case DeviceServiceProviderState.Connecting:
+                case DeviceServiceProviderState.Connected:
+                    info.StatusMessage = string.Empty;
+                    break;
+                case DeviceServiceProviderState.Stopped:
+                    if (serviceProvider.StopReason != null)
+                    {
+                        info.StatusMessage = serviceProvider.StopReason.Message;
+                    }
+                    else
+                    {
+                        info.StatusMessage = string.Empty;
+                    }
+                    break;
+            }
+        }
+
+        private void CallService_ServiceProdiverStateChanged(object? sender, DeviceServiceProviderState e)
+        {
+            var callService = _deviceManager.CallService;
+            Debug.Assert(callService != null);
+
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateServiceInfo(callService, CallServiceInfo);
+            });
+        }
+
+        private void SmsService_ServiceProdiverStateChanged(object? sender, DeviceServiceProviderState e)
+        {
+            var smsService = _deviceManager.SmsService;
+            Debug.Assert(smsService != null);
+
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateServiceInfo(smsService, SmsServiceInfo);
+            });
+        }
+
+        [ICommand]
+        private void Call()
+        {
+            if (SelectedPhoneLine != null && !string.IsNullOrEmpty(PhoneNumberBoxInputString))
+            {
+                SelectedPhoneLine.PhoneLine.Dial(PhoneNumberBoxInputString, PhoneNumberBoxInputString);
+            }
         }
     }
 }

@@ -42,7 +42,7 @@ namespace GoodTimeStudio.MyPhone.Utilities
 
         private void _timer_Elapsed(object? sender, ElapsedEventArgs e)
         {
-            Elapsed?.Invoke(this, new DynamicTimerElapsedEventArgs(e.SignalTime));
+            DateTime? nextTrigger = null;
             if (_currentTryCount > 0)
             {
                 if (_currentTryCount == 1)
@@ -52,17 +52,21 @@ namespace GoodTimeStudio.MyPhone.Utilities
                         DynamicTimerSchedule schedule = _schedules.Current;
                         _timer.Interval = schedule.Interval.TotalMilliseconds;
                         _currentTryCount = schedule.TryCount;
+                        nextTrigger = DateTime.Now + TimeSpan.FromMilliseconds(_timer.Interval);
                     }
                     else
                     {
+                        nextTrigger = null;
                         _timer.Stop();
                     }
                 }
                 else
                 {
                     _currentTryCount--;
+                    nextTrigger = DateTime.Now + TimeSpan.FromMilliseconds(_timer.Interval);
                 }
             }
+            Elapsed?.Invoke(this, new DynamicTimerElapsedEventArgs(e.SignalTime, nextTrigger));
         }
 
         public void Stop()
@@ -84,9 +88,16 @@ namespace GoodTimeStudio.MyPhone.Utilities
         /// </summary>
         public DateTime SignalTime { get; }
 
-        public DynamicTimerElapsedEventArgs(DateTime signalTime)
+        /// <summary>
+        /// Gets the date/time when the next <see cref="DynamicTimer.Elapsed"/> event will be triggered (if any).
+        /// Null means this is the last <see cref="DynamicTimer.Elapsed"/> event triggered. 
+        /// </summary>
+        public DateTime? NextSignalTime { get; }
+
+        public DynamicTimerElapsedEventArgs(DateTime signalTime, DateTime? nextSignalTime)
         {
             SignalTime = signalTime;
+            NextSignalTime = nextSignalTime;
         }
     }
 

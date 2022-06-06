@@ -24,7 +24,7 @@
                   SelectionMode="Single"
                   Grid.Row="2">
             <ListView.ItemTemplate>
-                <DataTemplate x:DataType="model:DeviceInformationEx">
+                <DataTemplate x:DataType="model:ObservableDeviceInformation">
                     <Grid Padding="10">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />

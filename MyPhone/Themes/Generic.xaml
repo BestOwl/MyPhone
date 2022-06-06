@@ -1,0 +1,150 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:GoodTimeStudio.MyPhone"
+    xmlns:local2="using:GoodTimeStudio.MyPhone.Controls">
+
+    <Style x:Key="DeviceServiceProviderOverviewIconStyle"
+               TargetType="FontIcon">
+        <Setter Property="FontFamily" Value="{StaticResource SymbolThemeFontFamily}" />
+        <Setter Property="Foreground" Value="{ThemeResource SystemBaseMediumColor}" />
+    </Style>
+
+    <ControlTemplate x:Key="DeviceServiceProviderStateIndicatorIdle">
+        <FontIcon 
+            ToolTipService.ToolTip="State: Idle"
+            Style="{ThemeResource DeviceServiceProviderOverviewIconStyle}"
+            Glyph="&#xF138;" />
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="DeviceServiceProviderStateIndicatorConnecting">
+        <ProgressRing 
+            ToolTipService.ToolTip="State: Connecting"
+            IsHitTestVisible="True"
+            Width="20" Height="20" />
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="DeviceServiceProviderStateIndicatorRetryScheduled">
+        <FontIcon 
+            ToolTipService.ToolTip="State: RetryScheduled"
+            Style="{ThemeResource DeviceServiceProviderOverviewIconStyle}"
+            Glyph="&#xECC5;" />
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="DeviceServiceProviderStateIndicatorConnected">
+        <FontIcon 
+            ToolTipService.ToolTip="State: Connected"
+            Style="{ThemeResource DeviceServiceProviderOverviewIconStyle}"
+            Foreground="Green"
+            Glyph="&#xE73E;" />
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="DeviceServiceProviderStateIndicatorStopped">
+        <FontIcon 
+            ToolTipService.ToolTip="State: Stopped"
+            Style="{ThemeResource DeviceServiceProviderOverviewIconStyle}"
+            Foreground="Red"
+            Glyph="&#xEDAE;" />
+    </ControlTemplate>
+
+    <Style TargetType="local2:DeviceServiceProviderOverview" >
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local2:DeviceServiceProviderOverview">
+                    <Grid 
+                        HorizontalAlignment="Stretch" 
+                        VerticalAlignment="Center"
+                        ColumnSpacing="20" 
+                        Margin="0, 15">
+                        <Grid.ColumnDefinitions >
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="120" />
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="ProviderStates">
+                                <VisualState x:Name="ProviderIdle">
+                                    <VisualState.Setters>
+                                        <Setter Target="PART_ProviderStateIndicator.Template" Value="{ThemeResource DeviceServiceProviderStateIndicatorIdle}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                
+                                <VisualState x:Name="ProviderConnecting">
+                                    <VisualState.Setters>
+                                        <Setter Target="PART_ProviderStateIndicator.Template" Value="{ThemeResource DeviceServiceProviderStateIndicatorConnecting}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                
+                                <VisualState x:Name="ProviderRetryScheduled">
+                                    <VisualState.Setters>
+                                        <Setter Target="PART_ProviderStateIndicator.Template" Value="{ThemeResource DeviceServiceProviderStateIndicatorRetryScheduled}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="ProviderConnected">
+                                    <VisualState.Setters>
+                                        <Setter Target="PART_ProviderStateIndicator.Template" Value="{ThemeResource DeviceServiceProviderStateIndicatorConnected}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+
+                                <VisualState x:Name="ProviderStopped">
+                                    <VisualState.Setters>
+                                        <Setter Target="PART_ProviderStateIndicator.Template" Value="{ThemeResource DeviceServiceProviderStateIndicatorStopped}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+
+                            <VisualStateGroup x:Name="RetryButtonVisibilityStates">
+                                <VisualState x:Name="RetryButtonVisible">
+                                    <VisualState.Setters>
+                                        <Setter Target="PART_RetryButton.Visibility" Value="Visible" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="RetryButtonCollapsed">
+                                    <VisualState.Setters>
+                                        <Setter Target="PART_RetryButton.Visibility" Value="Collapsed" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <FontIcon 
+                            Style="{ThemeResource DeviceServiceProviderOverviewIconStyle}"
+                            Glyph="{TemplateBinding GlyphIcon}" />
+                        
+                        <TextBlock 
+                            Grid.Column="1" 
+                            VerticalAlignment="Center"
+                            Text="{TemplateBinding ServiceName}" />
+
+                        <ContentControl Grid.Column="2" x:Name="PART_ProviderStateIndicator" />
+
+                        <TextBlock 
+                            Grid.Column="3" 
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Center"
+                            Foreground="{ThemeResource SystemBaseMediumColor}"
+                            Text="{TemplateBinding StatusMessage}" />
+
+                        <StackPanel 
+                            Grid.Column="4" 
+                            Spacing="10"
+                            HorizontalAlignment="Right"
+                            Orientation="Horizontal">
+                            
+                            <Button 
+                                x:Name="PART_RetryButton"
+                                Width="100"
+                                Content="Retry"
+                                Margin="0" />
+                        </StackPanel>
+
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

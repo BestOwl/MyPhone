@@ -5,55 +5,221 @@
     xmlns:local="using:GoodTimeStudio.MyPhone.Pages"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:device="using:Windows.Devices.Enumeration"
+    xmlns:controls="using:GoodTimeStudio.MyPhone.Controls"
+    xmlns:community="using:CommunityToolkit.WinUI.UI.Controls"
     mc:Ignorable="d"
-    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    Background="Transparent">
 
-    <Page.DataContext>
-        <local:DiagnosisPageViewModel x:Name="ViewModel" />
-    </Page.DataContext>
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition />
-            <ColumnDefinition />
-        </Grid.ColumnDefinitions>
-        <StackPanel Padding="10" Spacing="10">
-            <ListView ItemsSource="{x:Bind ViewModel.PhoneLines}" 
-                      x:Name="_PhoneLineList" Height="300">
-            </ListView>
+    <Page.Resources>
+        <Style x:Key="DiagnosisPageExpanderStyle"
+               TargetType="Expander">
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="IsExpanded" Value="True" />
+        </Style>
 
-            <TextBlock Text="Dail" Style="{StaticResource TitleTextBlockStyle}"/>
-            <TextBox x:Name="PhoneNumberBox"/>
-            <Button Content="Call" Click="Button_Click_Call" />
+        <Style x:Key="DeviceInfoGridStyle" 
+               TargetType="Grid">
+            <Setter Property="ColumnSpacing" Value="20" />
+            <Setter Property="RowSpacing" Value="5" />
+        </Style>
 
-        </StackPanel>
+        <x:Double x:Key="DeviceInfoGridHeaderColumnWidth">240</x:Double>
 
-        <StackPanel Grid.Column="1" Padding="10" Spacing="10">
-            <ListView ItemsSource="{x:Bind ViewModel.PLTDevices}" 
-                      SelectedItem="{x:Bind ViewModel.SelectedDevice, Mode=TwoWay}"
-                      SelectionChanged="_PLTDList_SelectionChanged"
-                      x:Name="_PLTDList" Height="300">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="device:DeviceInformation">
-                        <StackPanel Spacing="10">
-                            <TextBlock Text="{x:Bind Name}" Style="{StaticResource TitleTextBlockStyle}" />
-                            <TextBlock Text="{x:Bind Id}" />
+        <Style x:Key="DeviceInfoTextBlockStyle"
+               TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{ThemeResource SystemBaseMediumColor}" />
+            <Setter Property="IsTextSelectionEnabled" Value="True" />
+        </Style>
+
+        <Style x:Key="SeparatorBorderStyle"
+               TargetType="Border">
+            <Setter Property="BorderBrush" Value="{ThemeResource ExpanderContentBorderBrush}" />
+            <Setter Property="BorderThickness" Value="0,1,0,0" />
+        </Style>
+    </Page.Resources>
+
+    <ScrollViewer>
+        <StackPanel Padding="40, 20" Spacing="10">
+            <TextBlock Text="Device Overview" Style="{StaticResource BaseTextBlockStyle}"/>
+            <Expander Style="{StaticResource DiagnosisPageExpanderStyle}">
+                <Expander.Header>
+                    <StackPanel 
+                        Margin="0, 25"
+                        Orientation="Horizontal"
+                        Spacing="20">
+                        <SymbolIcon Symbol="CellPhone"  />
+                        <TextBlock Text="{x:Bind ViewModel.BluetoothDevice.Name, Mode=OneWay}" />
+                    </StackPanel>
+                </Expander.Header>
+
+                <Grid Style="{ThemeResource DeviceInfoGridStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{ThemeResource DeviceInfoGridHeaderColumnWidth}" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="DeviceId" />
+                    <TextBlock 
+                        Text="{x:Bind ViewModel.BluetoothDevice.DeviceId}" 
+                        Grid.Column="1" 
+                        Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+
+                    <TextBlock Text="ClassOfDevice" Grid.Row="1" />
+                    <TextBlock 
+                        Text="{x:Bind ViewModel.BluetoothDevice.ClassOfDeviceDescription}" 
+                        Grid.Column="1" Grid.Row="1"
+                        Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+
+                    <TextBlock Text="ServiceCapabilities" Grid.Row="2" />
+                    <TextBlock 
+                        Text="{x:Bind ViewModel.BluetoothDevice.ClassOfDevice.ServiceCapabilities}" 
+                        Grid.Column="1" Grid.Row="2"
+                        Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+
+                    <TextBlock Text="WasSecureConnectionUsedForPairing" Grid.Row="3" />
+                    <TextBlock 
+                        Text="{x:Bind ViewModel.BluetoothDevice.WasSecureConnectionUsedForPairing}" 
+                        Grid.Column="1" Grid.Row="3"
+                        Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+
+                    <TextBlock Text="ConnectionStatus" Grid.Row="4" />
+                    <TextBlock 
+                        Text="{x:Bind ViewModel.BluetoothDevice.ConnectionStatus, Mode=OneWay}" 
+                        Grid.Column="1" Grid.Row="4"
+                        Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+                </Grid>
+            </Expander>
+
+            <TextBlock Text="Device Service Providers" Style="{ThemeResource BaseTextBlockStyle}"
+                       Margin="0, 15, 0, 0"/>
+            <Expander 
+                IsEnabled="{x:Bind ViewModel.CallServiceSupported}"
+                Padding="0"
+                Style="{StaticResource DiagnosisPageExpanderStyle}">
+                <Expander.Header>
+                    <controls:DeviceServiceProviderOverview 
+                        ServiceName="Calling"
+                        ProviderState="{x:Bind ViewModel.CallServiceInfo.State, Mode=OneWay}"
+                        StatusMessage="{x:Bind ViewModel.CallServiceInfo.StatusMessage, Mode=OneWay}"
+                        GlyphIcon="&#xE717;"/>
+                </Expander.Header>
+
+                <StackPanel>
+                    <Grid 
+                        Padding="16"
+                        Style="{ThemeResource DeviceInfoGridStyle}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{ThemeResource DeviceInfoGridHeaderColumnWidth}" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="PhoneLineTransportDeviceId" />
+                        <TextBlock 
+                            Text="{x:Bind ViewModel.PhoneLineTransportDeviceId}" 
+                            Grid.Column="1" 
+                            Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+
+                        <TextBlock Text="IsRegistered" Grid.Row="1" />
+                        <TextBlock 
+                            Text="{x:Bind ViewModel.IsPhoneLineRegistered, Mode=OneWay}" 
+                            Grid.Column="1" Grid.Row="1"
+                            Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+
+                        <TextBlock Text="AutoSelectedPhoneLineId" Grid.Row="2" />
+                        <TextBlock 
+                            Text="{x:Bind ViewModel.AutoSelectedPhoneLineId, Mode=OneWay}" 
+                            Grid.Column="1" Grid.Row="2"
+                            Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+                    </Grid>
+
+                    <Border Style="{ThemeResource SeparatorBorderStyle}"/>
+                    
+                    <Grid Padding="16" RowSpacing="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition MaxHeight="400" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Available PhoneLine:" Style="{ThemeResource BaseTextBlockStyle}" />
+                        <controls:CustomDataGrid 
+                            ItemsSource="{x:Bind ViewModel.PhoneLines}"
+                            SelectedItem="{x:Bind ViewModel.SelectedPhoneLine, Mode=TwoWay}"
+                            AutoGenerateColumns="False"
+                            Grid.Row="1">
+                            <community:DataGrid.Columns>
+                                <community:DataGridTextColumn Header="Id" Binding="{Binding Id, Mode=OneWay}" />
+                                <community:DataGridTextColumn Header="TransportDeviceName" Binding="{Binding TransportDeviceName, Mode=OneWay}" />
+                                <community:DataGridTextColumn Header="DisplayName" Binding="{Binding DisplayName, Mode=OneWay}" />
+                                <community:DataGridTextColumn Header="NetworkName" Binding="{Binding NetworkName, Mode=OneWay}" />
+                                <community:DataGridTextColumn Header="NetworkState" Binding="{Binding NetworkState, Mode=OneWay}" />
+                                <community:DataGridTextColumn Header="CanDial" Binding="{Binding CanDial, Mode=OneWay}" />
+                                <community:DataGridTextColumn Header="Transport" Binding="{Binding Transport, Mode=OneWay}" />
+                                <community:DataGridTextColumn Header="TransportDeviceId" Binding="{Binding TransportDeviceId, Mode=OneWay}" />
+                            </community:DataGrid.Columns>
+                        </controls:CustomDataGrid>
+                        <StackPanel Grid.Row="2" Spacing="10" HorizontalAlignment="Left">
+                            <TextBlock Text="Dial" Style="{ThemeResource BaseTextBlockStyle}" />
+                            <RichTextBlock>
+                                <Paragraph>
+                                    <Run Text="via selected PhoneLine " />
+                                    <Run Text="{x:Bind ViewModel.SelectedPhoneLineId, Mode=OneWay}" 
+                                        Foreground="{ThemeResource SystemBaseMediumColor}" />
+                                </Paragraph>
+                            </RichTextBlock>
+                            <TextBox 
+                                Width="250" 
+                                Text="{x:Bind ViewModel.PhoneNumberBoxInputString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                HorizontalAlignment="Left" />
+                            <Button Content="Call" Command="{x:Bind ViewModel.CallCommand}" />
                         </StackPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-            <TextBlock Text="Current status" Style="{StaticResource TitleTextBlockStyle}" />
-            <TextBlock Text="{x:Bind ViewModel.RegistrationStatus, Mode=OneWay}" />
-            <TextBlock Text="{x:Bind ViewModel.ConnectionStatus, Mode=OneWay}" />
-            <ProgressRing IsActive="{x:Bind ViewModel.IsWorking, Mode=OneWay}" HorizontalAlignment="Left"/>
+                    </Grid>
+                </StackPanel>
+            </Expander>
 
-            <Button Content="Connect to a PhoneLineTransportDevice" Click="Button_Click_ConnectDevice" 
-                    IsEnabled="{x:Bind ViewModel.IsNotWorking, Mode=OneWay}"/>
-            <Button Content="UnregisterApp" Click="Button_Click_UnregisterApp"
-                    IsEnabled="{x:Bind ViewModel.IsNotWorking, Mode=OneWay}"/>
-            <Button Content="RegisterApp" Click="Button_Click_RegisterApp"
-                    IsEnabled="{x:Bind Mode=OneWay, Path=ViewModel.IsNotWorking}"/>
-            <Button Content="GetRfcommServices" Click="Button_Click_GetRfcommServices" />
+            <Expander 
+                IsEnabled="{x:Bind ViewModel.SmsServiceSupported}"
+                Style="{StaticResource DiagnosisPageExpanderStyle}" 
+                IsExpanded="False">
+                <Expander.Header>
+                    <controls:DeviceServiceProviderOverview 
+                        ProviderState="{x:Bind ViewModel.SmsServiceInfo.State, Mode=OneWay}"
+                        ServiceName="SMS Messaging"
+                        StatusMessage="{x:Bind ViewModel.SmsServiceInfo.StatusMessage, Mode=OneWay}"
+                        GlyphIcon="&#xE8BD;" />
+                </Expander.Header>
+            </Expander>
+
+            <Expander 
+                IsEnabled="{x:Bind ViewModel.PhonebookServiceSupported}"
+                Style="{StaticResource DiagnosisPageExpanderStyle}" 
+                IsExpanded="False">
+                <Expander.Header>
+                    <controls:DeviceServiceProviderOverview
+                        ServiceName="Phonebook Access"
+                        ProviderState="{x:Bind ViewModel.PhonebookServiceInfo.State, Mode=OneWay}"
+                        GlyphIcon="&#xE780;"
+                        StatusMessage="{x:Bind ViewModel.PhonebookServiceInfo.StatusMessage, Mode=OneWay}" />
+                </Expander.Header>
+
+                <StackPanel>
+                    <ProgressRing Width="20" Height="20" ToolTipService.ToolTip="123" IsHitTestVisible="True"/>
+                    
+                </StackPanel>
+            </Expander>
         </StackPanel>
-    </Grid>
+    </ScrollViewer>
+    
 </Page>

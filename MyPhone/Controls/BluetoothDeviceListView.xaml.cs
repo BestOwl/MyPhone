@@ -11,14 +11,14 @@ namespace GoodTimeStudio.MyPhone.Controls
     {
         private BluetoothDeviceListViewModel ViewModel;
 
-        public DeviceInformationEx? SelectedDevice
+        public ObservableDeviceInformation? SelectedDevice
         {
-            get => (DeviceInformationEx?)this.GetValue(SelectedDeviceProperty);
+            get => (ObservableDeviceInformation?)this.GetValue(SelectedDeviceProperty);
             internal set => this.SetValue(SelectedDeviceProperty, value);
         }
         public static readonly DependencyProperty SelectedDeviceProperty = DependencyProperty.Register(
             nameof(SelectedDevice),
-            typeof(DeviceInformationEx),
+            typeof(ObservableDeviceInformation),
             typeof(BluetoothDeviceListView),
             new PropertyMetadata(null));
 

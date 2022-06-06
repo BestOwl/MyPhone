@@ -6,9 +6,9 @@ using Windows.Devices.Enumeration;
 
 namespace GoodTimeStudio.MyPhone.Models
 {
-    public class DeviceInformationEx : INotifyPropertyChanged
+    public class ObservableDeviceInformation : INotifyPropertyChanged
     {
-        public DeviceInformationEx(DeviceInformation deviceInfoIn)
+        public ObservableDeviceInformation(DeviceInformation deviceInfoIn)
         {
             DeviceInformation = deviceInfoIn;
             UpdateThumbnailBitmapImage();
@@ -27,13 +27,13 @@ namespace GoodTimeStudio.MyPhone.Models
         {
             DeviceInformation.Update(deviceInfoUpdate);
 
-            OnPropertyChanged("Kind");
-            OnPropertyChanged("Id");
-            OnPropertyChanged("Name");
-            OnPropertyChanged("DeviceInformation");
-            OnPropertyChanged("CanPair");
-            OnPropertyChanged("IsPaired");
-            OnPropertyChanged("GetPropertyForDisplay");
+            OnPropertyChanged(nameof(Kind));
+            OnPropertyChanged(nameof(Id));
+            OnPropertyChanged(nameof(Name));
+            OnPropertyChanged(nameof(DeviceInformation));
+            OnPropertyChanged(nameof(CanPair));
+            OnPropertyChanged(nameof(IsPaired));
+            OnPropertyChanged(nameof(GetPropertyForDisplay));
 
             UpdateThumbnailBitmapImage();
         }
@@ -46,7 +46,7 @@ namespace GoodTimeStudio.MyPhone.Models
             BitmapImage glyphBitmapImage = new BitmapImage();
             await glyphBitmapImage.SetSourceAsync(deviceThumbnail);
             ThumbnailBitmapImage = glyphBitmapImage;
-            OnPropertyChanged("ThumbnailBitmapImage");
+            OnPropertyChanged(nameof(ThumbnailBitmapImage));
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

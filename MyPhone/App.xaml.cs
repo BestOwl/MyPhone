@@ -92,6 +92,7 @@ namespace GoodTimeStudio.MyPhone
                 .AddTransient<OobePageViewModel>()
                 .AddTransient<MainWindow>()
                 .AddTransient<CallPageViewModel>()
+                .AddTransient<DiagnosisPageViewModel>()
                 .BuildServiceProvider());
         }
     }

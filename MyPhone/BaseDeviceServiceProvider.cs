@@ -13,8 +13,23 @@ namespace GoodTimeStudio.MyPhone
     public abstract class BaseDeviceServiceProvider : IDisposable
     {
         public event EventHandler<DeviceServiceProviderState>? ServiceProdiverStateChanged;
+        /// <summary>
+        /// Fire when the service provider enter RetryScheduled state. 
+        /// </summary>
+        public event EventHandler<RetryScheduleUpdateEventArgs>? RetryScheduleUpdated;
 
-        private DeviceServiceProviderState _state = DeviceServiceProviderState.Stopped;
+        private DateTime? _nextRetryTime;
+        public DateTime? NextRetryTime 
+        {
+            get => _nextRetryTime;
+            set
+            {
+                _nextRetryTime = value;
+                RetryScheduleUpdated?.Invoke(this, new RetryScheduleUpdateEventArgs(value));
+            }
+        }
+
+        private DeviceServiceProviderState _state;
         public DeviceServiceProviderState State
         {
             get => _state;
@@ -44,6 +59,8 @@ namespace GoodTimeStudio.MyPhone
         public BaseDeviceServiceProvider(BluetoothDevice bluetoothDevice)
         {
             BluetoothDevice = bluetoothDevice;
+            _state = DeviceServiceProviderState.Idle;
+            RegisterServiceConnectionLostEventHandler();
         }
 
         /// <summary>
@@ -53,11 +70,11 @@ namespace GoodTimeStudio.MyPhone
         /// <remarks>This is a public warpper method for <see cref="ConnectToServiceAsync"/></remarks>
         public async Task<bool> ConnectAsync()
         {
+            State = DeviceServiceProviderState.Connecting;
             bool success = await ConnectToServiceAsync();
             if (success)
             {
                 State = DeviceServiceProviderState.Connected;
-                RegisterServiceConnectionLostEventHandler();
             }
             else
             {
@@ -99,7 +116,7 @@ namespace GoodTimeStudio.MyPhone
         /// </summary>
         protected virtual void OnDisconnected()
         {
-            State = DeviceServiceProviderState.Retrying;
+            State = DeviceServiceProviderState.RetryScheduled;
             ScheduleReconnect();
         }
 
@@ -108,6 +125,8 @@ namespace GoodTimeStudio.MyPhone
             _retryTimer = new DynamicTimer(s_schedules);
             _retryTimer.Elapsed += _reconnectTimer_Elapsed;
             _retryTimer.Start();
+            State = DeviceServiceProviderState.RetryScheduled;
+            NextRetryTime = DateTime.Now + s_schedules[0].Interval;
         }
 
         private async void _reconnectTimer_Elapsed(object? sender, DynamicTimerElapsedEventArgs e)
@@ -115,9 +134,16 @@ namespace GoodTimeStudio.MyPhone
             Debug.Assert(_retryTimer != null);
             try
             {
-                if (await ConnectAsync())
+                State = DeviceServiceProviderState.Connecting;
+                if (await ConnectToServiceAsync())
                 {
+                    State = DeviceServiceProviderState.Connected;
                     _retryTimer.Stop();
+                }
+                else
+                {
+                    State = DeviceServiceProviderState.RetryScheduled;
+                    NextRetryTime = e.NextSignalTime;
                 }
             }
             catch (DeviceServiceException ex)
@@ -153,8 +179,42 @@ namespace GoodTimeStudio.MyPhone
 
     public enum DeviceServiceProviderState
     {
-        Stopped,
+        /// <summary>
+        /// Initial state of the service provider.
+        /// </summary>
+        Idle,
+
+        /// <summary>
+        /// The service provider is trying to connect to the device.
+        /// </summary>
+        Connecting,
+
+        /// <summary>
+        /// The previsous connect attempt faield, the service provider has scheduled a time to reconnect.
+        /// </summary>
+        RetryScheduled,
+
+        /// <summary>
+        /// The service provider is connected to the device.
+        /// </summary>
         Connected,
-        Retrying
+
+        /// <summary>
+        /// After several failed connecting attempts, the service provider has stopped working.
+        /// </summary>
+        Stopped
+    }
+
+    public class RetryScheduleUpdateEventArgs
+    {
+        /// <summary>
+        /// Indicates the time of next retry attempts (if any). Null if this is the last attempt.
+        /// </summary>
+        public DateTime? NextRetryTime { get; }
+
+        public RetryScheduleUpdateEventArgs(DateTime? nextRetryTime)
+        {
+            NextRetryTime = nextRetryTime;
+        }
     }
 }

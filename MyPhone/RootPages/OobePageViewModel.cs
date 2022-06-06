@@ -22,7 +22,7 @@ namespace GoodTimeStudio.MyPhone.RootPages
 
         [ObservableProperty]
         [AlsoNotifyChangeFor(nameof(EnableConnectButton))]
-        private DeviceInformationEx? selectedDevice;
+        private ObservableDeviceInformation? selectedDevice;
 
         [ObservableProperty]
         [AlsoNotifyChangeFor(nameof(EnableConnectButton))]
