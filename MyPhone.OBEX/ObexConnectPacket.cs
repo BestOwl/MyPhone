@@ -50,7 +50,7 @@ namespace MyPhone.OBEX
             uint loaded = await reader.LoadAsync(_EXTRA_FIELD_BITS);
             if (loaded != _EXTRA_FIELD_BITS)
             {
-                throw new ObexRequestException("The underlying socket was closed before we were able to read the whole data.");
+                throw new ObexException("The underlying socket was closed before we were able to read the whole data.");
             }
             OBEXVersion = reader.ReadByte();
             Flags = reader.ReadByte();

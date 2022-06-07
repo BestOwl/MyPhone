@@ -71,16 +71,25 @@ namespace GoodTimeStudio.MyPhone
         public async Task<bool> ConnectAsync()
         {
             State = DeviceServiceProviderState.Connecting;
-            bool success = await ConnectToServiceAsync();
-            if (success)
+            try
             {
-                State = DeviceServiceProviderState.Connected;
+                bool success = await ConnectToServiceAsync();
+                if (success)
+                {
+                    State = DeviceServiceProviderState.Connected;
+                }
+                else
+                {
+                    ScheduleReconnect();
+                }
+                return success;
             }
-            else
+            catch (DeviceServiceException ex)
             {
-                ScheduleReconnect();
+                StopReason = ex;
+                State = DeviceServiceProviderState.Stopped;
+                return false;
             }
-            return success;
         }
 
         /// <summary>
@@ -205,7 +214,7 @@ namespace GoodTimeStudio.MyPhone
         Stopped
     }
 
-    public class RetryScheduleUpdateEventArgs
+    public class RetryScheduleUpdateEventArgs : EventArgs
     {
         /// <summary>
         /// Indicates the time of next retry attempts (if any). Null if this is the last attempt.

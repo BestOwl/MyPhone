@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.UI.Dispatching;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -33,30 +34,42 @@ namespace GoodTimeStudio.MyPhone.Models
 
         public string ClassOfDeviceDescription => $"{ClassOfDevice.MajorClass} - {ClassOfDevice.MinorClass}";
 
+        private DispatcherQueue _dispatcherQueue;
+
         public ObservableBluetoothDevice(BluetoothDevice bluetoothDevice)
         {
             BluetoothDevice = bluetoothDevice;
             BluetoothDevice.ConnectionStatusChanged += BluetoothDevice_ConnectionStatusChanged;
             BluetoothDevice.NameChanged += BluetoothDevice_NameChanged;
             BluetoothDevice.SdpRecordsChanged += BluetoothDevice_SdpRecordsChanged;
+            _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
         }
 
         private void BluetoothDevice_SdpRecordsChanged(BluetoothDevice sender, object args)
         {
-            BluetoothDevice = sender;
-            OnPropertyChanged(nameof(SdpRecords));
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                BluetoothDevice = sender;
+                OnPropertyChanged(nameof(SdpRecords));
+            });
         }
 
         private void BluetoothDevice_NameChanged(BluetoothDevice sender, object args)
         {
-            BluetoothDevice = sender;
-            OnPropertyChanged(nameof(Name));
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                BluetoothDevice = sender;
+                OnPropertyChanged(nameof(Name));
+            });
         }
 
         private void BluetoothDevice_ConnectionStatusChanged(BluetoothDevice sender, object args)
         {
-            BluetoothDevice = sender;
-            OnPropertyChanged(nameof(ConnectionStatus));
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                BluetoothDevice = sender;
+                OnPropertyChanged(nameof(ConnectionStatus));
+            });
         }
         protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }

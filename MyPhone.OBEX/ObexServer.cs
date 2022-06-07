@@ -23,60 +23,57 @@ namespace MyPhone.OBEX
             _cts = new CancellationTokenSource();
         }
 
-        public void StartServer()
+        public async Task Run()
         {
-            Task.Run(async () =>
+            while (true)
             {
-                while (true)
-                {
-                    _cts.Token.ThrowIfCancellationRequested();
+                _cts.Token.ThrowIfCancellationRequested();
 
-                    ObexPacket packet = await ObexPacket.ReadFromStream(_reader, new ObexConnectPacket());
-                    if (packet.Opcode == Opcode.Connect)
+                ObexPacket packet = await ObexPacket.ReadFromStream(_reader, new ObexConnectPacket());
+                if (packet.Opcode == Opcode.Connect)
+                {
+                    if (packet.Headers.ContainsKey(HeaderId.Target))
                     {
-                        if (packet.Headers.ContainsKey(HeaderId.Target))
+                        BytesHeader targetHeader = (BytesHeader)packet.Headers[HeaderId.Target];
+                        if (targetHeader.Value != null)
                         {
-                            BytesHeader targetHeader = (BytesHeader)packet.Headers[HeaderId.Target];
-                            if (targetHeader.Value != null)
+                            if (Enumerable.SequenceEqual(targetHeader.Value, _serviceUuid.Value))
                             {
-                                if (Enumerable.SequenceEqual(targetHeader.Value, _serviceUuid.Value))
-                                {
-                                    packet.Opcode = Opcode.Success;
-                                    _writer.WriteBuffer(packet.ToBuffer());
-                                    await _writer.StoreAsync();
-                                    break;
-                                }
+                                packet.Opcode = Opcode.Success;
+                                _writer.WriteBuffer(packet.ToBuffer());
+                                await _writer.StoreAsync();
+                                break;
                             }
                         }
-
                     }
 
-                    Console.WriteLine("Not support operation code: " + packet.Opcode);
-                    Console.WriteLine("MSE should send Connect request first");
-                    packet = new ObexPacket(Opcode.OBEX_UNAVAILABLE);
-                    _writer.WriteBuffer(packet.ToBuffer());
                 }
 
-                while (true)
+                Console.WriteLine("Not support operation code: " + packet.Opcode);
+                Console.WriteLine("MSE should send Connect request first");
+                packet = new ObexPacket(Opcode.OBEX_UNAVAILABLE);
+                _writer.WriteBuffer(packet.ToBuffer());
+            }
+
+            while (true)
+            {
+                _cts.Token.ThrowIfCancellationRequested();
+
+                ObexPacket packet = await ObexPacket.ReadFromStream(_reader);
+
+                ObexPacket? response = OnClientRequest(packet);
+                if (response != null)
                 {
-                    _cts.Token.ThrowIfCancellationRequested();
-
-                    ObexPacket packet = await ObexPacket.ReadFromStream(_reader);
-
-                    ObexPacket? response = OnClientRequest(packet);
-                    if (response != null)
-                    {
-                        _writer.WriteBuffer(response.ToBuffer());
-                        await _writer.StoreAsync();
-                    }
-                    else
-                    {
-                        _writer.WriteByte(0xC6); // Not Acceptable
-                        _writer.WriteUInt16(3);
-                        await _writer.StoreAsync();
-                    }
+                    _writer.WriteBuffer(response.ToBuffer());
+                    await _writer.StoreAsync();
                 }
-            }, _cts.Token);
+                else
+                {
+                    _writer.WriteByte(0xC6); // Not Acceptable
+                    _writer.WriteUInt16(3);
+                    await _writer.StoreAsync();
+                }
+            }
         }
 
         public void StopServer()

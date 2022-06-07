@@ -15,6 +15,8 @@ namespace GoodTimeStudio.MyPhone.Demo
         static BluetoothMnsServerSession MnsServerSession;
         static ConcurrentQueue<string> NewMessageQueue = new ConcurrentQueue<string>();
 
+        private static bool s_clientDisconnected = false;
+
         public async static Task Main(string[] args)
         {
         select:
@@ -50,8 +52,9 @@ namespace GoodTimeStudio.MyPhone.Demo
             {
                 await MasClientSession.ObexClient.SetNotificationRegistration(true);
                 MnsServerSession.ClientAccepted += MnsServerSession_ClientAccepted;
+                MnsServerSession.ClientDisconnected += MnsServerSession_ClientDisconnected;
             }
-            catch (ObexRequestException ex)
+            catch (ObexException ex)
             {
                 Console.WriteLine("RemoteNotificationRegister failed. " + ex.Message);
                 goto restart;
@@ -64,7 +67,7 @@ namespace GoodTimeStudio.MyPhone.Demo
             Console.WriteLine("Press any key to abort");
             DrawLine();
 
-            while (!Console.KeyAvailable)
+            while (!Console.KeyAvailable && !s_clientDisconnected)
             {
                 if (NewMessageQueue.TryDequeue(out string handle))
                 {
@@ -74,7 +77,7 @@ namespace GoodTimeStudio.MyPhone.Demo
                     {
                         bMsg = await MasClientSession.ObexClient.GetMessageAsync(handle);
                     }
-                    catch (ObexRequestException ex)
+                    catch (ObexException ex)
                     {
                         Console.WriteLine(ex.Message);
                         goto restart;
@@ -128,6 +131,14 @@ namespace GoodTimeStudio.MyPhone.Demo
             {
                 goto select;
             }
+        }
+
+        private static void MnsServerSession_ClientDisconnected(BluetoothObexServerSession<MnsServer> sender, BluetoothObexServerSessionClientDisconnectedEventArgs<MnsServer> args)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Client disconnected");
+            Console.WriteLine(args.ObexServerException.Message);
+            s_clientDisconnected = true;
         }
 
         private static void MnsServerSession_ClientAccepted(BluetoothObexServerSession<MnsServer> sender, BluetoothObexServerSessionClientAcceptedEventArgs<MnsServer> e)

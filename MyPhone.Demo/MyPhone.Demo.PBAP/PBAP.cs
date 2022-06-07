@@ -42,7 +42,7 @@ namespace GoodTimeStudio.MyPhone.Demo
             {
                 await PbapClientSession.ObexClient.PullPhoneBook("telecom/cch.vcf");
             }
-            catch (ObexRequestException ex)
+            catch (ObexException ex)
             {
                 Console.WriteLine(ex.Message);
                 goto restart;

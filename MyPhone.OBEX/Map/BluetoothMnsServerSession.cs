@@ -11,11 +11,9 @@ namespace MyPhone.OBEX.Map
         {
         }
 
-        protected override MnsServer StartObexServer(StreamSocket clientSocket)
+        protected override MnsServer CreateObexServer(StreamSocket clientSocket)
         {
-            MnsServer mnsServer = new MnsServer(clientSocket.InputStream, clientSocket.OutputStream);
-            mnsServer.StartServer();
-            return mnsServer;
+            return new MnsServer(clientSocket.InputStream, clientSocket.OutputStream);
         }
     }
 }

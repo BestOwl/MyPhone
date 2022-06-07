@@ -25,7 +25,7 @@ namespace MyPhone.OBEX
         /// </summary>
         /// <param name="targetUuid">A 16-length byte array indicates the UUID of the target service.</param>
         /// <exception cref="InvalidOperationException">The Connect method can call only once and it is already called before.</exception>
-        /// <exception cref="ObexRequestException">The request failed due to an underlying issue such as connection issue, or the server reply with a invalid response</exception>
+        /// <exception cref="ObexExceptions">The request failed due to an underlying issue such as connection issue, or the server reply with a invalid response</exception>
         public async Task Connect(ObexServiceUuid targetService)
         {
             if (Conntected)
@@ -54,7 +54,7 @@ namespace MyPhone.OBEX
 
             if (response.Opcode != Opcode.Success && response.Opcode != Opcode.SuccessAlt)
             {
-                throw new ObexRequestException($"Unable to connect to the target OBEX service.", response.Opcode);
+                throw new ObexRequestException(response.Opcode, $"Unable to connect to the target OBEX service.");
             }
 
             if (response.Headers.ContainsKey(HeaderId.ConnectionId))
@@ -79,7 +79,7 @@ namespace MyPhone.OBEX
         /// </summary>
         /// <param name="req">The request packet</param>
         /// <returns>Response packet. The resposne packet is null if the MSE did not send back any response, or the response is corrupted</returns>
-        /// <exception cref="ObexRequestException"> due to an underlying issue such as connection loss, invalid server response</exception>
+        /// <exception cref="ObexExceptions"> due to an underlying issue such as connection loss, invalid server response</exception>
         public async Task<ObexPacket> RunObexRequest(ObexPacket req)
         {
             if (!Conntected)
@@ -152,39 +152,11 @@ namespace MyPhone.OBEX
                         }
                         break;
                     default:
-                        throw new ObexRequestException($"The {requestOpcode} request failed with opcode {subResponse.Opcode}");
+                        throw new ObexRequestException(subResponse.Opcode, $"The {requestOpcode} request failed with opcode {subResponse.Opcode}");
                 }
 
                 req = new ObexPacket(requestOpcode, _connectionIdHeader!);
             } while (true);
-
-            Console.WriteLine("Maultiple GET over 10 times, abort!");
-            return response;
-        }
-    }
-
-    public class ObexRequestException : Exception
-    {
-        /// <summary>
-        /// Represents a non-successful response opcode
-        /// </summary>
-        public Opcode? Opcode { get; set; }
-
-        public ObexRequestException()
-        {
-        }
-
-        public ObexRequestException(string message) : base(message)
-        {
-        }
-
-        public ObexRequestException(string message, Exception innerException) : base(message, innerException)
-        {
-        }
-
-        public ObexRequestException(string message, Opcode opcode) : base(message)
-        {
-            Opcode = opcode;
         }
     }
 }

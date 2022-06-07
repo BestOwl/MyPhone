@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.Rfcomm;
@@ -26,13 +27,13 @@ namespace MyPhone.OBEX
         private StreamSocket? _socket;
 
         // The Id of the Service Name SDP attribute
-        public const ushort _sdpServiceNameAttributeId = 0x100;
+        private const ushort _sdpServiceNameAttributeId = 0x100;
 
         // The SDP Type of the Service Name SDP attribute.
         // The first byte in the SDP Attribute encodes the SDP Attribute Type as follows :
         //    -  the Attribute Type size in the least significant 3 bits,
         //    -  the SDP Attribute Type value in the most significant 5 bits.
-        public const byte _sdpServiceNameAttributeType = (4 << 3) | 5;
+        private const byte _sdpServiceNameAttributeType = (4 << 3) | 5;
 
         public BluetoothObexClientSession(BluetoothDevice bluetoothDevice, Guid rfcommServiceUuid, ObexServiceUuid targetObexService)
         {
@@ -47,49 +48,31 @@ namespace MyPhone.OBEX
         /// <exception cref="BluetoothObexSessionException">Failed to establish a bluetooth Rfcomm socket channel</exception>
         public async Task ConnectAsync()
         {
-            // This should return a list of uncached Bluetooth services 
-            // (so if the server was not active when paired, it will still be detected by this call
-            RfcommDeviceServicesResult result = await _device.GetRfcommServicesForIdAsync(
-                RfcommServiceId.FromUuid(ServiceUuid), BluetoothCacheMode.Uncached
-                );
-            if (result.Services.Count <= 0)
+            RfcommDeviceServicesResult result = await _device.GetRfcommServicesAsync(BluetoothCacheMode.Uncached);
+
+            if (result.Error != BluetoothError.Success)
             {
-                throw new BluetoothObexSessionException($"The remote bluetooth device does not support service: {ServiceUuid}");
+                throw new BluetoothObexSessionException(
+                    $"BluetoothError: {result.Error}",
+                    bluetoothError: result.Error);
             }
 
-            _service = result.Services[0];
+            if (result.Services.Count <= 0)
+            {
+                // TODO: improve remote device offline detection (maybe BLE?)
+                throw new BluetoothDeviceNotAvailableException("Unable to connect to the remote Bluetooth device.");
+            }
+            RfcommDeviceService? service = result.Services.Where(rfs => rfs.ServiceId.Uuid == ServiceUuid).FirstOrDefault();
+            if (service == null)
+            {
+                throw new BluetoothServiceNotSupportedException($"The remote bluetooth device does not support service: {ServiceUuid}");
+            }
+            _service = service;
             DeviceAccessStatus accessStatus = await _service.RequestAccessAsync();
             if (accessStatus != DeviceAccessStatus.Allowed)
             {
-                throw new BluetoothObexSessionException($"Not allowed to access this Rfcomm service. Reason: {accessStatus}");
+                throw new BluetoothObexSessionException($"The operating system does not allowed us to access this Rfcomm service. Reason: {accessStatus}");
             }
-
-            #region Read SDP Service Name
-            var attributes = await _service.GetSdpRawAttributesAsync();
-            if (attributes.ContainsKey(_sdpServiceNameAttributeType))
-            {
-                var attributeReader = DataReader.FromBuffer(attributes[_sdpServiceNameAttributeId]);
-                var attributeType = attributeReader.ReadByte();
-                if (attributeType != _sdpServiceNameAttributeType)
-                {
-                    Console.WriteLine("The bluetooth service is using an unexpected format for the Service Name attribute. ");
-                }
-                else
-                {
-                    var serviceNameLength = attributeReader.ReadByte();
-
-                    // The Service Name attribute requires UTF-8 encoding.
-                    attributeReader.UnicodeEncoding = Windows.Storage.Streams.UnicodeEncoding.Utf8;
-
-                    var serviceName = attributeReader.ReadString(serviceNameLength);
-                    Console.WriteLine($"Service: {serviceName},  Device: {_device.Name}");
-                }
-            }
-            else
-            {
-                Console.WriteLine("The bluetooth service is not advertising the Service Name attribute (attribute id=0x100). ");
-            }
-            #endregion
 
             StreamSocket socket = new StreamSocket();
             try
@@ -97,9 +80,21 @@ namespace MyPhone.OBEX
                 await socket.ConnectAsync(_service.ConnectionHostName, _service.ConnectionServiceName
                 , SocketProtectionLevel.BluetoothEncryptionAllowNullAuthentication);
             }
-            catch (Exception ex) when ((uint)ex.HResult == 0x80072740) // WSAEADDRINUSE
+            catch (Exception ex)
             {
-                throw new BluetoothObexSessionException("Please verify that there is no other RFCOMM connection to the same device.", ex);
+                socket.Dispose();
+
+                SocketErrorStatus error = SocketError.GetStatus(ex.HResult);
+                if (error != SocketErrorStatus.Unknown)
+                {
+                    throw new BluetoothObexSessionException(
+                        $"Unable to connect to the remote RFCOMM service. Reason: {error}",
+                        socketError: error);
+                }
+                else
+                {
+                    throw;
+                }
             }
 
 
@@ -110,11 +105,16 @@ namespace MyPhone.OBEX
             }
             catch (ObexRequestException ex)
             {
+                socket.Dispose();
                 if (ex.Opcode == Opcode.OBEX_UNAUTHORIZED)
                 {
-                    throw new BluetoothObexSessionException($"Connected to OBEX server successfully, but the server refuse to provide service because you are not a authorized user.", ex);
+                    throw new BluetoothObexSessionException(
+                        $"Connected to OBEX server successfully, but the server refuse to provide service. Reason: You are not an authorized user.", 
+                        innerException: ex);
                 }
-                throw new BluetoothObexSessionException($"Failed to connect to service: {ServiceUuid}. {ex.Message}", ex);
+                throw new BluetoothObexSessionException(
+                    $"Connected to OBEX server successfully, but the server refuse to provide service. Reason: Got an unsuccessful response from server ({ex.Opcode})", 
+                    innerException: ex);
             }
             _socket = socket;
         }

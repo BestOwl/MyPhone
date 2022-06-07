@@ -37,11 +37,9 @@ namespace MyPhone.OBEX
         /// </summary>
         /// <param name="reader"></param>
         /// <returns>The number of bits required for extra bits</returns>
-#pragma warning disable CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
-        protected virtual async Task<uint> ReadExtraField(DataReader reader)
-#pragma warning restore CS1998 // 异步方法缺少 "await" 运算符，将以同步方式运行
+        protected virtual Task<uint> ReadExtraField(DataReader reader)
         {
-            return 0;
+            return Task.FromResult<uint>(0);
         }
 
         public IBuffer ToBuffer()
@@ -95,7 +93,7 @@ namespace MyPhone.OBEX
             uint loaded = await reader.LoadAsync(headerSize);
             if (loaded <= 0)
             {
-                throw new ObexRequestException($"No data returned for {headerSize} unint read.");
+                throw new ObexException($"No data returned for {headerSize} unint read.");
             }
 
             while (true)
@@ -167,7 +165,7 @@ namespace MyPhone.OBEX
             uint loaded = await reader.LoadAsync(1);
             if (loaded != 1)
             {
-                throw new ObexRequestException("The underlying socket was closed before we were able to read the whole data.");
+                throw new ObexException("The underlying socket was closed before we were able to read the whole data.");
             }
 
             Opcode opcode = (Opcode)reader.ReadByte();
@@ -184,7 +182,7 @@ namespace MyPhone.OBEX
             loaded = await reader.LoadAsync(sizeof(ushort));
             if (loaded != sizeof(ushort))
             {
-                throw new ObexRequestException("The underlying socket was closed before we were able to read the whole data.");
+                throw new ObexException("The underlying socket was closed before we were able to read the whole data.");
             }
 
             packet.PacketLength = reader.ReadUInt16();

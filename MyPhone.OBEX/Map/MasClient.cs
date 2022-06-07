@@ -88,7 +88,7 @@ namespace MyPhone.OBEX
             }
             catch (BMessageException ex)
             {
-                throw new ObexRequestException($"Failed to get message (handle: {messageHandle}) from MSE. The MSE send back a invalid response", ex);
+                throw new ObexException($"Failed to get message (handle: {messageHandle}) from MSE. The MSE send back a invalid response", ex);
             }
 
             return bMsg;
