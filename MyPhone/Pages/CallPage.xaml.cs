@@ -17,7 +17,7 @@ namespace GoodTimeStudio.MyPhone.Pages
         public CallPage()
         {
             this.InitializeComponent();
-            DataContext = Ioc.Default.GetRequiredService<CallPageViewModel>();
+            DataContext = new CallPageViewModel();
             ViewModel.PhoneNumberInputFocus += ViewModel_PhoneNumberInputFocus;
         }
 

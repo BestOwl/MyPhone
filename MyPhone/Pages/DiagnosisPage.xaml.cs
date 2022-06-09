@@ -27,7 +27,7 @@ namespace GoodTimeStudio.MyPhone.Pages
         public DiagnosisPage()
         {
             InitializeComponent();
-            DataContext = Ioc.Default.GetRequiredService<DiagnosisPageViewModel>();
+            DataContext = new DiagnosisPageViewModel();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)

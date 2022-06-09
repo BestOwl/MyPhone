@@ -1,13 +1,19 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.WinUI.Notifications;
+using GoodTimeStudio.MyPhone.Device;
 using GoodTimeStudio.MyPhone.Pages;
 using GoodTimeStudio.MyPhone.RootPages ;
 using GoodTimeStudio.MyPhone.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Threading.Tasks;
+using Windows.Devices.Bluetooth;
+using Windows.Devices.Enumeration;
 
 
 // To learn more about WinUI, the WinUI project structure,
@@ -20,7 +26,22 @@ namespace GoodTimeStudio.MyPhone
     /// </summary>
     public partial class App : Application
     {
+        /// <summary>
+        /// Gets the current <see cref="App"/> instance in use
+        /// </summary>
+        public static new App Current => (App)Application.Current;
+
+        /// <summary>
+        /// Gets the <see cref="IServiceProvider"/> instance to resolve application services.
+        /// </summary>
+        public IServiceProvider Services { get; }
+
+        public DeviceManager? DeviceManager { get; private set; }
+
+        private readonly IDevicePairingService _devicePairingService;
+        private readonly ISettingsService _settingsService;
         private Window? m_window;
+
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -29,6 +50,9 @@ namespace GoodTimeStudio.MyPhone
         public App()
         {
             InitializeComponent();
+            Services = ConfigureServices().BuildServiceProvider();
+            _devicePairingService = Services.GetRequiredService<IDevicePairingService>();
+            _settingsService = Services.GetRequiredService<ISettingsService>();
         }
 
         /// <summary>
@@ -55,8 +79,8 @@ namespace GoodTimeStudio.MyPhone
             // just ensure that the window is active
             if (m_window == null)
             {
-                ConfigureServices();
-                m_window = Ioc.Default.GetRequiredService<MainWindow>();
+                await  InitApp();
+                m_window = Services.GetRequiredService<MainWindow>();
             }
 
             if (activationArgs.Kind != ExtendedActivationKind.StartupTask)
@@ -80,20 +104,94 @@ namespace GoodTimeStudio.MyPhone
             });
         }
 
-        private static void ConfigureServices()
+        private async Task InitApp()
+        {
+            await TryAutoSetupRegisteredDevice();
+        }
+
+        /// <summary>
+        /// Attempt to setup to a previously registered device.
+        /// </summary>
+        private async Task TryAutoSetupRegisteredDevice()
+        {
+            string? deviceId = _settingsService.GetValue<string>(_settingsService.KeyCurrentDeviceId);
+            if (string.IsNullOrEmpty(deviceId))
+            {
+                return;
+            }
+
+            DeviceInformation deviceInformation = await DeviceInformation.CreateFromIdAsync(deviceId);
+            try
+            {
+                await SetupDevice(deviceInformation, registerDevice: false);
+            }
+            catch (DevicePairingException ex)
+            {
+                Console.WriteLine($"Failed to auto setup device. {ex.Message}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine($"Failed to auto setup device. {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Setup and register a device
+        /// </summary>
+        /// <param name="deviceInformation">The <see cref="DeviceInformation"/> of a device, obtained from <see cref="Windows.Devices.Enumeration"/> API</param>
+        /// <param name="registerDevice">Whether to register the device so that it can be auto setup during next app launch</param>
+        /// <remarks>
+        /// The <see cref="DeviceInformation.Kind"/> must be <see cref="DeviceInformationKind.AssociationEndpoint"/> and it must be a Bluetooth device
+        /// </remarks>
+        /// <exception cref="DevicePairingException">Throws when the user cancel the pairing, or the pairing failed because of other reasons</exception>
+        /// <exception cref="UnauthorizedAccessException">Throws when the operating system denied the access to the device</exception>
+        public async Task SetupDevice(DeviceInformation deviceInformation, bool registerDevice = true)
+        {
+            if (deviceInformation == null)
+            {
+                throw new ArgumentNullException(nameof(deviceInformation));
+            }
+            if (deviceInformation.Kind != DeviceInformationKind.AssociationEndpoint)
+            {
+                throw new InvalidOperationException("Does not support this device");
+            }
+
+            if (!_devicePairingService.IsPaired(deviceInformation))
+            {
+                var paringResult = await _devicePairingService.PairDeviceAsync(deviceInformation);
+                if (paringResult.Status != DevicePairingResultStatus.Paired)
+                {
+                    throw new DevicePairingException(paringResult);
+                }
+            }
+
+            BluetoothDevice bluetoothDevice = await BluetoothDevice.FromIdAsync(deviceInformation.Id);
+            DeviceAccessStatus status = await bluetoothDevice.RequestAccessAsync();
+            if (status != DeviceAccessStatus.Allowed)
+            {
+                throw new UnauthorizedAccessException($"The operating system denied the access to this Bluetooth device. Reason: {status}");
+            }
+
+            if (registerDevice)
+            {
+                _settingsService.SetValue(_settingsService.KeyCurrentDeviceId, deviceInformation.Id);
+            }
+            DeviceManager = new DeviceManager(bluetoothDevice);
+            await DeviceManager.StartAsync();
+        }
+
+        /// <summary>
+        /// Configures the services for the application.
+        /// </summary>
+        private static IServiceCollection ConfigureServices()
         {
             // Register services
-            Ioc.Default.ConfigureServices(new ServiceCollection()
+            return new ServiceCollection()
                 .AddAppDataLocalSettings()
                 .AddMessageToastNotification()
                 .AddDevicePairingService()
                 .AddDevicePairDialog()
-                .AddSingleton<DeviceManager>()
-                .AddTransient<OobePageViewModel>()
-                .AddTransient<MainWindow>()
-                .AddTransient<CallPageViewModel>()
-                .AddTransient<DiagnosisPageViewModel>()
-                .BuildServiceProvider());
+                .AddTransient<MainWindow>();
         }
     }
 }

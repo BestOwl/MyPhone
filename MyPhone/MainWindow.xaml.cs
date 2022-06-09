@@ -28,9 +28,7 @@ namespace GoodTimeStudio.MyPhone
         public static DispatcherQueue WindowDispatcher { get => _instance.DispatcherQueue; }
         public static string AppTitleDisplayName { get => Windows.ApplicationModel.Package.Current.DisplayName; }
 
-        private readonly IDevicePairingService _deviceService;
         private readonly ISettingsService _settingsService;
-        private readonly DeviceManager _deviceManager;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         private static MainWindow _instance;
@@ -42,13 +40,11 @@ namespace GoodTimeStudio.MyPhone
         private ISystemBackdropControllerWithTargets? _controller;
         private SystemBackdropConfiguration? _configuration;
 
-        public MainWindow(IDevicePairingService deviceService, ISettingsService settingsService, DeviceManager deviceManager) : base()
+        public MainWindow(ISettingsService settingsService) : base()
         {
             InitializeComponent();
             _instance = this;
-            _deviceService = deviceService;
             _settingsService = settingsService;
-            _deviceManager = deviceManager;
             _oobeCompleted = settingsService.GetValue<bool>(settingsService.KeyOobeIsCompleted);
             Title = AppTitleDisplayName;
 
@@ -79,12 +75,7 @@ namespace GoodTimeStudio.MyPhone
             }
 
 
-            OnLaunch();
-        }
-
-        private async void OnLaunch()
-        {
-            if (_oobeCompleted && await _deviceManager.TryReconnectAsync())
+            if (_oobeCompleted && App.Current.DeviceManager != null)
             {
                 rootFrame.Navigate(typeof(MainPage));
             }

@@ -16,6 +16,7 @@
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="IsExpanded" Value="True" />
+            <Setter Property="Padding" Value="0" />
         </Style>
 
         <Style x:Key="DeviceInfoGridStyle" 
@@ -25,6 +26,7 @@
         </Style>
 
         <x:Double x:Key="DeviceInfoGridHeaderColumnWidth">240</x:Double>
+        <Thickness x:Key="DeviceInfoExpanderPadding">16</Thickness>
 
         <Style x:Key="DeviceInfoTextBlockStyle"
                TargetType="TextBlock">
@@ -102,7 +104,6 @@
                        Margin="0, 15, 0, 0"/>
             <Expander 
                 IsEnabled="{x:Bind ViewModel.CallServiceSupported}"
-                Padding="0"
                 Style="{StaticResource DiagnosisPageExpanderStyle}">
                 <Expander.Header>
                     <controls:DeviceServiceProviderOverview 
@@ -114,7 +115,7 @@
 
                 <StackPanel>
                     <Grid 
-                        Padding="16"
+                        Padding="{ThemeResource DeviceInfoExpanderPadding}"
                         Style="{ThemeResource DeviceInfoGridStyle}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="{ThemeResource DeviceInfoGridHeaderColumnWidth}" />
@@ -146,8 +147,8 @@
                     </Grid>
 
                     <Border Style="{ThemeResource SeparatorBorderStyle}"/>
-                    
-                    <Grid Padding="16" RowSpacing="10">
+
+                    <Grid Padding="{ThemeResource DeviceInfoExpanderPadding}" RowSpacing="10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition MaxHeight="400" />
@@ -200,6 +201,19 @@
                         StatusMessage="{x:Bind ViewModel.SmsServiceInfo.StatusMessage, Mode=OneWay}"
                         GlyphIcon="&#xE8BD;" />
                 </Expander.Header>
+                <StackPanel Spacing="10">
+                    <StackPanel Spacing="10" Padding="{ThemeResource DeviceInfoExpanderPadding}">
+                        <TextBox Width="200" HorizontalAlignment="Left"
+                            Text="{x:Bind ViewModel.MessageHandleInputString, Mode=TwoWay}" />
+                        <Button Content="GetMessageByHandle" Command="{x:Bind ViewModel.GetMessageByHandleCommand}" />
+                    </StackPanel>
+
+                    <Border Style="{ThemeResource SeparatorBorderStyle}" />
+
+                    <community:WrapPanel Padding="{ThemeResource DeviceInfoExpanderPadding}" Orientation="Horizontal">
+                        <Button Content="GetMessagesListing" Command="{x:Bind ViewModel.GetMessagesListingCommand}" />
+                    </community:WrapPanel>
+                </StackPanel>
             </Expander>
 
             <Expander 

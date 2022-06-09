@@ -17,7 +17,7 @@ namespace GoodTimeStudio.MyPhone.RootPages
         public OobePage()
         {
             InitializeComponent();
-            ViewModel = Ioc.Default.GetRequiredService<OobePageViewModel>();
+            ViewModel = new OobePageViewModel();
             ViewModel.OobeCompletedEvent += ViewModel_OobeCompletedEvent;
         }
 

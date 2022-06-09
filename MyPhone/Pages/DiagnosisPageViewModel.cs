@@ -1,8 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GoodTimeStudio.MyPhone.Device;
 using GoodTimeStudio.MyPhone.Models;
 using GoodTimeStudio.MyPhone.Utilities;
 using Microsoft.UI.Dispatching;
+using MyPhone.OBEX;
 using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -57,18 +59,25 @@ namespace GoodTimeStudio.MyPhone.Pages
         private string? _phoneNumberBoxInputString;
         #endregion
 
+        #region SMS Service Additional Properties
+        [ObservableProperty]
+        private string? _messageHandleInputString;
+        #endregion
+
         private readonly DeviceManager _deviceManager;
         private Task<PhoneLineWatcher>? _createPhoneLineWatcherTask;
         [DisallowNull]
         private PhoneLineWatcher? _phoneLineWatcher;
         private DispatcherQueue _dispatcherQueue;
 
-        public DiagnosisPageViewModel(DeviceManager deviceManager)
+        public DiagnosisPageViewModel()
         {
-            Debug.Assert(deviceManager.CurrentDevice != null);
+            Debug.Assert(App.Current.DeviceManager != null);
+            _deviceManager = App.Current.DeviceManager;
 
-            _deviceManager = deviceManager;
-            BluetoothDevice = new ObservableBluetoothDevice(deviceManager.CurrentDevice);
+            Debug.Assert(_deviceManager.CurrentDevice != null);
+
+            BluetoothDevice = new ObservableBluetoothDevice(_deviceManager.CurrentDevice);
             PhoneLines = new ObservableCollection<ObservablePhoneLine>();
             _autoSelectedPhoneLineId = "(none)";
             _dispatcherQueue = DispatcherQueue.GetForCurrentThread();
@@ -208,6 +217,25 @@ namespace GoodTimeStudio.MyPhone.Pages
             if (SelectedPhoneLine != null && !string.IsNullOrEmpty(PhoneNumberBoxInputString))
             {
                 SelectedPhoneLine.PhoneLine.Dial(PhoneNumberBoxInputString, PhoneNumberBoxInputString);
+            }
+        }
+
+        [ICommand]
+        private async Task GetMessagesListing()
+        {
+            var handles = await _deviceManager.SmsService!.MasClient!.GetMessageListing(1024, "telecom");
+            Debug.WriteLine($"Handle count: {handles.Count}");
+        }
+
+        [ICommand]
+        private async Task GetMessageByHandle()
+        {
+            if (!string.IsNullOrEmpty(MessageHandleInputString))
+            {
+                BMessage message = await _deviceManager.SmsService!.MasClient!.GetMessageAsync(MessageHandleInputString);
+                Debug.WriteLine($"Sender: {message.Sender.FormattedName}");
+                Debug.WriteLine("Body: ");
+                Debug.WriteLine(message.Body);
             }
         }
     }

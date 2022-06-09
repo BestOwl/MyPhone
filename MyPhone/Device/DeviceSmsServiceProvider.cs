@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
 using GoodTimeStudio.MyPhone.Services;
+using Microsoft.Extensions.DependencyInjection;
 using MyPhone.OBEX;
 using MyPhone.OBEX.Map;
 using System;
@@ -17,6 +18,8 @@ namespace GoodTimeStudio.MyPhone
     /// </summary>
     public class DeviceSmsServiceProvider : BaseDeviceServiceProvider
     {
+        public MasClient? MasClient => _masClientSession?.ObexClient;
+
         private readonly BluetoothDevice _device;
         private readonly IMessageNotificationService _notificationService;
 
@@ -28,7 +31,7 @@ namespace GoodTimeStudio.MyPhone
         public DeviceSmsServiceProvider(BluetoothDevice bluetoothDevice) : base(bluetoothDevice)
         {
             _device = bluetoothDevice;
-            _notificationService = Ioc.Default.GetRequiredService<IMessageNotificationService>();
+            _notificationService = App.Current.Services.GetRequiredService<IMessageNotificationService>();
             _mnsServerSession = new BluetoothMnsServerSession();
         }
 
