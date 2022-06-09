@@ -1,5 +1,6 @@
 ﻿using GoodTimeStudio.MyPhone;
-using GoodTimeStudio.MyPhone.Pages.Call;
+using GoodTimeStudio.MyPhone.Device;
+using GoodTimeStudio.MyPhone.Pages;
 using GoodTimeStudio.MyPhone.Services;
 using Microsoft.Extensions.DependencyInjection;
 using MyPhone.UnitTest.Services;
@@ -11,7 +12,6 @@ namespace MyPhone.UnitTest
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IDevicePairingService, DummyDeviceService>();
-            services.AddSingleton<DeviceManager>();
             services.AddTransient<CallPageViewModel>();
         }
     }

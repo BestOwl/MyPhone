@@ -1,4 +1,4 @@
-using GoodTimeStudio.MyPhone.Pages.Call;
+using GoodTimeStudio.MyPhone.Pages;
 using Xunit;
 
 namespace MyPhone.UnitTest.ViewModels
