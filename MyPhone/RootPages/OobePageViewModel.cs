@@ -52,6 +52,7 @@ namespace GoodTimeStudio.MyPhone.RootPages
             try
             {
                 await App.Current.SetupDevice(selectedDevice.DeviceInformation);
+                OobeCompletedEvent?.Invoke(this, new EventArgs());
             }
             catch (UnauthorizedAccessException ex)
             {
