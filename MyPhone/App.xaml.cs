@@ -62,7 +62,7 @@ namespace GoodTimeStudio.MyPhone
 
             Configuration = new ConfigurationBuilder()
                 .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                //.AddJsonFile("appsettings.json")
+                .AddJsonFile("appsettings.json")
                 .AddUserSecrets<App>()
                 .Build();
 

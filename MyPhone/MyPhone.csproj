@@ -18,10 +18,12 @@
     <UserSecretsId>df0f6223-d4fc-4172-a248-e350175a53c0</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="appsettings.json" />
     <None Remove="Controls\DevicePairDialog.xaml" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="appsettings.json" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />
@@ -58,6 +60,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MyPhone.OBEX\MyPhone.OBEX.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="appsettings.json" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\MessagePage.xaml">
