@@ -1,16 +1,23 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.WinUI.Notifications;
 using GoodTimeStudio.MyPhone.Device;
+using GoodTimeStudio.MyPhone.Models;
 using GoodTimeStudio.MyPhone.Pages;
 using GoodTimeStudio.MyPhone.RootPages ;
 using GoodTimeStudio.MyPhone.Services;
+using Microsoft.AppCenter;
+using Microsoft.AppCenter.Analytics;
+using Microsoft.AppCenter.Crashes;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
@@ -36,6 +43,8 @@ namespace GoodTimeStudio.MyPhone
         /// </summary>
         public IServiceProvider Services { get; }
 
+        public IConfiguration Configuration { get; private set; }
+
         public DeviceManager? DeviceManager { get; private set; }
 
         private readonly IDevicePairingService _devicePairingService;
@@ -50,7 +59,15 @@ namespace GoodTimeStudio.MyPhone
         public App()
         {
             InitializeComponent();
+
+            Configuration = new ConfigurationBuilder()
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                //.AddJsonFile("appsettings.json")
+                .AddUserSecrets<App>()
+                .Build();
+
             Services = ConfigureServices().BuildServiceProvider();
+
             _devicePairingService = Services.GetRequiredService<IDevicePairingService>();
             _settingsService = Services.GetRequiredService<ISettingsService>();
         }
@@ -74,6 +91,12 @@ namespace GoodTimeStudio.MyPhone
             }
             mainInstance.Activated += MainInstance_RedirectedActivated;
             ToastNotificationManagerCompat.OnActivated += ToastNotificationManagerCompat_OnActivated;
+
+            string? appCenterSecrets = Configuration["ApiSecrets:MsftAppCenter"];
+            if (appCenterSecrets != null)
+            {
+                AppCenter.Start(appCenterSecrets, typeof(Analytics), typeof(Crashes));
+            }
 
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
