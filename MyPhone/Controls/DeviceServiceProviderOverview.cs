@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Windows.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
@@ -113,6 +114,18 @@ namespace GoodTimeStudio.MyPhone.Controls
             add { _part_retryButton!.Click += value; }
             remove { _part_retryButton!.Click -= value; }
         }
+
+        public ICommand? RetryCommand
+        {
+            get { return (ICommand)GetValue(RetryCommandProperty); }
+            set { SetValue(RetryCommandProperty, value); }
+        }
+        public static readonly DependencyProperty RetryCommandProperty =
+            DependencyProperty.Register(
+                nameof(RetryCommand),
+                typeof(ICommand),
+                typeof(DeviceServiceProviderOverview),
+                new PropertyMetadata(null));
         #endregion
 
         public DeviceServiceProviderOverview()
