@@ -12,8 +12,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.AppLifecycle;
+using Shiny;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -21,6 +23,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 
 // To learn more about WinUI, the WinUI project structure,
@@ -49,8 +52,9 @@ namespace GoodTimeStudio.MyPhone
 
         private readonly IDevicePairingService _devicePairingService;
         private readonly ISettingsService _settingsService;
-        private Window? m_window;
+        private readonly ILogger<App> _logger;
 
+        private Window? m_window;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -70,6 +74,22 @@ namespace GoodTimeStudio.MyPhone
 
             _devicePairingService = Services.GetRequiredService<IDevicePairingService>();
             _settingsService = Services.GetRequiredService<ISettingsService>();
+            _logger = Services.GetRequiredService<ILogger<App>>();
+
+            string? appCenterSecrets = Configuration["ApiSecrets:MsftAppCenter"];
+            if (appCenterSecrets != null)
+            {
+                _logger.LogInformation("Found App Center secret, starting App Center.");
+                AppCenter.LogLevel = Microsoft.AppCenter.LogLevel.Verbose;
+                AppCenter.Start(appCenterSecrets,
+                  typeof(Analytics), typeof(Crashes));
+            }
+            else
+            {
+                _logger.LogWarning("App Center secret not found, skip App Center initialization.");
+            }
+
+            _logger.LogInformation(AppLogEvents.AppLaunch, "App instance created.");
         }
 
         /// <summary>
@@ -79,36 +99,38 @@ namespace GoodTimeStudio.MyPhone
         /// <param name="args">Details about the launch request and process.</param>
         protected async override void OnLaunched(LaunchActivatedEventArgs args)
         {
-            // Single-instance redirect, redirect Activated to the main instance 
-            AppInstance mainInstance = AppInstance.FindOrRegisterForKey("main");
+            _logger.LogInformation(AppLogEvents.AppLaunch, "Launching My Phone App.");
+
             AppInstance currentInstance = AppInstance.GetCurrent();
             AppActivationArguments activationArgs = currentInstance.GetActivatedEventArgs();
-            if (mainInstance != currentInstance)
-            {
-                await mainInstance.RedirectActivationToAsync(activationArgs);
-                Process.GetCurrentProcess().Kill();
-                return;
-            }
-            mainInstance.Activated += MainInstance_RedirectedActivated;
+            currentInstance.Activated += MainInstance_RedirectedActivated;
             ToastNotificationManagerCompat.OnActivated += ToastNotificationManagerCompat_OnActivated;
-
-            string? appCenterSecrets = Configuration["ApiSecrets:MsftAppCenter"];
-            if (appCenterSecrets != null)
-            {
-                AppCenter.Start(appCenterSecrets, typeof(Analytics), typeof(Crashes));
-            }
 
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
             if (m_window == null)
             {
-                await  InitApp();
+                _logger.LogInformation(AppLogEvents.AppLaunch, "Initializing App.");
+                await InitApp();
+                _logger.LogInformation(AppLogEvents.AppLaunch, "App initialized");
+
+                _logger.LogInformation(AppLogEvents.AppLaunch, "Initializing MainWindow");
                 m_window = Services.GetRequiredService<MainWindow>();
+                _logger.LogInformation(AppLogEvents.AppLaunch, "MainWindow initialized.");
+            }
+            else
+            {
+                _logger.LogInformation(AppLogEvents.AppLaunch, "App and MainWindow already initialized, skip initialization.");
             }
 
             if (activationArgs.Kind != ExtendedActivationKind.StartupTask)
             {
+                _logger.LogInformation(AppLogEvents.AppLaunch, "Activate MainWindow.");
                 m_window.Activate();
+            }
+            else
+            {
+                _logger.LogInformation(AppLogEvents.AppLaunch, "App launched by StartupTask, skip activating MainWindow");
             }
         }
 
@@ -121,14 +143,17 @@ namespace GoodTimeStudio.MyPhone
         // Handle redirected OnActivated
         private void MainInstance_RedirectedActivated(object? sender, AppActivationArguments e)
         {
+            _logger.LogInformation(AppLogEvents.AppLaunch, "App instance redirect activated.");
             m_window!.DispatcherQueue.TryEnqueue(() =>
             {
+                _logger.LogInformation(AppLogEvents.AppLaunch, "Activate MainWindow.");
                 m_window.Activate();
             });
         }
 
         private async Task InitApp()
         {
+            _logger.LogInformation(AppLogEvents.AppLaunch, "Try to find and setup registered device.");
             await TryAutoSetupRegisteredDevice();
         }
 
@@ -140,21 +165,23 @@ namespace GoodTimeStudio.MyPhone
             string? deviceId = _settingsService.GetValue<string>(_settingsService.KeyCurrentDeviceId);
             if (string.IsNullOrEmpty(deviceId))
             {
+                _logger.LogInformation(AppLogEvents.AppLaunch, "No registered device found");
                 return;
             }
 
             DeviceInformation deviceInformation = await DeviceInformation.CreateFromIdAsync(deviceId);
+            _logger.LogInformation(AppLogEvents.AppLaunch, "Found registered device: {DeviceName}", deviceInformation.Name);
             try
             {
                 await SetupDevice(deviceInformation, registerDevice: false);
             }
             catch (DevicePairingException ex)
             {
-                Console.WriteLine($"Failed to auto setup device. {ex.Message}");
+                _logger.LogWarning(AppLogEvents.DeviceSetup, "Failed to auto setup device {DeviceName}. {ExMessage}", deviceInformation.Name, ex.Message);
             }
             catch (UnauthorizedAccessException ex)
             {
-                Console.WriteLine($"Failed to auto setup device. {ex.Message}");
+                _logger.LogWarning(AppLogEvents.DeviceSetup, "Failed to auto setup device {DeviceName}. {ExMessage}", deviceInformation.Name, ex.Message);
             }
         }
 
@@ -170,6 +197,7 @@ namespace GoodTimeStudio.MyPhone
         /// <exception cref="UnauthorizedAccessException">Throws when the operating system denied the access to the device</exception>
         public async Task SetupDevice(DeviceInformation deviceInformation, bool registerDevice = true)
         {
+            _logger.LogInformation(AppLogEvents.DeviceSetup, "Setting up device: {DeviceName}", deviceInformation.Name);
             if (deviceInformation == null)
             {
                 throw new ArgumentNullException(nameof(deviceInformation));
@@ -181,27 +209,47 @@ namespace GoodTimeStudio.MyPhone
 
             if (!_devicePairingService.IsPaired(deviceInformation))
             {
+                _logger.LogInformation(AppLogEvents.DeviceSetup, "Device not paired, attempting to pair");
                 var paringResult = await _devicePairingService.PairDeviceAsync(deviceInformation);
                 if (paringResult.Status != DevicePairingResultStatus.Paired)
                 {
                     throw new DevicePairingException(paringResult);
                 }
+                _logger.LogInformation(AppLogEvents.DeviceSetup, "Device {DeviceName} paired successfully.", deviceInformation.Name);
             }
 
             BluetoothDevice bluetoothDevice = await BluetoothDevice.FromIdAsync(deviceInformation.Id);
+            _logger.LogInformation(AppLogEvents.DeviceSetup, "Requesting BluetoothDevice access.");
             DeviceAccessStatus status = await bluetoothDevice.RequestAccessAsync();
             if (status != DeviceAccessStatus.Allowed)
             {
-                throw new UnauthorizedAccessException($"The operating system denied the access to this Bluetooth device. Reason: {status}");
+                throw new UnauthorizedAccessException($"The operating system denied the access to this BluetoothDevice. Reason: {status}");
+            }
+            else
+            {
+                _logger.LogInformation(AppLogEvents.DeviceSetup, "BluetoothDevice access granted.");
             }
 
             if (registerDevice)
             {
+                _logger.LogInformation(AppLogEvents.DeviceSetup, "Registering device: {DeviceName}", deviceInformation.Name);
                 _settingsService.SetValue(_settingsService.KeyCurrentDeviceId, deviceInformation.Id);
                 _settingsService.SetValue(_settingsService.KeyOobeIsCompleted, true);
+                _logger.LogInformation("Device registered successfully.");
             }
+            else
+            {
+                _logger.LogInformation(AppLogEvents.DeviceSetup, "Skip device registration.");
+            }
+
+            _logger.LogInformation(AppLogEvents.DeviceSetup, "Initializing DeviceManager.");
             DeviceManager = new DeviceManager(bluetoothDevice);
+            _logger.LogInformation(AppLogEvents.DeviceSetup, "DeviceManager initialzed.");
+            _logger.LogInformation(AppLogEvents.DeviceSetup, "Starting DeviceManager services.");
+
             await DeviceManager.StartAsync();
+
+            _logger.LogInformation(AppLogEvents.DeviceSetup, "Device setup successfully.");
         }
 
         /// <summary>
@@ -211,11 +259,18 @@ namespace GoodTimeStudio.MyPhone
         {
             // Register services
             return new ServiceCollection()
+                .AddLogging(loggerBuilder =>
+                {
+                    loggerBuilder.AddConsole();
+                    loggerBuilder.AddDebug();
+                    loggerBuilder.AddAppCenter();
+                })
                 .AddAppDataLocalSettings()
                 .AddMessageToastNotification()
                 .AddDevicePairingService()
                 .AddDevicePairDialog()
-                .AddTransient<MainWindow>();
+                .AddTransient<MainWindow>()
+                .AddTransient<OobePageViewModel>();
         }
     }
 }

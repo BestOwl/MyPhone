@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using System;
@@ -12,12 +13,12 @@ namespace GoodTimeStudio.MyPhone.RootPages
     /// </summary>
     public sealed partial class OobePage : Page
     {
-        public OobePageViewModel ViewModel;
+        public OobePageViewModel ViewModel => (OobePageViewModel)DataContext;
 
         public OobePage()
         {
             InitializeComponent();
-            ViewModel = new OobePageViewModel();
+            DataContext = App.Current.Services.GetRequiredService<OobePageViewModel>();
             ViewModel.OobeCompletedEvent += ViewModel_OobeCompletedEvent;
         }
 

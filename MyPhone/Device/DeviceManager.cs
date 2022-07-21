@@ -4,6 +4,7 @@ using GoodTimeStudio.MyPhone.Services;
 using GoodTimeStudio.MyPhone.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -17,6 +18,8 @@ namespace GoodTimeStudio.MyPhone.Device
     public class DeviceManager : IDisposable
     {
         private bool _started;
+
+        private readonly ILogger<DeviceManager> _logger;
 
         public BluetoothDevice CurrentDevice { get; private set; }
         public DeviceCallServiceProvider? CallService { get; private set; }
@@ -38,6 +41,7 @@ namespace GoodTimeStudio.MyPhone.Device
         {
             _started = false;
             CurrentDevice = bluetoothDevice;
+            _logger = App.Current.Services.GetRequiredService<ILogger<DeviceManager>>();
             Services = ConfigureDeviceServices().BuildServiceProvider();
         }
 
@@ -59,23 +63,43 @@ namespace GoodTimeStudio.MyPhone.Device
             {
                 throw new InvalidOperationException("DeviceManager is already started");
             }
+            _logger.LogInformation("Initializing device services.");
             await InitializeDeviceServices();
+            _logger.LogInformation("Device services initialized.");
             _ = ConnectAllDeviceServices();
             _started = true;
         }
 
         private async Task InitializeDeviceServices()
         {
+            #region Init CallService
             PhoneLineTransportDevice? phoneLineTransportDevice = await PhoneLineTransportHelper.GetPhoneLineTransportFromBluetoothDevice(CurrentDevice);
             if (phoneLineTransportDevice != null)
             {
+                _logger.LogInformation("Requesting PhoneLineTransportDeivce access.");
                 DeviceAccessStatus accessStatus = await phoneLineTransportDevice.RequestAccessAsync();
                 if (accessStatus == DeviceAccessStatus.Allowed)
                 {
-                    CallService = new DeviceCallServiceProvider(CurrentDevice, phoneLineTransportDevice);
+                    _logger.LogInformation("PhoneLineTransportDeivce access granted.");
+                    CallService = new DeviceCallServiceProvider(CurrentDevice, phoneLineTransportDevice, 
+                        App.Current.Services.GetRequiredService<ILogger<DeviceCallServiceProvider>>());
+                    _logger.LogInformation("CallService initialized.");
+                }
+                else
+                {
+                    _logger.LogWarning("PhoneLineTransportDevice access denied, skipping CallService.");
                 }
             }
-            SmsService = new DeviceSmsServiceProvider(CurrentDevice);
+            else
+            {
+                _logger.LogWarning("PhoneLineTransportDevice not available, skip connecting CallService");
+            }
+            #endregion
+
+            SmsService = new DeviceSmsServiceProvider(CurrentDevice, 
+                App.Current.Services.GetRequiredService<ILogger<DeviceSmsServiceProvider>>(),
+                App.Current.Services.GetRequiredService<IMessageNotificationService>());
+            _logger.LogInformation("SmsService initialized.");
         }
 
         /// <summary>
@@ -85,6 +109,7 @@ namespace GoodTimeStudio.MyPhone.Device
         /// <exception cref="InvalidOperationException">Throws if the client call this method in an invalid state</exception>
         private async Task<bool> ConnectAllDeviceServices()
         {
+            _logger.LogInformation("Connecting to device services.");
             if (CurrentDevice == null)
             {
                 throw new InvalidOperationException("You must first call ConnectAsync or TryReconnect (return true).");
@@ -93,9 +118,37 @@ namespace GoodTimeStudio.MyPhone.Device
             bool connected = true;
             if (CallService != null)
             {
+                _logger.LogInformation("Connecting to CallService.");
                 connected = await CallService.ConnectAsync() && connected;
+                if (connected)
+                {
+                    _logger.LogInformation("CallService connected.");
+                }
+                else
+                {
+                    _logger.LogWarning("Unable to connect CallService.");
+                }
             }
+            else
+            {
+                _logger.LogWarning("CallService not available, skipping.");
+            }
+
+            _logger.LogInformation("Connecting to SmsService.");
             connected = await SmsService!.ConnectAsync() && connected;
+            if (connected)
+            {
+                _logger.LogInformation("SmsService connected.");
+            }
+            else
+            {
+                _logger.LogWarning("Unable to connect SmsService, state: {State}.", SmsService.State);
+                if (SmsService.StopReason != null)
+                {
+                    _logger.LogWarning(SmsService.StopReason, "SmsService stopped.");
+                }
+            }
+
             return connected;
         }
 
