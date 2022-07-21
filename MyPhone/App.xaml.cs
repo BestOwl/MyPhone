@@ -198,6 +198,7 @@ namespace GoodTimeStudio.MyPhone
             if (registerDevice)
             {
                 _settingsService.SetValue(_settingsService.KeyCurrentDeviceId, deviceInformation.Id);
+                _settingsService.SetValue(_settingsService.KeyOobeIsCompleted, true);
             }
             DeviceManager = new DeviceManager(bluetoothDevice);
             await DeviceManager.StartAsync();
