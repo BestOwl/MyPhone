@@ -1,0 +1,4 @@
+// This is a placeholder file for device test.
+// DO NOT REMOVE THIS FILE, otherwise your build will fail
+//
+// Run SelectDevice.ps1 to select a paired Bluetooth device before running device tests. This powershell script will overwrite this file.
