@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using Windows.Storage.Streams;
 
-namespace MyPhone.OBEX
+namespace MyPhone.OBEX.Map
 {
     public class MasClient : ObexClient
     {
@@ -14,6 +14,12 @@ namespace MyPhone.OBEX
 
         public MasClient(IInputStream inputStream, IOutputStream outputStream) : base(inputStream, outputStream)
         {
+        }
+
+        public async Task SetFolderAsync(SetPathMode mode, string folderName = "")
+        {
+            ObexPacket packet = new MapSetPathRequestPacket(mode, folderName);
+            await RunObexRequest(packet);
         }
 
         /// <summary>
@@ -37,7 +43,7 @@ namespace MyPhone.OBEX
             ObexPacket resp = await RunObexRequest(packet);
 
             XmlDocument xml = new XmlDocument();
-            xml.LoadXml(((Utf8StringValueHeader)resp.Headers[HeaderId.EndOfBody]).Value);
+            xml.LoadXml(((BodyHeader)resp.Headers[HeaderId.EndOfBody]).Value);
             XmlNodeList list = xml.SelectNodes("/MAP-msg-listing/msg/@handle");
             List<string> ret = new List<string>();
             Console.WriteLine("Message handle list: ");
@@ -134,7 +140,7 @@ namespace MyPhone.OBEX
             ObexPacket resp = await RunObexRequest(packet);
 
             XmlDocument xml = new XmlDocument();
-            xml.LoadXml(((Utf8StringValueHeader)resp.Headers[HeaderId.EndOfBody]).Value);
+            xml.LoadXml(((BodyHeader)resp.Headers[HeaderId.EndOfBody]).Value);
             XmlNodeList list = xml.SelectNodes("/folder-listing/folder/@name");
             List<string> ret = new List<string>();
             Console.WriteLine("Folder list: ");
