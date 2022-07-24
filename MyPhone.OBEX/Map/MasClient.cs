@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Xml;
@@ -29,11 +30,10 @@ namespace MyPhone.OBEX.Map
         /// <param name="folderName">The name of the folder.</param>
         /// <returns>message handle list</returns>
         /// TODO: return Messages-Listing objects
-        public async Task<List<string>> GetMessageListing(ushort maxListCount, string folderName = "telecom")
+        public async Task<List<string>> GetMessagesListingAsync(ushort maxListCount, string folderName = "telecom")
         {
             ObexPacket packet = new ObexPacket(
                 Opcode.GetAlter
-                //, new Int32ValueHeader(HeaderId.SingleResponseMode, 0x01)
                 , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MAP-msg-listing")
                 , new UnicodeStringValueHeader(HeaderId.Name, folderName)
                 , new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, maxListCount))
@@ -127,13 +127,30 @@ namespace MyPhone.OBEX.Map
             await RunObexRequest(packet);
         }
 
-        public async Task<List<string>> GetFolderList()
+        /// <summary>
+        /// Get the list of children folder name in the current folder
+        /// </summary>
+        /// <param name="maxListCount">The maximum number of folders to retrieve (default 1024).</param>
+        /// <param name="listStartOffset">The offset of the first entry of the returned folder</param>
+        /// <returns>List of children folder name</returns>
+        public async Task<List<string>> GetFolderListingAsync(ushort? maxListCount = null, ushort? listStartOffset = null)
         {
             ObexPacket packet = new ObexPacket(
-                Opcode.GetAlter
-                , new AsciiStringValueHeader(HeaderId.Type, "x-obex/folder-listing")
-            //, new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, 100))
+                Opcode.GetAlter,
+                new AsciiStringValueHeader(HeaderId.Type, "x-obex/folder-listing")
             );
+            if (maxListCount != null || listStartOffset != null)
+            {
+                AppParamHeader appParamHeader = new();
+                if (maxListCount != null)
+                {
+                    appParamHeader.AppParameters.AddLast(new AppParameter(AppParamTagId.MaxListCount, maxListCount.Value));
+                }
+                if (listStartOffset != null)
+                {
+                    appParamHeader.AppParameters.AddLast(new AppParameter(AppParamTagId.ListStartOffset, listStartOffset.Value));
+                }
+            }
 
             Console.WriteLine("sending GetFolderList request");
 
@@ -156,7 +173,6 @@ namespace MyPhone.OBEX.Map
             return ret;
         }
 
-
         public async Task PushMessage()
         {
             ObexPacket packet = new ObexPacket(
@@ -174,6 +190,86 @@ namespace MyPhone.OBEX.Map
             await RunObexRequest(packet);
         }
 
+    }
+
+    public static class MasClientExtensions
+    {
+        /// <summary>
+        /// Get all children folders' name of current folder
+        /// </summary>
+        /// <param name="client"></param>
+        /// <returns></returns>
+        public static async Task<List<string>> GetChildrenFoldersAsync(this MasClient client)
+        {
+            List<string> ret = new();
+
+            bool lastPage = false;
+            ushort offset = 0;
+            const int default_size = 1024;
+            while (!lastPage)
+            {
+                var foldersName = await client.GetFolderListingAsync(listStartOffset: offset);
+                if (foldersName.Count < default_size)
+                {
+                    lastPage = true;
+                }
+
+                ret.AddRange(foldersName);
+            }
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Traverese the entire folder tree.
+        /// </summary>
+        /// <returns>Root folder and children folder</returns>
+        public static async Task<SmsFolder> TraverseFolderAsync(this MasClient client)
+        {
+            await client.SetFolderAsync(SetPathMode.BackToRoot);
+
+            SmsFolder root = new SmsFolder("Root");
+            Stack<SmsFolder> folders = new Stack<SmsFolder>();
+            folders.Push(root);
+            SmsFolder pre = root;
+
+            while (folders.Count > 0)
+            {
+                SmsFolder current = folders.Pop();
+
+                if (current != root && current.Parent != pre.Parent)
+                {
+                    if (current.Parent == pre)
+                    {
+                        await client.SetFolderAsync(SetPathMode.EnterFolder, current.Name);
+                    }
+                    else if (pre.Parent != null && pre.Parent.Parent == current.Parent)
+                    {
+                        await client.SetFolderAsync(SetPathMode.BackToParent);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Unreachable code reached!");
+                    }
+                }
+
+                List<string> subFoldersName = await client.GetChildrenFoldersAsync();
+                subFoldersName.ForEach(f =>
+                {
+                    //await client.GetMessageListing(0, f);
+                    
+                    SmsFolder smsFolder = new SmsFolder(f, current);
+
+                    current.Children.Add(smsFolder);
+                    folders.Push(smsFolder);
+                });
+
+                pre = current;
+            }
+
+            return root;
+        }
+        
     }
 
 }

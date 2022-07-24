@@ -26,5 +26,6 @@ for ($i = 0; $i -lt $devices.Count; $i++) {
 Write-Host
 $index = (Read-Host "Please enter the device index") -as [int]
 $deviceId = ($devices[$index]).Id
+$deviceName = ($devices[$index]).Name
 Set-Content -Path "./devicetest.local.json" -Value ('{"deviceId":"' + $deviceId + '"}')
-Write-Host "Selected $devName"
+Write-Host "Selected $deviceName"
