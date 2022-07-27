@@ -23,18 +23,14 @@ namespace MyPhone.OBEX
         /// <summary>
         /// Create a empty instance ready for reading content from stream
         /// </summary>
-        public ObexConnectPacket() : base(Opcode.OBEX_UNAVAILABLE)
+        public ObexConnectPacket() : base(new ObexOpcode(ObexOperation.ServiceUnavailable, true))
         { }
 
         public ObexConnectPacket(ObexServiceUuid targetService) : this(false, targetService)
         { }
 
-        public ObexConnectPacket(bool disconnect, ObexServiceUuid targetService) : base(disconnect ? Opcode.Disconnect : Opcode.Connect)
+        public ObexConnectPacket(bool disconnect, ObexServiceUuid targetService) : base(new ObexOpcode(disconnect ? ObexOperation.Disconnect : ObexOperation.Connect, true))
         {
-            if (disconnect)
-                Opcode = Opcode.Disconnect;
-            else
-                Opcode = Opcode.Connect;
             Headers[HeaderId.Target] = new BytesHeader(HeaderId.Target, targetService.Value);
         }
 

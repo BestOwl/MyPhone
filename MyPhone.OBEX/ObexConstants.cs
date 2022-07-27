@@ -114,65 +114,66 @@
         SingleResponseMode = 0x97,
     }
 
-    public enum Opcode : byte
+    public enum ObexOperation : byte
     {
-        // MAS Op
+        // OBEX Request Code
+
+        // High bit always set
         Connect = 0x80,
         Disconnect = 0x81,
-        Put = 0x02,
-        PutAlter = 0x82,
-        Get = 0x03,
-        GetAlter = 0x83,
         SetPath = 0x85,
         Session = 0x87,
         Abort = 0xFF,
 
-        // MAS Response Code
-        Success = 0xA0,
-        SuccessAlt = 0x20,
-        Continue = 0x90,
-        ContinueAlt = 0x10,
-
+        Put = 0x02,
+        Get = 0x03,
+        Action = 0x06,
+        
 
         //OBEX Response Code
-        //OBEX_OK = 0xA0,
-        OBEX_CREATED = 0xA1,
-        OBEX_ACCEPTED = 0xA2,
-        OBEX_NOT_AUTHORITATIVE = 0xA3,
-        OBEX_NO_CONTENT = 0xA4,
-        OBEX_RESET = 0xA5,
-        OBEX_PARTIAL = 0xA6,
-        OBEX_MULT_CHOICE = 0xB0,
-        OBEX_MOVED_PERM = 0xB1,
-        OBEX_MOVED_TEMP = 0xB2,
-        OBEX_SEE_OTHER = 0xB3,
-        OBEX_NOT_MODIFIED = 0xB4,
-        OBEX_USE_PROXY = 0xB5,
-        OBEX_BAD_REQUEST = 0xC0,
-        OBEX_UNAUTHORIZED = 0xC1,
-        OBEX_PAYMENT_REQUIRED = 0xC2,
-        OBEX_FORBIDDEN = 0xC3,
-        OBEX_NOT_FOUND = 0xC4,
-        OBEX_BAD_METHOD = 0xC5,
-        OBEX_NOT_ACCEPTABLE = 0xC6,
-        OBEX_PROXY_AUTH = 0xC7,
-        OBEX_TIMEOUT = 0xC8,
-        OBEX_CONFLICT = 0xC9,
-        OBEX_GONE = 0xCA,
-        OBEX_LENGTH_REQUIRED = 0xCB,
-        OBEX_PRECON_FAILED = 0xCC,
-        OBEX_ENTITY_TOO_LARGE = 0xCD,
-        OBEX_REQ_TOO_LARGE = 0xCE,
-        OBEX_UNSUPPORTED_TYPE = 0xCF,
-        ERNAL_ERROR = 0xD0,
-        OBEX_NOT_IMPLEMENTED = 0xD1,
-        OBEX_BAD_GATEWAY = 0xD2,
-        OBEX_UNAVAILABLE = 0xD3,
-        OBEX_GATEWAY_TIMEOUT = 0xD4,
-        OBEX_VERSION = 0xD5,
-        OBEX_DATABASE_FULL = 0xE0,
-        OBEX_DATABASE_LOCKED = 0xE1,
+        Continue = 0x10,
 
+        Success = 0x20,
+        Created = 0x21,
+        Accepted = 0x22,
+        NotAuthoritative = 0x23,
+        NoContent = 0x24,
+        ResetContent = 0x25,
+        PartialContent = 0x26,
+
+        MultipleChoices = 0x30,
+        MovedPermanently = 0x31,
+        MovedTemporarily = 0x32,
+        SeeOther = 0x33,
+        NotModified = 0x34,
+        UseProxy = 0x35,
+
+        BadRequest = 0x40,
+        Unauthorized = 0x41,
+        PaymentRequired = 0x42,
+        Forbidden = 0x43,
+        NotFound = 0x44,
+        MethodNotAllowed = 0x45,
+        NotAcceptable = 0x46,
+        ProxyAuthenticationRequired = 0x47,
+        RequestTimeout = 0x48,
+        Conflict = 0x49,
+        Gone = 0x4A,
+        LengthRequired = 0x4B,
+        PreconditionFailed = 0x4C,
+        RequestedEntityTooLarge = 0x4D,
+        RequestUrlTooLarge = 0x4E,
+        UnsupportedMediaType = 0x4F,
+
+        InternalServerError = 0x50,
+        NotImplemented = 0x51,
+        BadGateway = 0x52,
+        ServiceUnavailable = 0x53,
+        GatewayTimeout = 0x54,
+        VersionNotSupported = 0x55,
+        
+        DatabaseFull = 0x60,
+        DatabaseLocked = 0x61,
     }
 
     public static class MasConstants

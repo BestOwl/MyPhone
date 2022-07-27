@@ -30,7 +30,7 @@ namespace MyPhone.OBEX
                 _cts.Token.ThrowIfCancellationRequested();
 
                 ObexPacket packet = await ObexPacket.ReadFromStream(_reader, new ObexConnectPacket());
-                if (packet.Opcode == Opcode.Connect)
+                if (packet.Opcode.ObexOperation == ObexOperation.Connect)
                 {
                     if (packet.Headers.ContainsKey(HeaderId.Target))
                     {
@@ -39,7 +39,7 @@ namespace MyPhone.OBEX
                         {
                             if (Enumerable.SequenceEqual(targetHeader.Value, _serviceUuid.Value))
                             {
-                                packet.Opcode = Opcode.Success;
+                                packet.Opcode = new ObexOpcode(ObexOperation.Success, true);
                                 _writer.WriteBuffer(packet.ToBuffer());
                                 await _writer.StoreAsync();
                                 break;
@@ -51,7 +51,7 @@ namespace MyPhone.OBEX
 
                 Console.WriteLine("Not support operation code: " + packet.Opcode);
                 Console.WriteLine("MSE should send Connect request first");
-                packet = new ObexPacket(Opcode.OBEX_UNAVAILABLE);
+                packet = new ObexPacket(new ObexOpcode(ObexOperation.ServiceUnavailable, true));
                 _writer.WriteBuffer(packet.ToBuffer());
             }
 

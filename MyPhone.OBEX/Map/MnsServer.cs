@@ -26,7 +26,7 @@ namespace MyPhone.OBEX
         {
             Console.WriteLine("Opcode: " + clientRequestPacket.Opcode);
 
-            if (clientRequestPacket.Opcode == Opcode.Put || clientRequestPacket.Opcode == Opcode.PutAlter)
+            if (clientRequestPacket.Opcode.ObexOperation == ObexOperation.Put)
             {
                 string bodyString;
                 if (clientRequestPacket.Headers.ContainsKey(HeaderId.EndOfBody))
@@ -46,7 +46,7 @@ namespace MyPhone.OBEX
                 string handle = doc.SelectSingleNode("/MAP-event-report/event/@handle").Value;
                 MessageReceived?.Invoke(this, new MessageReceivedEventArgs(handle));
 
-                return new ObexPacket(Opcode.Success);
+                return new ObexPacket(new ObexOpcode(ObexOperation.Success, true));
             }
 
             return null;

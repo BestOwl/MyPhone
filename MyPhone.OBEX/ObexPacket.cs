@@ -7,7 +7,7 @@ namespace MyPhone.OBEX
 {
     public class ObexPacket
     {
-        public Opcode Opcode { get; set; }
+        public ObexOpcode Opcode { get; set; }
 
         /// <summary>
         /// Will only be updated after calling ToBuffer()
@@ -16,13 +16,13 @@ namespace MyPhone.OBEX
 
         public Dictionary<HeaderId, IObexHeader> Headers;
 
-        public ObexPacket(Opcode op)
+        public ObexPacket(ObexOpcode op)
         {
             Opcode = op;
             Headers = new Dictionary<HeaderId, IObexHeader>();
         }
 
-        public ObexPacket(Opcode op, params IObexHeader[] headers) : this(op)
+        public ObexPacket(ObexOpcode op, params IObexHeader[] headers) : this(op)
         {
             foreach (IObexHeader h in headers)
             {
@@ -74,8 +74,8 @@ namespace MyPhone.OBEX
 
             IBuffer exFieldAndHeaderBuffer = exFieldAndHeaderWriter.DetachBuffer();
 
-            writer.WriteByte((byte)Opcode);
-            PacketLength = (ushort)(exFieldAndHeaderBuffer.Length + sizeof(Opcode) + sizeof(ushort));
+            writer.WriteByte(Opcode.Value);
+            PacketLength = (ushort)(exFieldAndHeaderBuffer.Length + sizeof(ObexOperation) + sizeof(ushort));
             writer.WriteUInt16(PacketLength);
             writer.WriteBuffer(exFieldAndHeaderBuffer);
 
@@ -168,7 +168,7 @@ namespace MyPhone.OBEX
                 throw new ObexException("The underlying socket was closed before we were able to read the whole data.");
             }
 
-            Opcode opcode = (Opcode)reader.ReadByte();
+            ObexOpcode opcode = new (reader.ReadByte());
             if (packet == null)
             {
                 packet = new ObexPacket(opcode);
@@ -189,7 +189,7 @@ namespace MyPhone.OBEX
             Console.WriteLine($"packet length: {packet.PacketLength}");
 
             uint extraFieldBits = await packet.ReadExtraField(reader);
-            uint size = packet.PacketLength - (uint)sizeof(Opcode) - sizeof(ushort) - extraFieldBits;
+            uint size = packet.PacketLength - (uint)sizeof(ObexOperation) - sizeof(ushort) - extraFieldBits;
             await packet.ParseHeader(reader, size);
             return packet;
         }

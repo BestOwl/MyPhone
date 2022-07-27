@@ -63,7 +63,7 @@ namespace GoodTimeStudio.MyPhone
 
                 Debug.Assert(_masClientSession.ObexClient != null);
                 _logger.LogInformation(AppLogEvents.SmsServiceConnect, "Register message notification.");
-                await _masClientSession.ObexClient.SetNotificationRegistration(true);
+                await _masClientSession.ObexClient.SetNotificationRegistrationAsync(true);
                 _logger.LogInformation(AppLogEvents.SmsServiceConnect, "SmsService connected.");
                 return true;
             }

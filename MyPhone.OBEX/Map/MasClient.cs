@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Xml;
 using Windows.Storage.Streams;
@@ -12,38 +13,58 @@ namespace MyPhone.OBEX.Map
 
         //bb582b40-420c-11db-b0de-0800200c9a66
         public static readonly byte[] MAS_UUID = new byte[] { 0xBB, 0x58, 0x2B, 0x40, 0x42, 0x0C, 0x11, 0xDB, 0xB0, 0xDE, 0x08, 0x00, 0x20, 0x0C, 0x9A, 0x66 };
+        
+        /// <remarks>
+        /// Not null after connected.
+        /// </remarks>
+        private Int32ValueHeader? _connectionIdHeader; 
 
         public MasClient(IInputStream inputStream, IOutputStream outputStream) : base(inputStream, outputStream)
         {
         }
 
+        protected override void OnConnected(ObexPacket connectionResponse)
+        {
+            if (connectionResponse.Headers.TryGetValue(HeaderId.ConnectionId, out IObexHeader connectionId))
+            {
+                _connectionIdHeader = (Int32ValueHeader?)connectionId;
+            }
+            else
+            {
+                throw new ObexRequestException(connectionResponse.Opcode, "The MasServer does not provide a ConnectionId, abort.");
+            }
+        }
+
         public async Task SetFolderAsync(SetPathMode mode, string folderName = "")
         {
             ObexPacket packet = new MapSetPathRequestPacket(mode, folderName);
+            packet.Headers[HeaderId.ConnectionId] = _connectionIdHeader!;
             await RunObexRequest(packet);
         }
 
         /// <summary>
         /// Retrieve messages listing from MSE
         /// </summary>
-        /// <param name="maxListCount">Maximum number of messages listed.</param>
+        /// <param name="maxListCount">Maximum number of messages listed. Must be GREATER THAN 0.</param>
         /// <param name="folderName">The name of the folder.</param>
+        /// <remarks>If you try to get the listing size, please call <see cref="GetMessageListingSizeAsync"/> instead.</remarks>
         /// <returns>message handle list</returns>
         /// TODO: return Messages-Listing objects
         public async Task<List<string>> GetMessagesListingAsync(ushort maxListCount, string folderName = "telecom")
         {
             ObexPacket packet = new ObexPacket(
-                Opcode.GetAlter
-                , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MAP-msg-listing")
-                , new UnicodeStringValueHeader(HeaderId.Name, folderName)
-                , new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, maxListCount))
+                new ObexOpcode(ObexOperation.Get, true),
+                _connectionIdHeader!,
+                new AsciiStringValueHeader(HeaderId.Type, "x-bt/MAP-msg-listing"),
+                new UnicodeStringValueHeader(HeaderId.Name, folderName),
+                new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, maxListCount))
                 );
 
             Console.WriteLine($"Sending GetMessageListing request ");
             ObexPacket resp = await RunObexRequest(packet);
 
             XmlDocument xml = new XmlDocument();
-            xml.LoadXml(((BodyHeader)resp.Headers[HeaderId.EndOfBody]).Value);
+            xml.LoadXml(((BodyHeader)resp.Headers[HeaderId.Body]).Value);
             XmlNodeList list = xml.SelectNodes("/MAP-msg-listing/msg/@handle");
             List<string> ret = new List<string>();
             Console.WriteLine("Message handle list: ");
@@ -59,10 +80,30 @@ namespace MyPhone.OBEX.Map
             return ret;
         }
 
+        public async Task<int> GetMessageListingSizeAsync(string folderName = "telecom")
+        {
+            ObexPacket packet = new ObexPacket(
+                new ObexOpcode(ObexOperation.Get, true),
+                _connectionIdHeader!,
+                new AsciiStringValueHeader(HeaderId.Type, "x-bt/MAP-msg-listing"),
+                new UnicodeStringValueHeader(HeaderId.Name, folderName),
+                new AppParamHeader(new AppParameter(AppParamTagId.MaxListCount, 0))
+                );
+
+            if (packet.Headers.TryGetValue(HeaderId.ApplicationParameters, out IObexHeader header)) 
+            {
+                AppParamHeader appParamHeader = (AppParamHeader)header;
+                AppParameter p = appParamHeader.AppParameters.Where(param => param.TagId == AppParamTagId.ListingSize).FirstOrDefault();
+            }
+
+            return 0;
+        }
+
         public async Task<BMessage> GetMessageAsync(string messageHandle)
         {
             ObexPacket packet = new ObexPacket(
-                Opcode.GetAlter,
+                new ObexOpcode(ObexOperation.Get, true),
+                _connectionIdHeader!,
                 new AsciiStringValueHeader(HeaderId.Type, "x-bt/message"),
                 new UnicodeStringValueHeader(HeaderId.Name, messageHandle),
                 new AppParamHeader(
@@ -100,27 +141,29 @@ namespace MyPhone.OBEX.Map
             return bMsg;
         }
 
-        public async Task SetNotificationRegistration(bool enableNotification)
+        public async Task SetNotificationRegistrationAsync(bool enableNotification)
         {
             byte flag = (byte)(enableNotification ? 1 : 0);
 
             ObexPacket packet = new ObexPacket(
-                Opcode.PutAlter
-                , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration")
-                , new AppParamHeader(new AppParameter(AppParamTagId.NotificationStatus, flag))
-                , new BytesHeader(HeaderId.EndOfBody, 0x30)
+                new ObexOpcode(ObexOperation.Put, true),
+                _connectionIdHeader!,
+                new AsciiStringValueHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration"),
+                new AppParamHeader(new AppParameter(AppParamTagId.NotificationStatus, flag)),
+                new BytesHeader(HeaderId.EndOfBody, 0x30)
                 );
 
             Console.WriteLine("Sending RemoteNotificationRegister request");
             await RunObexRequest(packet);
         }
 
-        public async Task GetMASInstanceInformation()
+        public async Task GetMasInstanceInformationAsync()
         {
             ObexPacket packet = new ObexPacket(
-                Opcode.Get
-                , new AsciiStringValueHeader(HeaderId.Type, "x-bt/MASInstanceInformation")
-                , new AppParamHeader(new AppParameter(AppParamTagId.MASInstanceID, MAS_UUID))
+                new (ObexOperation.Get, true),
+                _connectionIdHeader!,
+                new AsciiStringValueHeader(HeaderId.Type, "x-bt/MASInstanceInformation"),
+                new AppParamHeader(new AppParameter(AppParamTagId.MASInstanceID, MAS_UUID))
                 );
 
             Console.WriteLine($"Sending GetMASInstanceInformation request ");
@@ -136,7 +179,8 @@ namespace MyPhone.OBEX.Map
         public async Task<List<string>> GetFolderListingAsync(ushort? maxListCount = null, ushort? listStartOffset = null)
         {
             ObexPacket packet = new ObexPacket(
-                Opcode.GetAlter,
+                new (ObexOperation.Get, true),
+                _connectionIdHeader!,
                 new AsciiStringValueHeader(HeaderId.Type, "x-obex/folder-listing")
             );
             if (maxListCount != null || listStartOffset != null)
@@ -176,13 +220,12 @@ namespace MyPhone.OBEX.Map
         public async Task PushMessage()
         {
             ObexPacket packet = new ObexPacket(
-                Opcode.PutAlter
-                , new AsciiStringValueHeader(HeaderId.Type, "x-bt/message")
-                , new AsciiStringValueHeader(HeaderId.Name, "telecom/msg/inbox")
-                //, new StringValueHeader(HeaderId.Name, "telecom/msg/inbox")
-                //, new BytesHeader(HeaderId.SingleResponseMode, 0x01)
-                , new AppParamHeader(new AppParameter(AppParamTagId.Charset, MasConstants.CHARSET_UTF8))
-                , new AsciiStringValueHeader(HeaderId.EndOfBody, "test pushing message from MCE")
+                new ObexOpcode(ObexOperation.Put, true),
+                _connectionIdHeader!,
+                new AsciiStringValueHeader(HeaderId.Type, "x-bt/message"),
+                new AsciiStringValueHeader(HeaderId.Name, "telecom/msg/inbox"),
+                new AppParamHeader(new AppParameter(AppParamTagId.Charset, MasConstants.CHARSET_UTF8)),
+                new AsciiStringValueHeader(HeaderId.EndOfBody, "test pushing message from MCE")
                 );
 
             Console.WriteLine("sending PushMessage request ");

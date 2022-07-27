@@ -10,9 +10,7 @@ namespace MyPhone.OBEX
         private DataReader _reader;
         private DataWriter _writer;
 
-        private Int32ValueHeader? _connectionIdHeader;
-
-        public bool Conntected { get; set; } = false;
+        public bool Conntected { get; private set; } = false;
 
         public ObexClient(IInputStream inputStream, IOutputStream outputStream)
         {
@@ -52,19 +50,18 @@ namespace MyPhone.OBEX
             Console.WriteLine($"ResponseCode: {response.Opcode}");
             response.PrintHeaders();
 
-            if (response.Opcode != Opcode.Success && response.Opcode != Opcode.SuccessAlt)
+            if (response.Opcode.ObexOperation != ObexOperation.Success)
             {
                 throw new ObexRequestException(response.Opcode, $"Unable to connect to the target OBEX service.");
             }
 
-            if (response.Headers.ContainsKey(HeaderId.ConnectionId))
-            {
-                _connectionIdHeader = (Int32ValueHeader)response.Headers[HeaderId.ConnectionId];
-            }
             Conntected = true;
+            OnConnected(response);
         }
 
-        public async Task Disconnect()
+        protected virtual void OnConnected(ObexPacket connectionResponse) { }
+
+        public Task Disconnect()
         {
             if (!Conntected)
             {
@@ -79,7 +76,8 @@ namespace MyPhone.OBEX
         /// </summary>
         /// <param name="req">The request packet</param>
         /// <returns>Response packet. The resposne packet is null if the MSE did not send back any response, or the response is corrupted</returns>
-        /// <exception cref="ObexExceptions"> due to an underlying issue such as connection loss, invalid server response</exception>
+        /// <exception cref="ObexRequestException">Throws if get an valid response, but its opcode is unsuccessful</exception>
+        /// <exception cref="ObexException"> due to an underlying issue such as connection loss, invalid server response</exception>
         public async Task<ObexPacket> RunObexRequest(ObexPacket req)
         {
             if (!Conntected)
@@ -87,41 +85,44 @@ namespace MyPhone.OBEX
                 throw new InvalidOperationException("ObexClient is not connected to any ObexServer");
             }
 
-            Opcode requestOpcode = req.Opcode;
+            ObexOperation? requestOperation = req.Opcode.ObexOperation;
+            if (requestOperation == null)
+            {
+                throw new InvalidOperationException("User-defined opcode is not supported");
+            }
+
             ObexPacket? response = null;
             int c = 0;
 
             do
             {
                 Console.WriteLine($"Sending request packet: {++c}");
-                if (_connectionIdHeader != null)
-                {
-                    req.Headers[HeaderId.ConnectionId] = _connectionIdHeader;
-                }
                 var buf = req.ToBuffer();
+#if DEBUG
                 Console.WriteLine(BitConverter.ToString(buf.ToArray()));
                 Console.WriteLine("Opcode: " + req.Opcode);
+#endif
                 _writer.WriteBuffer(buf);
                 await _writer.StoreAsync();
 
                 ObexPacket subResponse;
                 subResponse = await ObexPacket.ReadFromStream(_reader);
-
+#if DEBUG
                 var bytes = subResponse.ToBuffer().ToArray();
                 Console.WriteLine("Reply packet:");
                 Console.WriteLine(BitConverter.ToString(bytes));
                 Console.WriteLine($"ResponseCode: {subResponse.Opcode}");
-
                 subResponse.PrintHeaders();
+#endif
+
                 if (response == null)
                 {
                     response = subResponse;
                 }
 
-                switch (subResponse.Opcode)
+                switch (subResponse.Opcode.ObexOperation)
                 {
-                    case Opcode.Success:
-                    case Opcode.SuccessAlt:
+                    case ObexOperation.Success:
                         if (subResponse.Headers.ContainsKey(HeaderId.EndOfBody))
                         {
                             if (response.Headers.ContainsKey(HeaderId.Body))
@@ -133,9 +134,9 @@ namespace MyPhone.OBEX
                                 response.Headers[HeaderId.Body] = response.Headers[HeaderId.EndOfBody];
                             }
                         }
+                        response.Opcode = subResponse.Opcode;
                         return response;
-                    case Opcode.Continue:
-                    case Opcode.ContinueAlt:
+                    case ObexOperation.Continue:
                         if (response != subResponse)
                         {
                             if (response.Headers.ContainsKey(HeaderId.Body))
@@ -152,10 +153,10 @@ namespace MyPhone.OBEX
                         }
                         break;
                     default:
-                        throw new ObexRequestException(subResponse.Opcode, $"The {requestOpcode} request failed with opcode {subResponse.Opcode}");
+                        throw new ObexRequestException(subResponse.Opcode, $"The {requestOperation} request failed with opcode {subResponse.Opcode}");
                 }
 
-                req = new ObexPacket(requestOpcode, _connectionIdHeader!);
+                req = new ObexPacket(new ObexOpcode(requestOperation.Value, true));
             } while (true);
         }
     }

@@ -34,7 +34,7 @@ namespace MyPhone.OBEX.Map
         /// Equivalent to "cd ../folderName"
         /// </param>
         /// 
-        public MapSetPathRequestPacket(SetPathMode mode, string folderName = "") : base(Opcode.SetPath)
+        public MapSetPathRequestPacket(SetPathMode mode, string folderName = "") : base(new ObexOpcode(ObexOperation.SetPath, true))
         {
             SetPathMode = mode;
 

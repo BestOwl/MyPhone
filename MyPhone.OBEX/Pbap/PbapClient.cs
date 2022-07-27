@@ -26,7 +26,7 @@ namespace MyPhone.OBEX
         /// <returns>phone book object string</returns>
         public async Task<string> PullPhoneBook(string phoneBookObjectPath)
         {
-            ObexPacket request = new ObexPacket(Opcode.GetAlter);
+            ObexPacket request = new ObexPacket(new ObexOpcode(ObexOperation.Get, true));
             request.Headers[HeaderId.Name] = new UnicodeStringValueHeader(HeaderId.Name, phoneBookObjectPath);
             request.Headers[HeaderId.Type] = new AsciiStringValueHeader(HeaderId.Type, "x-bt/phonebook");
             request.Headers[HeaderId.ApplicationParameters] = new AppParamHeader();

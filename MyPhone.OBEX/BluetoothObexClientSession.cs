@@ -106,7 +106,7 @@ namespace MyPhone.OBEX
             catch (ObexRequestException ex)
             {
                 socket.Dispose();
-                if (ex.Opcode == Opcode.OBEX_UNAUTHORIZED)
+                if (ex.Opcode.ObexOperation == ObexOperation.Unauthorized)
                 {
                     throw new BluetoothObexSessionException(
                         $"Connected to OBEX server successfully, but the server refuse to provide service. Reason: You are not an authorized user.", 

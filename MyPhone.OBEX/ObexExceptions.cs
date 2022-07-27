@@ -22,28 +22,47 @@ namespace MyPhone.OBEX
     }
 
     /// <summary>
-    /// The exception that is thrown when a OBEX request is unsuccessful (i.e. the remote service return an unsuccessful opcode)
+    /// The exception that is thrown when a OBEX request return an unsuccessful response (i.e. the remote service return an unsuccessful opcode)
     /// </summary>
     public class ObexRequestException : ObexException
     {
         /// <summary>
         /// Represents a non-successful response opcode
         /// </summary>
-        public Opcode Opcode { get; }
+        public ObexOpcode Opcode { get; }
 
-        public ObexRequestException(Opcode opcode)
+        public ObexRequestException(ObexOpcode opcode)
         {
             Opcode = opcode;
         }
 
-        public ObexRequestException(Opcode opcode, string message) : base(message)
+        public ObexRequestException(ObexOpcode opcode, string message) : base(message)
         {
             Opcode = opcode;
         }
 
-        public ObexRequestException(Opcode opcode, string message, Exception innerException) : base(message, innerException)
+        public ObexRequestException(ObexOpcode opcode, string message, Exception innerException) : base(message, innerException)
         {
             Opcode = opcode;
+        }
+    }
+
+    public class InvalidObexOpcodeException : ObexException
+    {
+        public byte RawOpcode { get; }
+
+        public InvalidObexOpcodeException(byte rawOpcode) : this(rawOpcode, $"Invalid opcode {rawOpcode}")
+        {
+        } 
+
+        public InvalidObexOpcodeException(byte rawOpcode, string message) : base(message) 
+        {
+            RawOpcode = rawOpcode;
+        }
+
+        public InvalidObexOpcodeException(byte rawOpcode, string message, Exception innerException) : base(message, innerException)
+        {
+            RawOpcode = rawOpcode;
         }
     }
 }
