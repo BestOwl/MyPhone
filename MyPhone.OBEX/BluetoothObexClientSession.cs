@@ -101,7 +101,7 @@ namespace MyPhone.OBEX
             ObexClient = CreateObexClient(socket);
             try
             {
-                await ObexClient.Connect(TargetObexService);
+                await ObexClient.ConnectAsync(TargetObexService);
             }
             catch (ObexRequestException ex)
             {

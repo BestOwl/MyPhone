@@ -32,7 +32,7 @@ namespace MyPhone.UnitTest.OBEX
 
         public async Task InitializeAsync()
         {
-            Task connect = _client.Connect(ObexServiceUuid.MessageAccess); // UUID does not matter here
+            Task connect = _client.ConnectAsync(ObexServiceUuid.MessageAccess); // UUID does not matter here
             await Task.Run(async () =>
             {
                 ObexPacket req = await ObexPacket.ReadFromStream(_serverReader, new ObexConnectPacket());
@@ -76,7 +76,7 @@ namespace MyPhone.UnitTest.OBEX
             });
 
             ObexPacket request = new(new ObexOpcode(ObexOperation.Get, true));
-            ObexPacket response = await _client.RunObexRequest(request);
+            ObexPacket response = await _client.RunObexRequestAsync(request);
             Assert.True(response.Opcode.IsFinalBitSet);
             Assert.Equal(ObexOperation.Success, response.Opcode.ObexOperation);
 
@@ -123,7 +123,7 @@ namespace MyPhone.UnitTest.OBEX
             });
 
             ObexPacket request = new(new ObexOpcode(ObexOperation.Get, true));
-            ObexPacket response = await _client.RunObexRequest(request);
+            ObexPacket response = await _client.RunObexRequestAsync(request);
             Assert.True(response.Opcode.IsFinalBitSet);
             Assert.Equal(ObexOperation.Success, response.Opcode.ObexOperation);
 

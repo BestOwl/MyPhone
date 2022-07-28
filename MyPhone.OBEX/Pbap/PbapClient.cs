@@ -31,7 +31,7 @@ namespace MyPhone.OBEX
             request.Headers[HeaderId.Type] = new AsciiStringValueHeader(HeaderId.Type, "x-bt/phonebook");
             request.Headers[HeaderId.ApplicationParameters] = new AppParamHeader();
             
-            ObexPacket response = await RunObexRequest(request);
+            ObexPacket response = await RunObexRequestAsync(request);
 
             Console.WriteLine(((BodyHeader)response.Headers[HeaderId.Body]).Value);
             return ((BodyHeader)response.Headers[HeaderId.Body]).Value!;

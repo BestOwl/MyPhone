@@ -24,7 +24,7 @@ namespace MyPhone.OBEX
         /// <param name="targetUuid">A 16-length byte array indicates the UUID of the target service.</param>
         /// <exception cref="InvalidOperationException">The Connect method can call only once and it is already called before.</exception>
         /// <exception cref="ObexExceptions">The request failed due to an underlying issue such as connection issue, or the server reply with a invalid response</exception>
-        public async Task Connect(ObexServiceUuid targetService)
+        public async Task ConnectAsync(ObexServiceUuid targetService)
         {
             if (Conntected)
             {
@@ -61,7 +61,7 @@ namespace MyPhone.OBEX
 
         protected virtual void OnConnected(ObexPacket connectionResponse) { }
 
-        public Task Disconnect()
+        public Task DisconnectAsync()
         {
             if (!Conntected)
             {
@@ -78,7 +78,7 @@ namespace MyPhone.OBEX
         /// <returns>Response packet. The resposne packet is null if the MSE did not send back any response, or the response is corrupted</returns>
         /// <exception cref="ObexRequestException">Throws if get an valid response, but its opcode is unsuccessful</exception>
         /// <exception cref="ObexException"> due to an underlying issue such as connection loss, invalid server response</exception>
-        public async Task<ObexPacket> RunObexRequest(ObexPacket req)
+        public async Task<ObexPacket> RunObexRequestAsync(ObexPacket req)
         {
             if (!Conntected)
             {

@@ -39,7 +39,7 @@ namespace MyPhone.OBEX.Map
         {
             ObexPacket packet = new MapSetPathRequestPacket(mode, folderName);
             packet.Headers[HeaderId.ConnectionId] = _connectionIdHeader!;
-            await RunObexRequest(packet);
+            await RunObexRequestAsync(packet);
         }
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace MyPhone.OBEX.Map
                 );
 
             Console.WriteLine($"Sending GetMessageListing request ");
-            ObexPacket resp = await RunObexRequest(packet);
+            ObexPacket resp = await RunObexRequestAsync(packet);
 
             XmlDocument xml = new XmlDocument();
             xml.LoadXml(((BodyHeader)resp.Headers[HeaderId.Body]).Value);
@@ -114,7 +114,7 @@ namespace MyPhone.OBEX.Map
 
             Console.WriteLine("Sending GetMessage request ");
 
-            ObexPacket resp = await RunObexRequest(packet);
+            ObexPacket resp = await RunObexRequestAsync(packet);
 
             // "EndOfBody" has been copied to "Body" by ObexClient
             string bMsgStr = ((BodyHeader)resp.Headers[HeaderId.Body]).Value!;
@@ -154,7 +154,7 @@ namespace MyPhone.OBEX.Map
                 );
 
             Console.WriteLine("Sending RemoteNotificationRegister request");
-            await RunObexRequest(packet);
+            await RunObexRequestAsync(packet);
         }
 
         public async Task GetMasInstanceInformationAsync()
@@ -167,7 +167,7 @@ namespace MyPhone.OBEX.Map
                 );
 
             Console.WriteLine($"Sending GetMASInstanceInformation request ");
-            await RunObexRequest(packet);
+            await RunObexRequestAsync(packet);
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace MyPhone.OBEX.Map
 
             Console.WriteLine("sending GetFolderList request");
 
-            ObexPacket resp = await RunObexRequest(packet);
+            ObexPacket resp = await RunObexRequestAsync(packet);
 
             XmlDocument xml = new XmlDocument();
             xml.LoadXml(((BodyHeader)resp.Headers[HeaderId.EndOfBody]).Value);
@@ -230,7 +230,7 @@ namespace MyPhone.OBEX.Map
 
             Console.WriteLine("sending PushMessage request ");
 
-            await RunObexRequest(packet);
+            await RunObexRequestAsync(packet);
         }
 
     }
