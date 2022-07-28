@@ -1,4 +1,5 @@
-﻿using MyPhone.OBEX.Map;
+﻿using Microsoft.Extensions.Configuration;
+using MyPhone.OBEX.Map;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,15 @@ namespace GoodTimeStudio.MyPhone.DeviceTest
 
         public async Task InitializeAsync()
         {
-            _session = new BluetoothMasClientSession(_fixture.BluetoothDevice);
+            if (_fixture.Configuration.GetValue<bool>("DumpObexPacket", false))
+            {
+                _session = new DumpBluetoothMasClientSession(_fixture.BluetoothDevice,
+                    $"MasClient-{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.pcap");
+            }
+            else
+            {
+                _session = new BluetoothMasClientSession(_fixture.BluetoothDevice);
+            }
             await _session.ConnectAsync();
         }
 
@@ -32,9 +41,10 @@ namespace GoodTimeStudio.MyPhone.DeviceTest
         }
 
         [Fact]
-        public async Task TestGetMessagesListingAsync_GetListingSize()
+        public async Task TestGetMessagesListingSizeAsync()
         {
-            await _session!.ObexClient!.GetMessagesListingAsync(0);
+            int count = await _session!.ObexClient!.GetMessageListingSizeAsync();
+            Assert.True(count >= 0);
         }
 
         [Fact]
