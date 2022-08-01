@@ -6,13 +6,82 @@ using Xunit.Abstractions;
 
 namespace MyPhone.UnitTest.Utilities
 {
-    public class TestDynamicTimer
+    public class TestDynamicTimer1
+    {
+        [Fact]
+        public async Task TestSubsequentZeroMilliseconds()
+        {
+            var schedules = new[]
+            {
+                new DynamicTimerSchedule(new TimeSpan(0, 0, 0, 1, 0), 2),
+                new DynamicTimerSchedule(new TimeSpan(0, 0, 0, 1, 0), 2),
+
+            };
+            DynamicTimer timer = new DynamicTimer(schedules);
+            int count = 0;
+            timer.Elapsed += (object? sender, DynamicTimerElapsedEventArgs e) =>
+            {
+                count++;
+            };
+
+            timer.Start();
+            await Task.Delay(7000);
+            timer.Stop();
+            Assert.Equal(4, count);
+        }
+    }
+
+    public class TestDynamicTimer2
+    {
+        [Fact]
+        public async Task TestOneLongInterval()
+        {
+            var schedules = new[]
+            {
+                new DynamicTimerSchedule(TimeSpan.FromSeconds(2), 5),
+            };
+            DynamicTimer timer = new DynamicTimer(schedules);
+            int count = 0;
+            timer.Elapsed += (object? sender, DynamicTimerElapsedEventArgs e) =>
+            {
+                count++;
+            };
+
+            timer.Start();
+            await Task.Delay(12000);
+            timer.Stop();
+            Assert.Equal(5, count);
+        }
+    }
+
+    public class TestDynamicTimer3
     {
         private readonly ITestOutputHelper _output;
 
-        public TestDynamicTimer(ITestOutputHelper output)
+        public TestDynamicTimer3(ITestOutputHelper output)
         {
             _output = output;
+        }
+
+        [Fact]
+        public async Task TestOneIndefinite()
+        {
+            var schedules = new[]
+            {
+                new DynamicTimerSchedule(TimeSpan.FromSeconds(0.1), 0),
+            };
+            DynamicTimer timer = new DynamicTimer(schedules);
+            int count = 0;
+
+            timer.Elapsed += (object? sender, DynamicTimerElapsedEventArgs e) =>
+            {
+                count++;
+            };
+
+            timer.Start();
+            await Task.Delay(4000);
+            timer.Stop();
+            Assert.True(count > 30);
         }
 
         [Fact]
@@ -60,69 +129,6 @@ namespace MyPhone.UnitTest.Utilities
             Assert.False(timer.Enabled);
             timer.Dispose();
             Assert.Equal(12, count);
-        }
-
-        [Fact]
-        public async Task TestOneIndefinite()
-        {
-            var schedules = new[]
-            {
-                new DynamicTimerSchedule(TimeSpan.FromSeconds(0.1), 0),
-            };
-            DynamicTimer timer = new DynamicTimer(schedules);
-            int count = 0;
-
-            timer.Elapsed += (object? sender, DynamicTimerElapsedEventArgs e) =>
-            {
-                count++;
-            };
-
-            timer.Start();
-            await Task.Delay(4000);
-            timer.Stop();
-            Assert.True(count > 30);
-        }
-
-        [Fact]
-        public async Task TestOneLongInterval()
-        {
-            var schedules = new[]
-            {
-                new DynamicTimerSchedule(TimeSpan.FromSeconds(2), 5),
-            };
-            DynamicTimer timer = new DynamicTimer(schedules);
-            int count = 0;
-            timer.Elapsed += (object? sender, DynamicTimerElapsedEventArgs e) =>
-            {
-                count++;
-            };
-
-            timer.Start();
-            await Task.Delay(12000);
-            timer.Stop();
-            Assert.Equal(5, count);
-        }
-
-        [Fact]
-        public async Task TestSubsequentZeroMilliseconds()
-        {
-            var schedules = new[]
-            {
-                new DynamicTimerSchedule(new TimeSpan(0, 0, 0, 1, 0), 2),
-                new DynamicTimerSchedule(new TimeSpan(0, 0, 0, 1, 0), 2),
-
-            };
-            DynamicTimer timer = new DynamicTimer(schedules);
-            int count = 0;
-            timer.Elapsed += (object? sender, DynamicTimerElapsedEventArgs e) =>
-            {
-                count++;
-            };
-
-            timer.Start();
-            await Task.Delay(7000);
-            timer.Stop();
-            Assert.Equal(4, count);
         }
     }
 }
