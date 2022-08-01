@@ -3,24 +3,17 @@ using Windows.Devices.Bluetooth;
 
 namespace GoodTimeStudio.MyPhone.DeviceTest
 {
-    public class BluetoothDeviceFixture : IAsyncLifetime
+    public class BluetoothDeviceFixture
     {
-        private BluetoothDevice? _device;
-        public BluetoothDevice BluetoothDevice { get => _device ?? throw new InvalidOperationException(); }
+        public string BluetoothDeviceId { get; }
 
-        private IConfigurationRoot? _config;
-        public IConfigurationRoot Configuration { get => _config ?? throw new InvalidOperationException(); }
+        public IConfigurationRoot Configuration { get; }
 
-        public async Task InitializeAsync()
+        public BluetoothDeviceFixture()
         {
-            _config = new ConfigurationBuilder().AddJsonFile("devicetest.local.json").Build();
-            _device = await BluetoothDevice.FromIdAsync(_config["deviceId"]);
-            Console.WriteLine($"Current test device: {BluetoothDevice.Name}");
-        }
-
-        public Task DisposeAsync()
-        {
-            return Task.CompletedTask;
+            Configuration = new ConfigurationBuilder().AddJsonFile("devicetest.local.json").Build();
+            BluetoothDeviceId = Configuration["deviceId"];
+            Console.WriteLine($"Current test device ID: {BluetoothDeviceId}");
         }
     }
 }

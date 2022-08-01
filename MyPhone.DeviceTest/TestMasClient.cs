@@ -1,11 +1,13 @@
 ﻿using GoodTimeStudio.MyPhone.OBEX.Map;
 using Microsoft.Extensions.Configuration;
+using Windows.Devices.Bluetooth;
 
 namespace GoodTimeStudio.MyPhone.DeviceTest
 {
     public class TestMasClient : IAssemblyFixture<BluetoothDeviceFixture>, IAsyncLifetime
     {
         private BluetoothDeviceFixture _fixture;
+        private BluetoothDevice? _deivce;
         private BluetoothMasClientSession? _session;
 
         public TestMasClient(BluetoothDeviceFixture fixture)
@@ -15,14 +17,15 @@ namespace GoodTimeStudio.MyPhone.DeviceTest
 
         public async Task InitializeAsync()
         {
+            _deivce = await BluetoothDevice.FromIdAsync(_fixture.BluetoothDeviceId);
             if (_fixture.Configuration.GetValue("dumpObexPacket", false))
             {
-                _session = new DumpBluetoothMasClientSession(_fixture.BluetoothDevice,
+                _session = new DumpBluetoothMasClientSession(_deivce,
                     $"MasClient-{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.pcap");
             }
             else
             {
-                _session = new BluetoothMasClientSession(_fixture.BluetoothDevice);
+                _session = new BluetoothMasClientSession(_deivce);
             }
             await _session.ConnectAsync();
         }
@@ -30,6 +33,7 @@ namespace GoodTimeStudio.MyPhone.DeviceTest
         public Task DisposeAsync()
         {
             _session?.Dispose();
+            _deivce?.Dispose();
             return Task.CompletedTask;
         }
 
