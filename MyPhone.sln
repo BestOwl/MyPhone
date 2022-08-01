@@ -16,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyPhone.DeviceTest", "MyPhone.DeviceTest\MyPhone.DeviceTest.csproj", "{C63D05A6-E922-461B-83D2-A85517AFFC7A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyPhone.OBEX.UnitTest", "MyPhone.OBEX.UnitTest\MyPhone.OBEX.UnitTest.csproj", "{565C06D6-68DF-4280-96E9-3D00B5DFEF20}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -80,6 +82,18 @@ Global
 		{C63D05A6-E922-461B-83D2-A85517AFFC7A}.Release|x64.Build.0 = Release|x64
 		{C63D05A6-E922-461B-83D2-A85517AFFC7A}.Release|x86.ActiveCfg = Release|x86
 		{C63D05A6-E922-461B-83D2-A85517AFFC7A}.Release|x86.Build.0 = Release|x86
+		{565C06D6-68DF-4280-96E9-3D00B5DFEF20}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{565C06D6-68DF-4280-96E9-3D00B5DFEF20}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{565C06D6-68DF-4280-96E9-3D00B5DFEF20}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{565C06D6-68DF-4280-96E9-3D00B5DFEF20}.Debug|x64.Build.0 = Debug|Any CPU
+		{565C06D6-68DF-4280-96E9-3D00B5DFEF20}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{565C06D6-68DF-4280-96E9-3D00B5DFEF20}.Debug|x86.Build.0 = Debug|Any CPU
+		{565C06D6-68DF-4280-96E9-3D00B5DFEF20}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{565C06D6-68DF-4280-96E9-3D00B5DFEF20}.Release|ARM64.Build.0 = Release|Any CPU
+		{565C06D6-68DF-4280-96E9-3D00B5DFEF20}.Release|x64.ActiveCfg = Release|Any CPU
+		{565C06D6-68DF-4280-96E9-3D00B5DFEF20}.Release|x64.Build.0 = Release|Any CPU
+		{565C06D6-68DF-4280-96E9-3D00B5DFEF20}.Release|x86.ActiveCfg = Release|Any CPU
+		{565C06D6-68DF-4280-96E9-3D00B5DFEF20}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

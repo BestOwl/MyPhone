@@ -2,7 +2,7 @@
 using Windows.Devices.Bluetooth;
 using Windows.Networking.Sockets;
 
-namespace MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX.Bluetooth
 {
     /// <summary>
     /// Represents errors that occured when establishing an OBEX session connection.
@@ -22,8 +22,8 @@ namespace MyPhone.OBEX
         }
 
         public BluetoothObexSessionException(
-            string message, 
-            ObexException? innerException = null, 
+            string message,
+            ObexException? innerException = null,
             BluetoothError? bluetoothError = null,
             SocketErrorStatus? socketError = null) : base(message)
         {

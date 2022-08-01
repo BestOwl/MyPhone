@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MyPhone.OBEX.Map
+namespace GoodTimeStudio.MyPhone.OBEX.Map
 {
     public class SmsFolder
     {

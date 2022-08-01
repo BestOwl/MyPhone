@@ -1,10 +1,12 @@
-﻿using System;
+﻿using GoodTimeStudio.MyPhone.OBEX.Headers;
+using System;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
-namespace MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX
 {
     public class ObexServer
     {
@@ -29,21 +31,17 @@ namespace MyPhone.OBEX
             {
                 _cts.Token.ThrowIfCancellationRequested();
 
-                ObexPacket packet = await ObexPacket.ReadFromStream(_reader, new ObexConnectPacket());
+                ObexPacket packet = await ObexPacket.ReadFromStream<ObexConnectPacket>(_reader);
                 if (packet.Opcode.ObexOperation == ObexOperation.Connect)
                 {
-                    if (packet.Headers.ContainsKey(HeaderId.Target))
+                    if (packet.Headers.TryGetValue(HeaderId.Target, out ObexHeader header))
                     {
-                        BytesHeader targetHeader = (BytesHeader)packet.Headers[HeaderId.Target];
-                        if (targetHeader.Value != null)
+                        if (Enumerable.SequenceEqual(header.Buffer.ToArray(), _serviceUuid.Value))
                         {
-                            if (Enumerable.SequenceEqual(targetHeader.Value, _serviceUuid.Value))
-                            {
-                                packet.Opcode = new ObexOpcode(ObexOperation.Success, true);
-                                _writer.WriteBuffer(packet.ToBuffer());
-                                await _writer.StoreAsync();
-                                break;
-                            }
+                            packet.Opcode = new ObexOpcode(ObexOperation.Success, true);
+                            _writer.WriteBuffer(packet.ToBuffer());
+                            await _writer.StoreAsync();
+                            break;
                         }
                     }
 

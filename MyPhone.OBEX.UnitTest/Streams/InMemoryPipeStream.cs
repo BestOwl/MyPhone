@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Storage.Streams;
 
-namespace MyPhone.UnitTest.Utilities
+namespace GoodTimeStudio.MyPhone.OBEX.UnitTest.Streams
 {
     public class InMemoryPipeStream : IInputStream, IOutputStream
     {

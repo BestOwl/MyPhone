@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX
 {
     public class ObexServiceUuid
     {

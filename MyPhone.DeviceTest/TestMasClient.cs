@@ -1,12 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
-using MyPhone.OBEX.Map;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Windows.Devices.Bluetooth;
-using Windows.Devices.Enumeration;
+﻿using GoodTimeStudio.MyPhone.OBEX.Map;
+using Microsoft.Extensions.Configuration;
 
 namespace GoodTimeStudio.MyPhone.DeviceTest
 {
@@ -22,7 +15,7 @@ namespace GoodTimeStudio.MyPhone.DeviceTest
 
         public async Task InitializeAsync()
         {
-            if (_fixture.Configuration.GetValue<bool>("DumpObexPacket", false))
+            if (_fixture.Configuration.GetValue("dumpObexPacket", false))
             {
                 _session = new DumpBluetoothMasClientSession(_fixture.BluetoothDevice,
                     $"MasClient-{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.pcap");
@@ -47,7 +40,7 @@ namespace GoodTimeStudio.MyPhone.DeviceTest
             Assert.True(count >= 0);
         }
 
-        [Fact]
+        [SkippableFact]
         public async Task TestTraverseFolderAsync()
         {
             SmsFolder root = await _session!.ObexClient!.TraverseFolderAsync();
@@ -55,23 +48,20 @@ namespace GoodTimeStudio.MyPhone.DeviceTest
             SmsFolder telecom = root.Children[0];
             Assert.Equal(root, telecom.Parent);
             Assert.Equal("telecom", telecom.Name);
-            
-            if (telecom.Children.Count != 0)
-            {
-                Assert.Equal(1, telecom.Children.Count);
 
-                SmsFolder msg = telecom.Children[0];
-                Assert.Equal(telecom, msg.Parent);
-                Assert.Equal("msg", msg.Name);
-                Assert.True(msg.Children.Count >= 5);
-                Assert.Contains(msg.Children, f => f.Name == "inbox" && f.Parent == msg);
-                Assert.Contains(msg.Children, f => f.Name == "outbox" && f.Parent == msg);
-                Assert.Contains(msg.Children, f => f.Name == "sent" && f.Parent == msg);
-                Assert.Contains(msg.Children, f => f.Name == "deleted" && f.Parent == msg);
-                Assert.Contains(msg.Children, f => f.Name == "draft" && f.Parent == msg);
-            }
-            // else { } // iPhone does not allow folder traversal, skip assertion
+            // Some devices such as iPhone does not allow folder traversal, skip assertion
+            Skip.If(telecom.Children.Count == 0, "Seems like your phone does not support folder traversal, is it iPhone?"); 
+            Assert.Equal(1, telecom.Children.Count);
 
+            SmsFolder msg = telecom.Children[0];
+            Assert.Equal(telecom, msg.Parent);
+            Assert.Equal("msg", msg.Name);
+            Assert.True(msg.Children.Count >= 5);
+            Assert.Contains(msg.Children, f => f.Name == "inbox" && f.Parent == msg);
+            Assert.Contains(msg.Children, f => f.Name == "outbox" && f.Parent == msg);
+            Assert.Contains(msg.Children, f => f.Name == "sent" && f.Parent == msg);
+            Assert.Contains(msg.Children, f => f.Name == "deleted" && f.Parent == msg);
+            Assert.Contains(msg.Children, f => f.Name == "draft" && f.Parent == msg);
         }
     }
 }

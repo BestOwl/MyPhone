@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX
 {
     /// <summary>
     /// Represent errors that occurred during the processing of OBEX packets.

@@ -1,10 +1,11 @@
+using GoodTimeStudio.MyPhone.OBEX.Headers;
 using MixERP.Net.VCards;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
-namespace MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX.Pbap
 {
     /// <summary>
     /// Phone Book Access Profile client
@@ -26,15 +27,13 @@ namespace MyPhone.OBEX
         /// <returns>phone book object string</returns>
         public async Task<string> PullPhoneBook(string phoneBookObjectPath)
         {
-            ObexPacket request = new ObexPacket(new ObexOpcode(ObexOperation.Get, true));
-            request.Headers[HeaderId.Name] = new UnicodeStringValueHeader(HeaderId.Name, phoneBookObjectPath);
-            request.Headers[HeaderId.Type] = new AsciiStringValueHeader(HeaderId.Type, "x-bt/phonebook");
-            request.Headers[HeaderId.ApplicationParameters] = new AppParamHeader();
-            
-            ObexPacket response = await RunObexRequestAsync(request);
+            ObexPacket request = new ObexPacket(new ObexOpcode(ObexOperation.Get, true),
+                new ObexHeader(HeaderId.Name, phoneBookObjectPath, true),
+                new ObexHeader(HeaderId.Type, "x-bt/phonebook", true)
+                );
 
-            Console.WriteLine(((BodyHeader)response.Headers[HeaderId.Body]).Value);
-            return ((BodyHeader)response.Headers[HeaderId.Body]).Value!;
+            ObexPacket response = await RunObexRequestAsync(request);
+            return response.GetHeader(HeaderId.Body).GetValueAsUtf8String(true);
         }
 
         public async Task<IEnumerable<VCard>> GetAllContacts()

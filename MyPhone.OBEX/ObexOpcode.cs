@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX
 {
     public class ObexOpcode
     {

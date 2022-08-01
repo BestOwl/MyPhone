@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Windows.Storage.Streams;
 
-namespace MyPhone.UnitTest.Utilities
+namespace GoodTimeStudio.MyPhone.OBEX.UnitTest.Streams
 {
     public class TestInMemoryPipeStream : IDisposable
     {
@@ -47,7 +47,7 @@ namespace MyPhone.UnitTest.Utilities
         {
             uint bytes1 = _writer.WriteString("Hello world! ");
             await _writer.StoreAsync();
-            
+
             uint bytes2 = _writer.WriteString("Foobar! ");
             bytes2 += _writer.WriteString("TestDataIntegrity!\n");
             await _writer.StoreAsync();

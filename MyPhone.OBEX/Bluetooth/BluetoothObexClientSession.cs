@@ -5,9 +5,8 @@ using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.Rfcomm;
 using Windows.Devices.Enumeration;
 using Windows.Networking.Sockets;
-using Windows.Storage.Streams;
 
-namespace MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX.Bluetooth
 {
     public abstract class BluetoothObexClientSession<T> : IDisposable where T : ObexClient
     {
@@ -33,7 +32,7 @@ namespace MyPhone.OBEX
         // The first byte in the SDP Attribute encodes the SDP Attribute Type as follows :
         //    -  the Attribute Type size in the least significant 3 bits,
         //    -  the SDP Attribute Type value in the most significant 5 bits.
-        private const byte _sdpServiceNameAttributeType = (4 << 3) | 5;
+        private const byte _sdpServiceNameAttributeType = 4 << 3 | 5;
 
         public BluetoothObexClientSession(BluetoothDevice bluetoothDevice, Guid rfcommServiceUuid, ObexServiceUuid targetObexService)
         {
@@ -109,11 +108,11 @@ namespace MyPhone.OBEX
                 if (ex.Opcode.ObexOperation == ObexOperation.Unauthorized)
                 {
                     throw new BluetoothObexSessionException(
-                        $"Connected to OBEX server successfully, but the server refuse to provide service. Reason: You are not an authorized user.", 
+                        $"Connected to OBEX server successfully, but the server refuse to provide service. Reason: You are not an authorized user.",
                         innerException: ex);
                 }
                 throw new BluetoothObexSessionException(
-                    $"Connected to OBEX server successfully, but the server refuse to provide service. Reason: Got an unsuccessful response from server ({ex.Opcode})", 
+                    $"Connected to OBEX server successfully, but the server refuse to provide service. Reason: Got an unsuccessful response from server ({ex.Opcode})",
                     innerException: ex);
             }
             _socket = socket;

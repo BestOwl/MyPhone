@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Windows.Networking;
 
-namespace GoodTimeStudio.MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX.Bluetooth
 {
     public class BluetoothClientInformation
     {

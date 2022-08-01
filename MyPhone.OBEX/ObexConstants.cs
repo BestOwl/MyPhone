@@ -1,4 +1,4 @@
-﻿namespace MyPhone.OBEX
+﻿namespace GoodTimeStudio.MyPhone.OBEX
 {
     public enum HeaderId : byte
     {

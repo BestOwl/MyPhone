@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX
 {
     public class BMessageNode
     {

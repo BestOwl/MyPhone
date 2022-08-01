@@ -1,7 +1,7 @@
 ﻿using MixERP.Net.VCards;
 using System;
 
-namespace MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX
 {
     public class BMessage
     {

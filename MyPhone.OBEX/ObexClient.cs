@@ -1,9 +1,10 @@
-﻿using System;
+﻿using GoodTimeStudio.MyPhone.OBEX.Headers;
+using System;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
-namespace MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX
 {
     public class ObexClient
     {
@@ -42,13 +43,12 @@ namespace MyPhone.OBEX
             await _writer.StoreAsync();
 
             Console.WriteLine("Waiting reply packet...");
-            ObexPacket response = await ObexPacket.ReadFromStream(_reader, packet);
+            ObexConnectPacket response = await ObexPacket.ReadFromStream<ObexConnectPacket>(_reader);
 
             var bytes = response.ToBuffer().ToArray();
             Console.WriteLine("Reply packet:");
             Console.WriteLine(BitConverter.ToString(bytes));
             Console.WriteLine($"ResponseCode: {response.Opcode}");
-            response.PrintHeaders();
 
             if (response.Opcode.ObexOperation != ObexOperation.Success)
             {
@@ -94,70 +94,48 @@ namespace MyPhone.OBEX
             ObexPacket? response = null;
             int c = 0;
 
-            do
+            using (DataWriter bodyWriter = new DataWriter())
             {
-                Console.WriteLine($"Sending request packet: {++c}");
-                var buf = req.ToBuffer();
-#if DEBUG
-                Console.WriteLine(BitConverter.ToString(buf.ToArray()));
-                Console.WriteLine("Opcode: " + req.Opcode);
-#endif
-                _writer.WriteBuffer(buf);
-                await _writer.StoreAsync();
-
-                ObexPacket subResponse;
-                subResponse = await ObexPacket.ReadFromStream(_reader);
-#if DEBUG
-                var bytes = subResponse.ToBuffer().ToArray();
-                Console.WriteLine("Reply packet:");
-                Console.WriteLine(BitConverter.ToString(bytes));
-                Console.WriteLine($"ResponseCode: {subResponse.Opcode}");
-                subResponse.PrintHeaders();
-#endif
-
-                if (response == null)
+                do
                 {
-                    response = subResponse;
-                }
+                    Console.WriteLine($"Sending request packet: {++c}");
+                    var buf = req.ToBuffer();
+                    Console.WriteLine("Opcode: " + req.Opcode);
+                    _writer.WriteBuffer(buf);
+                    await _writer.StoreAsync();
 
-                switch (subResponse.Opcode.ObexOperation)
-                {
-                    case ObexOperation.Success:
-                        if (subResponse.Headers.ContainsKey(HeaderId.EndOfBody))
-                        {
-                            if (response.Headers.ContainsKey(HeaderId.Body))
-                            {
-                                ((BodyHeader)response.Headers[HeaderId.Body]).Value += ((BodyHeader)subResponse.Headers[HeaderId.EndOfBody]).Value;
-                            }
-                            else
-                            {
-                                response.Headers[HeaderId.Body] = response.Headers[HeaderId.EndOfBody];
-                            }
-                        }
-                        response.Opcode = subResponse.Opcode;
-                        return response;
-                    case ObexOperation.Continue:
-                        if (response != subResponse)
-                        {
-                            if (response.Headers.ContainsKey(HeaderId.Body))
-                            {
-                                ((BodyHeader)response.Headers[HeaderId.Body]).Value += ((BodyHeader)subResponse.Headers[HeaderId.Body]).Value;
-                            }
-                            else
-                            {
-                                if (subResponse.Headers.ContainsKey(HeaderId.Body))
-                                {
-                                    response.Headers[HeaderId.Body] = subResponse.Headers[HeaderId.Body];
-                                }
-                            }
-                        }
-                        break;
-                    default:
-                        throw new ObexRequestException(subResponse.Opcode, $"The {requestOperation} request failed with opcode {subResponse.Opcode}");
-                }
+                    ObexPacket subResponse;
+                    subResponse = await ObexPacket.ReadFromStream(_reader);
+                    Console.WriteLine($"ResponseCode: {subResponse.Opcode}");
 
-                req = new ObexPacket(new ObexOpcode(requestOperation.Value, true));
-            } while (true);
+                    if (response == null)
+                    {
+                        response = subResponse;
+                    }
+
+                    switch (subResponse.Opcode.ObexOperation)
+                    {
+                        case ObexOperation.Success:
+                            if (subResponse.Headers.TryGetValue(HeaderId.EndOfBody, out ObexHeader endOfBodyHeader))
+                            {
+                                bodyWriter.WriteBuffer(endOfBodyHeader.Buffer);
+                            }
+                            response.Opcode = subResponse.Opcode;
+                            response.Headers[HeaderId.Body] = new ObexHeader(HeaderId.Body, bodyWriter.DetachBuffer());
+                            return response;
+                        case ObexOperation.Continue:
+                            if (subResponse.Headers.TryGetValue(HeaderId.Body, out ObexHeader bodyHeader))
+                            {
+                                bodyWriter.WriteBuffer(bodyHeader.Buffer);
+                            }
+                            break;
+                        default:
+                            throw new ObexRequestException(subResponse.Opcode, $"The {requestOperation} request failed with opcode {subResponse.Opcode}");
+                    }
+
+                    req = new ObexPacket(new ObexOpcode(requestOperation.Value, true));
+                } while (true);
+            }
         }
     }
 }

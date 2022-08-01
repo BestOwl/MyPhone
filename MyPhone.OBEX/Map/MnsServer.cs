@@ -2,7 +2,7 @@
 using System.Xml;
 using Windows.Storage.Streams;
 
-namespace MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX
 {
     public class MessageReceivedEventArgs
     {
@@ -28,21 +28,8 @@ namespace MyPhone.OBEX
 
             if (clientRequestPacket.Opcode.ObexOperation == ObexOperation.Put)
             {
-                string bodyString;
-                if (clientRequestPacket.Headers.ContainsKey(HeaderId.EndOfBody))
-                {
-                    bodyString = ((BodyHeader)clientRequestPacket.Headers[HeaderId.EndOfBody]).Value!;
-                }
-                else
-                {
-                    Console.WriteLine("Recieved header dose not contains EndOfBody, abort! ");
-                    return null;
-                }
-
-                clientRequestPacket.PrintHeaders();
-                Console.WriteLine("Body: " + bodyString);
                 XmlDocument doc = new XmlDocument();
-                doc.LoadXml(bodyString);
+                doc.LoadXml(clientRequestPacket.GetHeader(HeaderId.Body).GetValueAsUtf8String(true));
                 string handle = doc.SelectSingleNode("/MAP-event-report/event/@handle").Value;
                 MessageReceived?.Invoke(this, new MessageReceivedEventArgs(handle));
 

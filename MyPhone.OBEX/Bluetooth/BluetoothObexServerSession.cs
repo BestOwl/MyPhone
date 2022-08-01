@@ -1,11 +1,10 @@
-﻿using GoodTimeStudio.MyPhone.OBEX;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth.Rfcomm;
 using Windows.Networking.Sockets;
 
-namespace MyPhone.OBEX
+namespace GoodTimeStudio.MyPhone.OBEX.Bluetooth
 {
     public class BluetoothObexServerSessionClientEventArgs<T> where T : ObexServer
     {
@@ -35,7 +34,7 @@ namespace MyPhone.OBEX
         public ObexException ObexServerException { get; }
 
         public BluetoothObexServerSessionClientDisconnectedEventArgs(
-            BluetoothClientInformation clientInformation, 
+            BluetoothClientInformation clientInformation,
             T obexServer,
             ObexException obexException) : base(clientInformation, obexServer)
         {
@@ -104,7 +103,7 @@ namespace MyPhone.OBEX
                 if (socketErrorStatus != SocketErrorStatus.Unknown)
                 {
                     throw new BluetoothObexSessionException(
-                        "Unable to bind and start the OBEX server on Bluetooth socket", 
+                        "Unable to bind and start the OBEX server on Bluetooth socket",
                         socketError: socketErrorStatus);
                 }
                 else

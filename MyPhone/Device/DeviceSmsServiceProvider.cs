@@ -1,9 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using GoodTimeStudio.MyPhone.OBEX;
+using GoodTimeStudio.MyPhone.OBEX.Bluetooth;
+using GoodTimeStudio.MyPhone.OBEX.Map;
 using GoodTimeStudio.MyPhone.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MyPhone.OBEX;
-using MyPhone.OBEX.Map;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

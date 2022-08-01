@@ -1,11 +1,11 @@
-﻿using MyPhone.OBEX;
+﻿using GoodTimeStudio.MyPhone.OBEX.Headers;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
-namespace MyPhone.OBEX.Map
+namespace GoodTimeStudio.MyPhone.OBEX.Map
 {
     /// <summary>
     /// The request packet for SetPath function (this function is used to set the "current folder")
@@ -13,8 +13,7 @@ namespace MyPhone.OBEX.Map
     public class MapSetPathRequestPacket : ObexPacket
     {
         public SetPathMode SetPathMode { get; private set; }
-        public string TargetFolderName => 
-            ((UnicodeStringValueHeader)Headers[HeaderId.Name]).Value ?? throw new InvalidOperationException("Invalid state: Value should not be null");
+        public string TargetFolderName { get; }
 
         /// <summary>
         /// Construct a request packet to SetPath (set the "current folder")
@@ -54,7 +53,8 @@ namespace MyPhone.OBEX.Map
                     break;
             }
 
-            Headers[HeaderId.Name] = new UnicodeStringValueHeader(HeaderId.Name, folderName);
+            TargetFolderName = folderName;
+            Headers[HeaderId.Name] = new ObexHeader(HeaderId.Name, folderName, true);
         }
 
         protected override void WriteExtraField(DataWriter writer)

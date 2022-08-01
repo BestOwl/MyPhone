@@ -1,8 +1,9 @@
-﻿using System;
+﻿using GoodTimeStudio.MyPhone.OBEX.Bluetooth;
+using System;
 using Windows.Devices.Bluetooth;
 using Windows.Networking.Sockets;
 
-namespace MyPhone.OBEX.Map
+namespace GoodTimeStudio.MyPhone.OBEX.Map
 {
     public class BluetoothMasClientSession : BluetoothObexClientSession<MasClient>
     {
