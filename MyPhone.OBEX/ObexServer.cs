@@ -34,7 +34,7 @@ namespace GoodTimeStudio.MyPhone.OBEX
                 ObexPacket packet = await ObexPacket.ReadFromStream<ObexConnectPacket>(_reader);
                 if (packet.Opcode.ObexOperation == ObexOperation.Connect)
                 {
-                    if (packet.Headers.TryGetValue(HeaderId.Target, out ObexHeader header))
+                    if (packet.Headers.TryGetValue(HeaderId.Target, out ObexHeader? header))
                     {
                         if (Enumerable.SequenceEqual(header.Buffer.ToArray(), _serviceUuid.Value))
                         {

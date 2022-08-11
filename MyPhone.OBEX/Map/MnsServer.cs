@@ -30,10 +30,13 @@ namespace GoodTimeStudio.MyPhone.OBEX
             {
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml(clientRequestPacket.GetBodyContentAsUtf8String(true));
-                string handle = doc.SelectSingleNode("/MAP-event-report/event/@handle").Value;
-                MessageReceived?.Invoke(this, new MessageReceivedEventArgs(handle));
-
-                return new ObexPacket(new ObexOpcode(ObexOperation.Success, true));
+                string? handle = doc.SelectSingleNode("/MAP-event-report/event/@handle")?.Value;
+                
+                if (handle != null)
+                {
+                    MessageReceived?.Invoke(this, new MessageReceivedEventArgs(handle));
+                    return new ObexPacket(new ObexOpcode(ObexOperation.Success, true));
+                }
             }
 
             return null;

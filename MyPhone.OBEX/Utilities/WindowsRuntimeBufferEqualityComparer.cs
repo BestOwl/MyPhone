@@ -10,8 +10,16 @@ namespace GoodTimeStudio.MyPhone.OBEX.Utilities
         private static readonly WindowsRuntimeBufferEqualityComparer s_comparer = new WindowsRuntimeBufferEqualityComparer();
         public static WindowsRuntimeBufferEqualityComparer Default { get => s_comparer; }
 
-        public bool Equals(IBuffer x, IBuffer y)
+        public bool Equals(IBuffer? x, IBuffer? y)
         {
+            if (x == y)
+            {
+                return true;
+            }
+            if (x == null || y == null)
+            {
+                return false;
+            }
             return ByteArrayEqualityComparer.Default.Equals(x.ToArray(), y.ToArray());
         }
 
