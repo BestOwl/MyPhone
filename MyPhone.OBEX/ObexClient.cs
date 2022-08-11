@@ -1,5 +1,6 @@
 ﻿using GoodTimeStudio.MyPhone.OBEX.Headers;
 using System;
+using System.IO;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
@@ -94,7 +95,7 @@ namespace GoodTimeStudio.MyPhone.OBEX
             ObexPacket? response = null;
             int c = 0;
 
-            using (DataWriter bodyWriter = new DataWriter())
+            using (MemoryStream bodyMemoryStream = new MemoryStream())
             {
                 do
                 {
@@ -116,17 +117,17 @@ namespace GoodTimeStudio.MyPhone.OBEX
                     switch (subResponse.Opcode.ObexOperation)
                     {
                         case ObexOperation.Success:
-                            if (subResponse.Headers.TryGetValue(HeaderId.EndOfBody, out ObexHeader endOfBodyHeader))
+                            if (subResponse.Headers.TryGetValue(HeaderId.EndOfBody, out ObexHeader? endOfBodyHeader))
                             {
-                                bodyWriter.WriteBuffer(endOfBodyHeader.Buffer);
+                                bodyMemoryStream.Write(endOfBodyHeader.Buffer);
                             }
                             response.Opcode = subResponse.Opcode;
-                            response.Headers[HeaderId.Body] = new ObexHeader(HeaderId.Body, bodyWriter.DetachBuffer());
+                            response.BodyBuffer = bodyMemoryStream.ToArray();
                             return response;
                         case ObexOperation.Continue:
-                            if (subResponse.Headers.TryGetValue(HeaderId.Body, out ObexHeader bodyHeader))
+                            if (subResponse.Headers.TryGetValue(HeaderId.Body, out ObexHeader? bodyHeader))
                             {
-                                bodyWriter.WriteBuffer(bodyHeader.Buffer);
+                                bodyMemoryStream.Write(bodyHeader.Buffer);
                             }
                             break;
                         default:

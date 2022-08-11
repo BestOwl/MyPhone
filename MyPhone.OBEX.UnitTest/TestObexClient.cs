@@ -73,7 +73,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.UnitTest
 
                 ObexPacket response = new(
                     new ObexOpcode(ObexOperation.Success, true),
-                    new ObexHeader(HeaderId.EndOfBody, "Hello world!", true)
+                    new ObexHeader(HeaderId.EndOfBody, "Hello world!", true, Encoding.UTF8)
                     );
                 IBuffer buf = response.ToBuffer();
                 _output.WriteLine("Response packet:");
@@ -91,8 +91,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.UnitTest
             ObexPacket response = await _client.RunObexRequestAsync(request);
             Assert.True(response.Opcode.IsFinalBitSet);
             Assert.Equal(ObexOperation.Success, response.Opcode.ObexOperation);
-            ObexHeader body = response.GetHeader(HeaderId.Body);
-            Assert.Equal("Hello world!", body.GetValueAsUnicodeString(true));
+            Assert.Equal("Hello world!", response.GetBodyContentAsUtf8String(true));
 
             await fakeServerTask;
         }
@@ -114,7 +113,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.UnitTest
 
                     ObexPacket response = new(
                         new ObexOpcode(ObexOperation.Continue, true),
-                        new ObexHeader(HeaderId.Body, $"{i}", false)
+                        new ObexHeader(HeaderId.Body, $"{i}", false, Encoding.BigEndianUnicode)
                         );
                     _serverWriter.WriteBuffer(response.ToBuffer());
                     await _serverWriter.StoreAsync();
@@ -126,7 +125,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.UnitTest
 
                 ObexPacket responseFinal = new(
                     new ObexOpcode(ObexOperation.Success, true),
-                    new ObexHeader(HeaderId.EndOfBody, $"{i}", false)
+                    new ObexHeader(HeaderId.EndOfBody, $"{i}", false, Encoding.BigEndianUnicode)
                     );
                 _serverWriter.WriteBuffer(responseFinal.ToBuffer());
                 await _serverWriter.StoreAsync();
@@ -142,7 +141,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.UnitTest
             {
                 sb.Append(j);
             }
-            Assert.Equal(sb.ToString(), response.GetHeader(HeaderId.Body).GetValueAsUnicodeString(false));
+            Assert.Equal(sb.ToString(), response.GetBodyContentAsUnicodeString(false));
         }
     }
 }

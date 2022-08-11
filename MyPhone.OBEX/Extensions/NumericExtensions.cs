@@ -1,31 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
-using Windows.Storage.Streams;
+﻿using System.Buffers.Binary;
 
 namespace GoodTimeStudio.MyPhone.OBEX.Extensions
 {
     public static class IntExtensions
     {
-        public static IBuffer ToBuffer(this int i)
+        public static byte[] ToBigEndianBytes(this int i)
         {
-            using (DataWriter writer = new())
-            {
-                writer.ByteOrder = ByteOrder.BigEndian;
-                writer.WriteInt32(i);
-                return writer.DetachBuffer();
-            }
+            byte[] ret = new byte[sizeof(int)];
+            BinaryPrimitives.WriteInt32BigEndian(ret, i);
+            return ret;
         }
 
-        public static IBuffer ToBuffer(this ushort us)
+        public static byte[] ToBigEndianBytes(this ushort us)
         {
-            using (DataWriter writer = new())
-            {
-                writer.ByteOrder = ByteOrder.BigEndian;
-                writer.WriteUInt16(us);
-                return writer.DetachBuffer();
-            }
+            byte[] ret = new byte[sizeof(ushort)];
+            BinaryPrimitives.WriteUInt16BigEndian(ret, us);
+            return ret;
         }
     }
 }

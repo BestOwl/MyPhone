@@ -47,7 +47,7 @@ namespace GoodTimeStudio.MyPhone.DeviceTest
         [SkippableFact]
         public async Task TestTraverseFolderAsync()
         {
-            SmsFolder root = await _session!.ObexClient!.TraverseFolderAsync();
+            SmsFolder root = await _session!.ObexClient!.TraverseFolderAsync(false);
             Assert.Equal(1, root.Children.Count);
             SmsFolder telecom = root.Children[0];
             Assert.Equal(root, telecom.Parent);
@@ -66,6 +66,21 @@ namespace GoodTimeStudio.MyPhone.DeviceTest
             Assert.Contains(msg.Children, f => f.Name == "sent" && f.Parent == msg);
             Assert.Contains(msg.Children, f => f.Name == "deleted" && f.Parent == msg);
             Assert.Contains(msg.Children, f => f.Name == "draft" && f.Parent == msg);
+        }
+
+        [Fact]
+        public async Task TestGetMessageListingAsync()
+        {
+            await _session!.ObexClient!.GetMessagesListingAsync(0, 1024);
+        }
+
+        [Fact]
+        public async Task TestGetAllMessagesAsync()
+        {
+            await _session!.ObexClient!.SetFolderAsync(SetPathMode.EnterFolder, "telecom");
+            await _session!.ObexClient!.SetFolderAsync(SetPathMode.EnterFolder, "msg");
+            List<string> handles = await _session!.ObexClient!.GetAllMessagesAsync("inbox");
+            Assert.True(handles.Count > 0);
         }
     }
 }

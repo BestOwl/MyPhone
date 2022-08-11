@@ -1,6 +1,5 @@
 ﻿using GoodTimeStudio.MyPhone.OBEX.Headers;
 using System;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
@@ -29,7 +28,7 @@ namespace GoodTimeStudio.MyPhone.OBEX
 
         public ObexConnectPacket(bool disconnect, ObexServiceUuid targetService) : base(new ObexOpcode(disconnect ? ObexOperation.Disconnect : ObexOperation.Connect, true))
         {
-            Headers[HeaderId.Target] = new ObexHeader(HeaderId.Target, targetService.Value.AsBuffer());
+            Headers[HeaderId.Target] = new ObexHeader(HeaderId.Target, targetService.Value);
         }
 
         protected override void WriteExtraField(DataWriter writer)

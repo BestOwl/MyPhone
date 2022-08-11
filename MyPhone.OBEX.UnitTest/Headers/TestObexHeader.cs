@@ -26,7 +26,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.UnitTest.Headers
         public void TestBuiltinHeaderInterpreter_UnicodeString()
         {
             const string originalString = "Foobar";
-            ObexHeader header = new ObexHeader(HeaderId.Name, originalString, true);
+            ObexHeader header = new ObexHeader(HeaderId.Name, originalString, true, Encoding.BigEndianUnicode);
             Assert.Equal(originalString, header.GetValueAsUnicodeString(true));
         }
 
@@ -34,7 +34,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.UnitTest.Headers
         public void TestBuiltinHeaderInterpreter_Utf8String()
         {
             const string originalString = "Foobar";
-            ObexHeader header = new ObexHeader(HeaderId.Name, originalString, false, Windows.Storage.Streams.UnicodeEncoding.Utf8);
+            ObexHeader header = new ObexHeader(HeaderId.Name, originalString, false, Encoding.UTF8);
             Assert.Equal(originalString, header.GetValueAsUtf8String(false));
         }
 
@@ -48,9 +48,9 @@ namespace GoodTimeStudio.MyPhone.OBEX.UnitTest.Headers
             DataWriter writer = new();
             writer.WriteByte(1);
             writer.WriteByte(2);
-            headerA = new ObexHeader(HeaderId.Body, writer.DetachBuffer());
+            headerA = new ObexHeader(HeaderId.Body, writer.DetachBuffer().ToArray());
             writer.Dispose();
-            headerB = new ObexHeader(HeaderId.Body, new byte[] { 1, 2 }.AsBuffer());
+            headerB = new ObexHeader(HeaderId.Body, new byte[] { 1, 2 });
             Assert.Equal(headerA, headerB);
         }
     }

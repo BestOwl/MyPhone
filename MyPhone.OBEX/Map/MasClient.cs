@@ -1,9 +1,7 @@
-﻿using GoodTimeStudio.MyPhone.OBEX;
-using GoodTimeStudio.MyPhone.OBEX.Headers;
+﻿using GoodTimeStudio.MyPhone.OBEX.Headers;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Windows.Storage.Streams;
@@ -41,14 +39,15 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
         /// <remarks>If you try to get the listing size, please call <see cref="GetMessageListingSizeAsync"/> instead.</remarks>
         /// <returns>message handle list</returns>
         /// TODO: return Messages-Listing objects
-        public async Task<List<string>> GetMessagesListingAsync(ushort maxListCount, string folderName = "telecom")
+        public async Task<List<string>> GetMessagesListingAsync(ushort listStartOffset, ushort maxListCount, string folderName = "telecom")
         {
             ObexPacket packet = new ObexPacket(
                 new ObexOpcode(ObexOperation.Get, true),
                 _connectionIdHeader!,
-                new ObexHeader(HeaderId.Type, "x-bt/MAP-msg-listing", false, UnicodeEncoding.Utf8),
-                new ObexHeader(HeaderId.Name, folderName, true),
+                new ObexHeader(HeaderId.Type, "x-bt/MAP-msg-listing", false, Encoding.UTF8),
+                new ObexHeader(HeaderId.Name, folderName, true, Encoding.BigEndianUnicode),
                 new AppParameterHeaderBuilder(
+                    new AppParameter((byte)MasAppParamTagId.ListStartOffset, listStartOffset),
                     new AppParameter((byte)MasAppParamTagId.MaxListCount, maxListCount)).Build()
                 );
 
@@ -56,7 +55,8 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
             ObexPacket resp = await RunObexRequestAsync(packet);
 
             XmlDocument xml = new XmlDocument();
-            string listingObj = resp.GetHeader(HeaderId.Body).GetValueAsUtf8String(false);
+            string listingObj = resp.GetBodyContentAsUtf8String(false);
+            //string listingObj = System.Text.Encoding.UTF8.GetString(resp.BodyBuffer.ToArray());
             xml.LoadXml(listingObj);
             XmlNodeList list = xml.SelectNodes("/MAP-msg-listing/msg/@handle");
             List<string> ret = new List<string>();
@@ -78,8 +78,8 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
             ObexPacket packet = new ObexPacket(
                 new ObexOpcode(ObexOperation.Get, true),
                 _connectionIdHeader!,
-                new ObexHeader(HeaderId.Type, "x-bt/MAP-msg-listing", true, UnicodeEncoding.Utf8),
-                new ObexHeader(HeaderId.Name, folderName, true),
+                new ObexHeader(HeaderId.Type, "x-bt/MAP-msg-listing", true, Encoding.UTF8),
+                new ObexHeader(HeaderId.Name, folderName, true, Encoding.BigEndianUnicode),
                 new AppParameterHeaderBuilder(
                     new AppParameter((byte)MasAppParamTagId.MaxListCount, 0)).Build()
                 );
@@ -95,8 +95,8 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
             ObexPacket packet = new ObexPacket(
                 new ObexOpcode(ObexOperation.Get, true),
                 _connectionIdHeader!,
-                new ObexHeader(HeaderId.Type, "x-bt/message", true, UnicodeEncoding.Utf8),
-                new ObexHeader(HeaderId.Name, messageHandle, true),
+                new ObexHeader(HeaderId.Type, "x-bt/message", true, Encoding.UTF8),
+                new ObexHeader(HeaderId.Name, messageHandle, true, Encoding.BigEndianUnicode),
                 new AppParameterHeaderBuilder(
                     new AppParameter((byte)MasAppParamTagId.Attachment, MasConstants.ATTACHMENT_ON),
                     new AppParameter((byte)MasAppParamTagId.Charset, MasConstants.CHARSET_UTF8)
@@ -107,7 +107,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
 
             ObexPacket resp = await RunObexRequestAsync(packet);
 
-            string bMsgStr = resp.GetHeader(HeaderId.Body).GetValueAsUtf8String(true);
+            string bMsgStr = resp.GetBodyContentAsUtf8String(true);
 
             BMessage bMsg;
             try
@@ -138,7 +138,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
             ObexPacket packet = new ObexPacket(
                 new ObexOpcode(ObexOperation.Put, true),
                 _connectionIdHeader!,
-                new ObexHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration", true, UnicodeEncoding.Utf8),
+                new ObexHeader(HeaderId.Type, "x-bt/MAP-NotificationRegistration", true, Encoding.UTF8),
                 new AppParameterHeaderBuilder(
                     new AppParameter((byte)MasAppParamTagId.NotificationStatus, flag)).Build(),
                 new ObexHeader(HeaderId.EndOfBody, 0x30)
@@ -153,7 +153,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
             ObexPacket packet = new ObexPacket(
                 new(ObexOperation.Get, true),
                 _connectionIdHeader!,
-                new ObexHeader(HeaderId.Type, "x-bt/MASInstanceInformation", true, UnicodeEncoding.Utf8),
+                new ObexHeader(HeaderId.Type, "x-bt/MASInstanceInformation", true, Encoding.UTF8),
                 new AppParameterHeaderBuilder(
                     new AppParameter((byte)MasAppParamTagId.MASInstanceID, ObexServiceUuid.MessageAccess.Value)).Build()
                 );
@@ -173,7 +173,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
             ObexPacket packet = new ObexPacket(
                 new(ObexOperation.Get, true),
                 _connectionIdHeader!,
-                new ObexHeader(HeaderId.Type, "x-obex/folder-listing", true, UnicodeEncoding.Utf8)
+                new ObexHeader(HeaderId.Type, "x-obex/folder-listing", true, Encoding.UTF8)
             );
             if (maxListCount != null || listStartOffset != null)
             {
@@ -194,7 +194,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
             ObexPacket resp = await RunObexRequestAsync(packet);
 
             XmlDocument xml = new XmlDocument();
-            string objStr = resp.GetHeader(HeaderId.Body).GetValueAsUtf8String(true);
+            string objStr = resp.GetBodyContentAsUtf8String(true);
             xml.LoadXml(objStr);
             XmlNodeList list = xml.SelectNodes("/folder-listing/folder/@name");
             List<string> ret = new List<string>();
@@ -216,11 +216,11 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
             ObexPacket packet = new ObexPacket(
                 new ObexOpcode(ObexOperation.Put, true),
                 _connectionIdHeader!,
-                new ObexHeader(HeaderId.Type, "x-bt/message", true, UnicodeEncoding.Utf8),
-                new ObexHeader(HeaderId.Type, "telecom/msg/inbox", true),
+                new ObexHeader(HeaderId.Type, "x-bt/message", true, Encoding.UTF8),
+                new ObexHeader(HeaderId.Type, "telecom/msg/inbox", true, Encoding.BigEndianUnicode),
                 new AppParameterHeaderBuilder(
                     new AppParameter((byte)MasAppParamTagId.Charset, MasConstants.CHARSET_UTF8)).Build(),
-                new ObexHeader(HeaderId.EndOfBody, "test pushing message from MCE", true, UnicodeEncoding.Utf8)
+                new ObexHeader(HeaderId.EndOfBody, "test pushing message from MCE", true, Encoding.UTF8)
                 );
 
             Console.WriteLine("sending PushMessage request ");
@@ -254,11 +254,30 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
             return ret;
         }
 
+        public async Task<List<string>> GetAllMessagesAsync(string folderName = "telecom")
+        {
+            List<string> ret = new();
+            bool lastPage = false;
+            ushort offset = 0;
+            const int default_size = 1024;
+            while (!lastPage)
+            {
+                var handles = await GetMessagesListingAsync(offset, default_size, folderName);
+                if (handles.Count < default_size)
+                {
+                    lastPage = true;
+                }
+                ret.AddRange(handles);
+            }
+
+            return ret;
+        }
+
         /// <summary>
         /// Traverese the entire folder tree.
         /// </summary>
         /// <returns>Root folder and children folder</returns>
-        public async Task<SmsFolder> TraverseFolderAsync()
+        public async Task<SmsFolder> TraverseFolderAsync(bool getMessageHandles = false)
         {
             await SetFolderAsync(SetPathMode.BackToRoot);
 
@@ -288,15 +307,21 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
                 }
 
                 List<string> subFoldersName = await GetAllChildrenFoldersAsync();
-                subFoldersName.ForEach(f =>
+                foreach (string subFolder in subFoldersName)
                 {
-                    //await client.GetMessageListing(0, f);
-
-                    SmsFolder smsFolder = new SmsFolder(f, current);
+                    ushort count = await GetMessageListingSizeAsync(subFolder);
+                    SmsFolder smsFolder = new SmsFolder(subFolder, count, current);
+                    if (getMessageHandles)
+                    {
+                        foreach (string handle in await GetAllMessagesAsync(subFolder))
+                        {
+                            smsFolder.MessageHandles.Add(handle);
+                        }
+                    }
 
                     current.Children.Add(smsFolder);
                     folders.Push(smsFolder);
-                });
+                }
 
                 pre = current;
             }

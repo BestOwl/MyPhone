@@ -2,6 +2,7 @@ using GoodTimeStudio.MyPhone.OBEX.Headers;
 using MixERP.Net.VCards;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage.Streams;
 
@@ -28,12 +29,12 @@ namespace GoodTimeStudio.MyPhone.OBEX.Pbap
         public async Task<string> PullPhoneBook(string phoneBookObjectPath)
         {
             ObexPacket request = new ObexPacket(new ObexOpcode(ObexOperation.Get, true),
-                new ObexHeader(HeaderId.Name, phoneBookObjectPath, true),
-                new ObexHeader(HeaderId.Type, "x-bt/phonebook", true)
+                new ObexHeader(HeaderId.Name, phoneBookObjectPath, true, Encoding.BigEndianUnicode),
+                new ObexHeader(HeaderId.Type, "x-bt/phonebook", true, Encoding.BigEndianUnicode)
                 );
 
             ObexPacket response = await RunObexRequestAsync(request);
-            return response.GetHeader(HeaderId.Body).GetValueAsUtf8String(true);
+            return response.GetBodyContentAsUtf8String(true);
         }
 
         public async Task<IEnumerable<VCard>> GetAllContacts()

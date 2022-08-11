@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net5.0-windows10.0.18362.0;net6.0-windows10.0.18362.0</TargetFrameworks>
+    <TargetFrameworks>net5.0-windows10.0.18362.0;net6.0-windows10.0.18362.0</TargetFrameworks>
 	  <LangVersion>9.0</LangVersion>
 	  <Nullable>enable</Nullable>
 	  <RootNamespace>GoodTimeStudio.MyPhone.OBEX</RootNamespace>

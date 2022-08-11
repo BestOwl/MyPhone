@@ -14,6 +14,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
         /// </summary>
         public int MessageCount { get; }
         public IList<SmsFolder> Children { get; }
+        public IList<string> MessageHandles { get; }
 
         public SmsFolder? Parent { get; }
 
@@ -22,6 +23,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
             Name = folderName;
             MessageCount = messageCount;
             Children = new List<SmsFolder>();
+            MessageHandles = new List<string>();
             Parent = parent;
         }
 

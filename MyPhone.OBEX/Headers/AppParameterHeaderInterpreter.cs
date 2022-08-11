@@ -1,22 +1,24 @@
 ﻿using GoodTimeStudio.MyPhone.OBEX.Streams;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Windows.Storage.Streams;
 
 namespace GoodTimeStudio.MyPhone.OBEX.Headers
 {
-    public class AppParameterHeaderInterpreter : IObexHeaderInterpreter<AppParameterDictionary>
+    public class AppParameterHeaderInterpreter : IBufferContentInterpreter<AppParameterDictionary>
     {
-        public AppParameterDictionary GetValue(HeaderId headerId, BoundedDataReader reader)
+        public AppParameterDictionary GetValue(ReadOnlySpan<byte> buffer)
         {
             AppParameterDictionary dict = new();
-            while (reader.RemainingQuota > 0)
+            for (int i = 0; i < buffer.Length;)
             {
-                byte tagId = reader.ReadByte();
-                byte len = reader.ReadByte();
-                IBuffer buf = reader.ReadBuffer(len);
-                dict[tagId] = new AppParameter(tagId, buf);
+                byte tagId = buffer[i++];
+                byte len = BinaryPrimitives.ReverseEndianness(buffer[i++]);
+                dict[tagId] = new AppParameter(tagId, buffer.Slice(i, len).ToArray());
+                i += len;
             }
             return dict;
         }

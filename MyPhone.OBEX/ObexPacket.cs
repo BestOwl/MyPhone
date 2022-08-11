@@ -1,4 +1,5 @@
 ﻿using GoodTimeStudio.MyPhone.OBEX.Headers;
+using GoodTimeStudio.MyPhone.OBEX.Streams;
 using GoodTimeStudio.MyPhone.OBEX.Utilities;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,12 @@ namespace GoodTimeStudio.MyPhone.OBEX
 
         public Dictionary<HeaderId, ObexHeader> Headers;
 
+        public byte[] BodyBuffer { 
+            get => _bodyBuffer ?? throw new ObexException("Body does not exists");
+            set => _bodyBuffer = value;
+        }
+        private byte[]? _bodyBuffer;
+
         public ObexPacket() : this(new ObexOpcode(ObexOperation.Abort, true)) { }
 
         public ObexPacket(ObexOpcode op)
@@ -36,7 +43,7 @@ namespace GoodTimeStudio.MyPhone.OBEX
 
         public ObexHeader GetHeader(HeaderId headerId)
         {
-            if (Headers.TryGetValue(headerId, out ObexHeader header))
+            if (Headers.TryGetValue(headerId, out ObexHeader? header))
             {
                 return header;
             }
@@ -44,6 +51,21 @@ namespace GoodTimeStudio.MyPhone.OBEX
             {
                 throw new ObexHeaderNotFoundException(headerId);
             }
+        }
+
+        public T GetBodyContent<T>(IBufferContentInterpreter<T> interpreter)
+        {
+            return interpreter.GetValue(BodyBuffer);
+        }
+
+        public string GetBodyContentAsUtf8String(bool stringIsNullTerminated)
+        {
+            return GetBodyContent(new StringInterpreter(System.Text.Encoding.UTF8, stringIsNullTerminated));
+        }
+
+        public string GetBodyContentAsUnicodeString(bool stringIsNullTerminated)
+        {
+            return GetBodyContent(new StringInterpreter(System.Text.Encoding.BigEndianUnicode, stringIsNullTerminated));
         }
 
         protected virtual void WriteExtraField(DataWriter writer) { }

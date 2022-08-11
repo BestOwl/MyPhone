@@ -54,7 +54,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
             }
 
             TargetFolderName = folderName;
-            Headers[HeaderId.Name] = new ObexHeader(HeaderId.Name, folderName, true);
+            Headers[HeaderId.Name] = new ObexHeader(HeaderId.Name, folderName, true, Encoding.BigEndianUnicode);
         }
 
         protected override void WriteExtraField(DataWriter writer)

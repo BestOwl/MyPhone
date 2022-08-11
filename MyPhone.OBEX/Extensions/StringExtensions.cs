@@ -1,29 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
-using Windows.Storage.Streams;
 
 namespace GoodTimeStudio.MyPhone.OBEX.Extensions
 {
     public static class StringExtensions
     {
-        public static IBuffer ToBuffer(this string text,
-            Windows.Storage.Streams.UnicodeEncoding stringEncoding, bool nullTerminated)
+        public static byte[] ToBytes(this string text, Encoding stringEncoding, bool nullTerminated)
         {
-            using (DataWriter writer = new())
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
-                writer.ByteOrder = ByteOrder.BigEndian;
-                writer.UnicodeEncoding = stringEncoding;
-                writer.WriteString(text);
+                writer.Write(stringEncoding.GetBytes(text));
                 if (nullTerminated)
                 {
-                    writer.WriteByte(0);
-                    if (stringEncoding != Windows.Storage.Streams.UnicodeEncoding.Utf8)
-                    {
-                        writer.WriteByte(0);
-                    }
+                    writer.Write(stringEncoding.GetBytes("\0"));
                 }
-                return writer.DetachBuffer();
+                writer.Flush();
+                return memoryStream.ToArray();
             }
         }
     }

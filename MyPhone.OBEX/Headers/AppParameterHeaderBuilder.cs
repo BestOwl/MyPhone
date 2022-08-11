@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Windows.Storage.Streams;
 
@@ -18,15 +20,17 @@ namespace GoodTimeStudio.MyPhone.OBEX.Headers
 
         public ObexHeader Build()
         {
-            using (DataWriter writer = new DataWriter())
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
                 foreach (AppParameter appParam in AppParameters)
                 {
-                    writer.WriteByte(appParam.TagId);
-                    writer.WriteByte(appParam.ContentLength);
-                    writer.WriteBuffer(appParam.Buffer);
+                    writer.Write(appParam.TagId);
+                    writer.Write(BinaryPrimitives.ReverseEndianness(appParam.ContentLength));
+                    writer.Write(appParam.Buffer);
                 }
-                return new ObexHeader(HeaderId.ApplicationParameters, writer.DetachBuffer());
+                writer.Flush();
+                return new ObexHeader(HeaderId.ApplicationParameters, memoryStream.ToArray());
             }
         }
     }

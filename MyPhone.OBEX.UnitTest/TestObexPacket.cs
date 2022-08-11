@@ -1,5 +1,6 @@
 ﻿using GoodTimeStudio.MyPhone.OBEX.Headers;
 using GoodTimeStudio.MyPhone.OBEX.UnitTest.Streams;
+using System.Text;
 using Windows.Storage.Streams;
 
 namespace GoodTimeStudio.MyPhone.OBEX.UnitTest
@@ -38,7 +39,9 @@ namespace GoodTimeStudio.MyPhone.OBEX.UnitTest
         [Fact]
         public async Task TestReadFromStream_PacketWithHeaders()
         {
-            ObexPacket originalPacket = new ObexPacket(new ObexOpcode(ObexOperation.Get, true), new ObexHeader(HeaderId.Name, "Foobar", true));
+            ObexPacket originalPacket = new ObexPacket(
+                new ObexOpcode(ObexOperation.Get, true), 
+                new ObexHeader(HeaderId.Name, "Foobar", true, Encoding.BigEndianUnicode));
             _writer.WriteBuffer(originalPacket.ToBuffer());
             await _writer.StoreAsync();
 

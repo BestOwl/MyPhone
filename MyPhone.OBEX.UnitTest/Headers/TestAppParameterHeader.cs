@@ -13,7 +13,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.UnitTest.Headers
         [Fact]
         public void TestBuilderAndInterpreter()
         {
-            AppParameter originalAppParameter = new AppParameter(0x01, new byte[] { 0x01, 0x02, 0x03, 0x04 }.AsBuffer());
+            AppParameter originalAppParameter = new AppParameter(0x01, new byte[] { 0x01, 0x02, 0x03, 0x04 });
             AppParameterHeaderBuilder builder = new(originalAppParameter);
             ObexHeader header = builder.Build();
             

@@ -29,7 +29,7 @@ namespace GoodTimeStudio.MyPhone.OBEX
             if (clientRequestPacket.Opcode.ObexOperation == ObexOperation.Put)
             {
                 XmlDocument doc = new XmlDocument();
-                doc.LoadXml(clientRequestPacket.GetHeader(HeaderId.Body).GetValueAsUtf8String(true));
+                doc.LoadXml(clientRequestPacket.GetBodyContentAsUtf8String(true));
                 string handle = doc.SelectSingleNode("/MAP-event-report/event/@handle").Value;
                 MessageReceived?.Invoke(this, new MessageReceivedEventArgs(handle));
 

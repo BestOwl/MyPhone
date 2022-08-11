@@ -5,17 +5,17 @@ using System.Text;
 
 namespace GoodTimeStudio.MyPhone.OBEX.Utilities
 {
-    public class DictionaryEqualityComparer<K, V> : IEqualityComparer<Dictionary<K, V>>
+    public class DictionaryEqualityComparer<TKey, V> : IEqualityComparer<Dictionary<TKey, V>>
     {
-        private static readonly DictionaryEqualityComparer<K, V> s_dictEqualityComparer = new DictionaryEqualityComparer<K, V>();
-        public static DictionaryEqualityComparer<K, V> Default { get => s_dictEqualityComparer; }
+        private static readonly DictionaryEqualityComparer<TKey, V> s_dictEqualityComparer = new DictionaryEqualityComparer<TKey, V>();
+        public static DictionaryEqualityComparer<TKey, V> Default { get => s_dictEqualityComparer; }
 
-        public bool Equals(Dictionary<K, V> x, Dictionary<K, V> y)
+        public bool Equals(Dictionary<TKey, V> x, Dictionary<TKey, V> y)
         {
             return x.Count == y.Count && !x.Except(y).Any();
         }
 
-        public int GetHashCode(Dictionary<K, V> obj)
+        public int GetHashCode(Dictionary<TKey, V> obj)
         {
             var hash = 13;
             var orderedKVPList = obj.OrderBy(kvp => kvp.Key);
