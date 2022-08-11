@@ -223,7 +223,7 @@ namespace GoodTimeStudio.MyPhone.Pages
         [ICommand]
         private async Task GetMessagesListing()
         {
-            var handles = await _deviceManager.SmsService!.MasClient!.GetMessagesListingAsync(1024, "telecom");
+            var handles = await _deviceManager.SmsService!.MasClient!.GetMessagesListingAsync(0, 1024, "telecom");
             Debug.WriteLine($"Handle count: {handles.Count}");
         }
 
