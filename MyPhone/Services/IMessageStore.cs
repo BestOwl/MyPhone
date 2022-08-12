@@ -1,4 +1,4 @@
-﻿using GoodTimeStudio.MyPhone.OBEX;
+﻿using GoodTimeStudio.MyPhone.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,12 +9,14 @@ namespace GoodTimeStudio.MyPhone.Services
 {
     public interface IMessageStore
     {
-        Task SaveMessageAsync(BMessage message);
+        Task SaveMessageAsync(Message message);
 
-        Task SaveMessageAsync(IEnumerable<BMessage> messages);
+        Task SaveMessageAsync(IEnumerable<Message> messages);
 
-        Task<BMessage> GetMessageAsync(string messageHandle);
+        Task<Message?> GetMessageAsync(string messageHandle);
 
-        Task<IEnumerable<BMessage>> GetMessageAsync(int pageIndex, int pageSize);
+        Task<IEnumerable<Message>> GetMessageAsync(int pageIndex, int pageSize);
+
+        Task<bool> Contains(string messageHandle);
     }
 }

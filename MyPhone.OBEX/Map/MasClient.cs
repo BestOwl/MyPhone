@@ -114,7 +114,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
             {
                 BMessageNode bMsgNode = BMessageNode.Parse(bMsgStr);
                 bMsg = new BMessage(
-                    status: bMsgNode.Attributes["STATUS"] == "UNREAD" ? MessageStatus.UNREAD : MessageStatus.READ,
+                    status: bMsgNode.Attributes["STATUS"] == "UNREAD" ? BMessageStatus.UNREAD : BMessageStatus.READ,
                     type: bMsgNode.Attributes["TYPE"],
                     folder: bMsgNode.Attributes["FOLDER"],
                     charset: bMsgNode.ChildrenNode["BENV"].ChildrenNode["BBODY"].Attributes["CHARSET"],

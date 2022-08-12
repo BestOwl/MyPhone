@@ -20,22 +20,31 @@ namespace GoodTimeStudio.MyPhone.Services
             _context = context;
         }
 
-        public Task<BMessage> GetMessageAsync(string messageHandle)
+        public async Task<bool> Contains(string messageHandle)
         {
-            throw new NotImplementedException();
+            return await _context.Messages.FindAsync(messageHandle) != null;
         }
 
-        public Task<IEnumerable<BMessage>> GetMessageAsync(int pageIndex, int pageSize)
+        public async Task<Message?> GetMessageAsync(string messageHandle)
         {
-            throw new NotImplementedException();
+            return await _context.Messages.FindAsync(messageHandle);
         }
 
-        public Task SaveMessageAsync(BMessage message)
+        public async Task<IEnumerable<Message>> GetMessageAsync(int pageIndex, int pageSize)
         {
-            throw new NotImplementedException();
+            return await _context.Messages
+                .Skip(pageSize * pageIndex)
+                .Take(pageSize)
+                .ToListAsync();
         }
 
-        public async Task SaveMessageAsync(IEnumerable<BMessage> messages)
+        public async Task SaveMessageAsync(Message message)
+        {
+            await _context.Messages.AddAsync(message);
+            await _context.SaveChangesAsync(); 
+        }
+
+        public async Task SaveMessageAsync(IEnumerable<Message> messages)
         {
             await _context.Messages.AddRangeAsync(messages);
             await _context.SaveChangesAsync();

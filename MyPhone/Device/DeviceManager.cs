@@ -43,14 +43,24 @@ namespace GoodTimeStudio.MyPhone.Device
             CurrentDevice = bluetoothDevice;
             _logger = App.Current.Services.GetRequiredService<ILogger<DeviceManager>>();
             Services = ConfigureDeviceServices().BuildServiceProvider();
+            using (var scope = Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var context = services.GetRequiredService<DeviceDbContext>();
+                context.Database.EnsureCreated();
+            }
         }
 
         private IServiceCollection ConfigureDeviceServices()
         {
-            string dbPath = Path.Join(
-                ApplicationData.Current.LocalFolder.Path, "DeviceData", CurrentDevice.BluetoothAddress.ToHexString());
+            FileInfo dbFile = new FileInfo(
+                Path.Join(
+                    ApplicationData.Current.LocalFolder.Path, 
+                    "DeviceData", 
+                    CurrentDevice.BluetoothAddress.ToHexString() + ".db")
+                );
             return new ServiceCollection()
-                .AddDbContext<DeviceDbContext>(options => options.UseSqlite($"Data Source={dbPath}"))
+                .AddDbContext<DeviceDbContext>(options => options.UseSqlite($"Data Source=\"{dbFile.FullName}\""))
                 .AddEntityFrameworkMessageStore();
         }
 
@@ -98,7 +108,9 @@ namespace GoodTimeStudio.MyPhone.Device
 
             SmsService = new DeviceSmsServiceProvider(CurrentDevice, 
                 App.Current.Services.GetRequiredService<ILogger<DeviceSmsServiceProvider>>(),
-                App.Current.Services.GetRequiredService<IMessageNotificationService>());
+                App.Current.Services.GetRequiredService<IMessageNotificationService>(),
+                Services.GetRequiredService<IMessageStore>(),
+                App.Current.Services.GetRequiredService<ILogger<MessageSynchronizer>>());
             _logger.LogInformation("SmsService initialized.");
         }
 

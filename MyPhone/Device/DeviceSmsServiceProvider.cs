@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using GoodTimeStudio.MyPhone.Device;
 using GoodTimeStudio.MyPhone.OBEX;
 using GoodTimeStudio.MyPhone.OBEX.Bluetooth;
 using GoodTimeStudio.MyPhone.OBEX.Map;
@@ -25,18 +26,26 @@ namespace GoodTimeStudio.MyPhone
         private readonly BluetoothDevice _device;
         private readonly ILogger<DeviceSmsServiceProvider> _logger;
         private readonly IMessageNotificationService _notificationService;
+        private readonly IMessageStore _messageStore;
+        private readonly ILogger<MessageSynchronizer> _loggerMessageSynchronizer;
 
         private BluetoothMasClientSession? _masClientSession;
+        private MessageSynchronizer? _messageSynchronizer;
         private BluetoothMnsServerSession _mnsServerSession;
 
         private bool _firstStart = true;
 
         public DeviceSmsServiceProvider(BluetoothDevice bluetoothDevice, 
-            ILogger<DeviceSmsServiceProvider> logger, IMessageNotificationService messageNotificationService) : base(bluetoothDevice)
+            ILogger<DeviceSmsServiceProvider> logger, 
+            IMessageNotificationService messageNotificationService,
+            IMessageStore messageStore,
+            ILogger<MessageSynchronizer> loggerMessageSynchronizer) : base(bluetoothDevice)
         {
             _device = bluetoothDevice;
             _logger = logger;
             _notificationService = messageNotificationService;
+            _messageStore = messageStore;
+            _loggerMessageSynchronizer = loggerMessageSynchronizer; 
             _mnsServerSession = new BluetoothMnsServerSession();
         }
 
@@ -63,9 +72,11 @@ namespace GoodTimeStudio.MyPhone
                 }
 
                 Debug.Assert(_masClientSession.ObexClient != null);
+                _messageSynchronizer = new MessageSynchronizer(_masClientSession.ObexClient, _messageStore, _loggerMessageSynchronizer);
                 _logger.LogInformation(AppLogEvents.SmsServiceConnect, "Register message notification.");
                 await _masClientSession.ObexClient.SetNotificationRegistrationAsync(true);
                 _logger.LogInformation(AppLogEvents.SmsServiceConnect, "SmsService connected.");
+                _ = _messageSynchronizer.SyncMessagesAsync();
                 return true;
             }
             catch (BluetoothDeviceNotAvailableException) 
