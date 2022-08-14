@@ -13,7 +13,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Pbap
         {
         }
 
-        protected override PbapClient CreateObexClient(StreamSocket socket)
+        public override PbapClient CreateObexClient(StreamSocket socket)
         {
             return new PbapClient(socket.InputStream, socket.OutputStream);
         }

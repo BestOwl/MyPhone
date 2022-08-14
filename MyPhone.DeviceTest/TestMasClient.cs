@@ -1,53 +1,32 @@
-﻿using GoodTimeStudio.MyPhone.OBEX.Map;
+﻿using GoodTimeStudio.MyPhone.OBEX.Bluetooth;
+using GoodTimeStudio.MyPhone.OBEX.Map;
 using Microsoft.Extensions.Configuration;
 using Windows.Devices.Bluetooth;
 
 namespace GoodTimeStudio.MyPhone.DeviceTest
 {
-    public class TestMasClient : IAssemblyFixture<BluetoothDeviceFixture>, IAsyncLifetime
+    public class TestMasClient : BaseTestObexClient<MasClient>
     {
-        private BluetoothDeviceFixture _fixture;
-        private BluetoothDevice? _deivce;
-        private BluetoothMasClientSession? _session;
-
-        public TestMasClient(BluetoothDeviceFixture fixture)
+        public TestMasClient(BluetoothDeviceFixture fixture) : base(fixture)
         {
-            _fixture = fixture;
         }
 
-        public async Task InitializeAsync()
+        public override BluetoothObexClientSession<MasClient> CreateSession()
         {
-            _deivce = await BluetoothDevice.FromIdAsync(_fixture.BluetoothDeviceId);
-            if (_fixture.Configuration.GetValue("dumpObexPacket", false))
-            {
-                _session = new DumpBluetoothMasClientSession(_deivce,
-                    $"MasClient-{DateTime.Now.ToString("yyyyMMdd-HHmmss")}.pcap");
-            }
-            else
-            {
-                _session = new BluetoothMasClientSession(_deivce);
-            }
-            await _session.ConnectAsync();
-        }
-
-        public Task DisposeAsync()
-        {
-            _session?.Dispose();
-            _deivce?.Dispose();
-            return Task.CompletedTask;
+            return new BluetoothMasClientSession(Device);
         }
 
         [Fact]
         public async Task TestGetMessagesListingSizeAsync()
         {
-            int count = await _session!.ObexClient!.GetMessageListingSizeAsync();
+            int count = await Session.ObexClient!.GetMessageListingSizeAsync();
             Assert.True(count >= 0);
         }
 
         [SkippableFact]
         public async Task TestTraverseFolderAsync()
         {
-            SmsFolder root = await _session!.ObexClient!.TraverseFolderAsync(false);
+            SmsFolder root = await Session.ObexClient!.TraverseFolderAsync(false);
             Assert.Equal(1, root.Children.Count);
             SmsFolder telecom = root.Children[0];
             Assert.Equal(root, telecom.Parent);
@@ -71,16 +50,18 @@ namespace GoodTimeStudio.MyPhone.DeviceTest
         [Fact]
         public async Task TestGetMessageListingAsync()
         {
-            await _session!.ObexClient!.GetMessagesListingAsync(0, 1024);
+            await Session.ObexClient!.GetMessagesListingAsync(0, 1024);
         }
 
         [Fact]
         public async Task TestGetAllMessagesAsync()
         {
-            await _session!.ObexClient!.SetFolderAsync(SetPathMode.EnterFolder, "telecom");
-            await _session!.ObexClient!.SetFolderAsync(SetPathMode.EnterFolder, "msg");
-            List<string> handles = await _session!.ObexClient!.GetAllMessagesAsync("inbox");
+            await Session.ObexClient!.SetFolderAsync(SetPathMode.EnterFolder, "telecom");
+            await Session.ObexClient!.SetFolderAsync(SetPathMode.EnterFolder, "msg");
+            List<string> handles = await Session.ObexClient!.GetAllMessagesAsync("inbox");
             Assert.True(handles.Count > 0);
         }
+
+        
     }
 }

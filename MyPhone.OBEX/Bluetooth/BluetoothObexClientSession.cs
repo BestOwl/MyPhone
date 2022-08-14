@@ -21,24 +21,16 @@ namespace GoodTimeStudio.MyPhone.OBEX.Bluetooth
             get => _socket != null;
         }
 
-        private BluetoothDevice _device;
+        public BluetoothDevice Device { get; }
+
         private RfcommDeviceService? _service;
         private StreamSocket? _socket;
-
-        // The Id of the Service Name SDP attribute
-        private const ushort _sdpServiceNameAttributeId = 0x100;
-
-        // The SDP Type of the Service Name SDP attribute.
-        // The first byte in the SDP Attribute encodes the SDP Attribute Type as follows :
-        //    -  the Attribute Type size in the least significant 3 bits,
-        //    -  the SDP Attribute Type value in the most significant 5 bits.
-        private const byte _sdpServiceNameAttributeType = 4 << 3 | 5;
 
         public BluetoothObexClientSession(BluetoothDevice bluetoothDevice, Guid rfcommServiceUuid, ObexServiceUuid targetObexService)
         {
             ServiceUuid = rfcommServiceUuid;
             TargetObexService = targetObexService;
-            _device = bluetoothDevice;
+            Device = bluetoothDevice;
         }
 
         /// <summary>
@@ -47,7 +39,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Bluetooth
         /// <exception cref="BluetoothObexSessionException">Failed to establish a bluetooth Rfcomm socket channel</exception>
         public async Task ConnectAsync()
         {
-            RfcommDeviceServicesResult result = await _device.GetRfcommServicesAsync(BluetoothCacheMode.Uncached);
+            RfcommDeviceServicesResult result = await Device.GetRfcommServicesAsync(BluetoothCacheMode.Uncached);
 
             if (result.Error != BluetoothError.Success)
             {
@@ -123,9 +115,9 @@ namespace GoodTimeStudio.MyPhone.OBEX.Bluetooth
         /// </summary>
         /// <param name="socket">Stream socket</param>
         /// <returns>ObexClient</returns>
-        protected abstract T CreateObexClient(StreamSocket socket);
+        public abstract T CreateObexClient(StreamSocket socket);
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             if (_socket != null)
             {

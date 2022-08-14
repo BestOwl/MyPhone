@@ -26,50 +26,50 @@ namespace GoodTimeStudio.MyPhone.OBEX.Pbap
         /// Example: telecom/pb.vcf or SIM1/telecom/pb.vcf for the main phone book objects
         /// </param>
         /// <returns>phone book object string</returns>
-        public async Task<string> PullPhoneBook(string phoneBookObjectPath)
+        public async Task<string> PullPhoneBookAsync(string phoneBookObjectPath)
         {
             ObexPacket request = new ObexPacket(new ObexOpcode(ObexOperation.Get, true),
                 new ObexHeader(HeaderId.Name, phoneBookObjectPath, true, Encoding.BigEndianUnicode),
-                new ObexHeader(HeaderId.Type, "x-bt/phonebook", true, Encoding.BigEndianUnicode)
+                new ObexHeader(HeaderId.Type, "x-bt/phonebook", true, Encoding.UTF8)
                 );
 
             ObexPacket response = await RunObexRequestAsync(request);
             return response.GetBodyContentAsUtf8String(true);
         }
 
-        public async Task<IEnumerable<VCard>> GetAllContacts()
+        public async Task<IEnumerable<VCard>> GetAllContactsAsync()
         {
-            string str = await PullPhoneBook("telecom/pb.vcf");
+            string str = await PullPhoneBookAsync("telecom/pb.vcf");
             return Deserializer.GetVCards(str);
         }
 
-        public async Task<IEnumerable<VCard>> GetCombinedCallHistory()
+        public async Task<IEnumerable<VCard>> GetCombinedCallHistoryAsync()
         {
-            string str = await PullPhoneBook("telecom/cch.vcf");
+            string str = await PullPhoneBookAsync("telecom/cch.vcf");
             return Deserializer.GetVCards(str);
         }
 
-        public async Task<IEnumerable<VCard>> GetIncomingCallHistory()
+        public async Task<IEnumerable<VCard>> GetIncomingCallHistoryAsync()
         {
-            string str = await PullPhoneBook("telecom/ich.vcf");
+            string str = await PullPhoneBookAsync("telecom/ich.vcf");
             return Deserializer.GetVCards(str);
         }
 
-        public async Task<IEnumerable<VCard>> GetOutgoingCallHistory()
+        public async Task<IEnumerable<VCard>> GetOutgoingCallHistoryAsync()
         {
-            string str = await PullPhoneBook("telecom/och.vcf");
+            string str = await PullPhoneBookAsync("telecom/och.vcf");
             return Deserializer.GetVCards(str);
         }
 
-        public async Task<IEnumerable<VCard>> GetMissedCallHistory()
+        public async Task<IEnumerable<VCard>> GetMissedCallHistoryAsync()
         {
-            string str = await PullPhoneBook("telecom/mch.vcf");
+            string str = await PullPhoneBookAsync("telecom/mch.vcf");
             return Deserializer.GetVCards(str);
         }
 
-        public async Task<IEnumerable<VCard>> GetSpeedDail()
+        public async Task<IEnumerable<VCard>> GetSpeedDailAsync()
         {
-            string str = await PullPhoneBook("telecom/spd.vcf");
+            string str = await PullPhoneBookAsync("telecom/spd.vcf");
             return Deserializer.GetVCards(str);
         }
 

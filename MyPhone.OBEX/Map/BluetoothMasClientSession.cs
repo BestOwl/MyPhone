@@ -13,7 +13,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Map
         {
         }
 
-        protected override MasClient CreateObexClient(StreamSocket socket)
+        public override MasClient CreateObexClient(StreamSocket socket)
         {
             return new MasClient(socket.InputStream, socket.OutputStream);
         }
