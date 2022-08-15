@@ -1,7 +1,7 @@
 ﻿using GoodTimeStudio.MyPhone.Data;
+using GoodTimeStudio.MyPhone.Device.Services;
 using GoodTimeStudio.MyPhone.OBEX;
 using GoodTimeStudio.MyPhone.OBEX.Map;
-using GoodTimeStudio.MyPhone.Services;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -54,7 +54,7 @@ namespace GoodTimeStudio.MyPhone.Device
                     {
                         _logger.LogTrace("Message handle {MessageHandle} is not in db, retrieving.", messageHandle);
                         BMessage message = await _masClient.GetMessageAsync(messageHandle);
-                        await _messageStore.SaveMessageAsync(Message.FromBMessage(messageHandle, message));
+                        await _messageStore.SaveAsync(Message.FromBMessage(messageHandle, message));
                     }
                 }
                 _logger.LogInformation("Folder /telecom/msg/inbox is synced");

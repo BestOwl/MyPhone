@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GoodTimeStudio.MyPhone.Services
+namespace GoodTimeStudio.MyPhone.Device.Services
 {
     public class EntityFrameworkMessageStore : IMessageStore
     {
@@ -20,17 +20,17 @@ namespace GoodTimeStudio.MyPhone.Services
             _context = context;
         }
 
-        public async Task<bool> Contains(string messageHandle)
+        public async Task<bool> Contains(string handle)
         {
-            return await _context.Messages.FindAsync(messageHandle) != null;
+            return await _context.Messages.FindAsync(handle) != null;
         }
 
-        public async Task<Message?> GetMessageAsync(string messageHandle)
+        public async Task<Message?> GetAsync(string handle)
         {
-            return await _context.Messages.FindAsync(messageHandle);
+            return await _context.Messages.FindAsync(handle);
         }
 
-        public async Task<IEnumerable<Message>> GetMessageAsync(int pageIndex, int pageSize)
+        public async Task<IEnumerable<Message>> GetAsync(int pageIndex, int pageSize)
         {
             return await _context.Messages
                 .Skip(pageSize * pageIndex)
@@ -38,15 +38,15 @@ namespace GoodTimeStudio.MyPhone.Services
                 .ToListAsync();
         }
 
-        public async Task SaveMessageAsync(Message message)
+        public async Task SaveAsync(Message data)
         {
-            await _context.Messages.AddAsync(message);
-            await _context.SaveChangesAsync(); 
+            await _context.Messages.AddAsync(data);
+            await _context.SaveChangesAsync();
         }
 
-        public async Task SaveMessageAsync(IEnumerable<Message> messages)
+        public async Task SaveAsync(IEnumerable<Message> data)
         {
-            await _context.Messages.AddRangeAsync(messages);
+            await _context.Messages.AddRangeAsync(data);
             await _context.SaveChangesAsync();
         }
     }

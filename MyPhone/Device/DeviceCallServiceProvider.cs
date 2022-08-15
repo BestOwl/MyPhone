@@ -69,7 +69,7 @@ namespace GoodTimeStudio.MyPhone
         {
             if (_taskInitPhoneLine == null)
             {
-                throw new InvalidOperationException("DeviceManager has not been initialized.");
+                throw new InvalidOperationException("CallService has not been initialized.");
             }
 
             await _taskInitPhoneLine;

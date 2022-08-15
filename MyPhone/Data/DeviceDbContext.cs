@@ -16,6 +16,7 @@ namespace GoodTimeStudio.MyPhone.Data
     {
         public DbSet<Message> Messages => Set<Message>();
         public DbSet<Contact> Contacts => Set<Contact>();
+        public DbSet<DeviceConfiguration> Configurations => Set<DeviceConfiguration>();
 
         public DeviceDbContext(DbContextOptions options) : base(options) { }
 

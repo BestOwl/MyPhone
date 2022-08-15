@@ -1,6 +1,6 @@
 ﻿using GoodTimeStudio.MyPhone.Data;
+using GoodTimeStudio.MyPhone.Device.Services;
 using GoodTimeStudio.MyPhone.Extensions;
-using GoodTimeStudio.MyPhone.Services;
 using System;
 using System.Threading.Tasks;
 using Xunit;
