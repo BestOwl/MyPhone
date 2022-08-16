@@ -1,5 +1,10 @@
 ﻿using GoodTimeStudio.MyPhone.OBEX.Bluetooth;
 using System;
+using System.Buffers;
+using System.Buffers.Binary;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using Windows.Devices.Bluetooth;
 using Windows.Networking.Sockets;
 
@@ -9,13 +14,55 @@ namespace GoodTimeStudio.MyPhone.OBEX.Pbap
     {
         public static readonly Guid PHONE_BOOK_ACCESS_ID = new Guid("0000112f-0000-1000-8000-00805f9b34fb");
 
+        public PbapSupportedFeatures SupportedFeatures { get; private set; }
+
+        private Version? _profileVersion;
+        public Version ProfileVersion
+        {
+            get => _profileVersion ?? throw new InvalidOperationException("Session not connected");
+            set => _profileVersion = value;
+        }
+
         public BluetoothPbapClientSession(BluetoothDevice bluetoothDevice) : base(bluetoothDevice, PHONE_BOOK_ACCESS_ID, ObexServiceUuid.PhonebookAccess)
         {
         }
 
+        protected override bool CheckFeaturesRequirementBySdpRecords()
+        {
+            Debug.Assert(SdpRecords != null);
+
+            {
+                if (SdpRecords.TryGetValue(0x9, out IReadOnlyCollection<byte>? rawAttributeValue)
+                && rawAttributeValue != null
+                && rawAttributeValue.Count >= 10)
+                {
+                    ProfileVersion = new Version(rawAttributeValue.ElementAt(8), rawAttributeValue.ElementAt(9));
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            {
+                if (SdpRecords.TryGetValue(0x317, out IReadOnlyCollection<byte>? rawAttributeValue) && rawAttributeValue != null)
+                {
+                    SupportedFeatures = (PbapSupportedFeatures)BinaryPrimitives.ReadInt32BigEndian(
+                        new ReadOnlySpan<byte>(rawAttributeValue.Skip(1).ToArray()));
+                }
+                else
+                {
+                    // For compatibility
+                    SupportedFeatures = (PbapSupportedFeatures)0x3;
+                }
+            }
+            
+            return true;
+        }
+
         public override PbapClient CreateObexClient(StreamSocket socket)
         {
-            return new PbapClient(socket.InputStream, socket.OutputStream);
+            return new PbapClient(socket.InputStream, socket.OutputStream, SupportedFeatures, ProfileVersion);
         }
     }
 }

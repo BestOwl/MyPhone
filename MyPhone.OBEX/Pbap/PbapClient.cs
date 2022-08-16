@@ -13,8 +13,24 @@ namespace GoodTimeStudio.MyPhone.OBEX.Pbap
     /// </summary>
     public class PbapClient : ObexClient
     {
-        public PbapClient(IInputStream inputStream, IOutputStream outputStream) : base(inputStream, outputStream)
+        public PbapSupportedFeatures SupportedFeatures { get; }
+
+        public Version ProfileVersion { get; }
+
+        /// <remarks>
+        /// Not null after connected.
+        /// </remarks>
+        private ObexHeader? _connectionIdHeader;
+
+        public PbapClient(IInputStream inputStream, IOutputStream outputStream, PbapSupportedFeatures supportedFeatures, Version profileVersion) : base(inputStream, outputStream)
         {
+            SupportedFeatures = supportedFeatures;
+            ProfileVersion = profileVersion;
+        }
+
+        protected override void OnConnected(ObexPacket connectionResponse)
+        {
+            _connectionIdHeader = connectionResponse.GetHeader(HeaderId.ConnectionId);
         }
 
         /// <summary>
@@ -30,7 +46,8 @@ namespace GoodTimeStudio.MyPhone.OBEX.Pbap
         {
             ObexPacket request = new ObexPacket(new ObexOpcode(ObexOperation.Get, true),
                 new ObexHeader(HeaderId.Name, phoneBookObjectPath, true, Encoding.BigEndianUnicode),
-                new ObexHeader(HeaderId.Type, "x-bt/phonebook", true, Encoding.UTF8)
+                new ObexHeader(HeaderId.Type, "x-bt/phonebook", true, Encoding.UTF8),
+                _connectionIdHeader!
                 );
 
             ObexPacket response = await RunObexRequestAsync(request);

@@ -30,6 +30,8 @@ namespace GoodTimeStudio.MyPhone.OBEX.Headers
 
         public AppParameter(byte tagId, ushort value) : this(tagId, value.ToBigEndianBytes()) { }
 
+        public AppParameter(byte tagId, int value) : this(tagId, value.ToBigEndianBytes()) { }
+
         public R GetValue<I, R>() where I : IBufferContentInterpreter<R>, new()
         {
             I interpreter = new I();
