@@ -24,9 +24,7 @@ namespace GoodTimeStudio.MyPhone.Pages
 
         public bool CallServiceSupported => _deviceManager.CallService != null;
         public bool SmsServiceSupported => _deviceManager.SmsService != null;
-#pragma warning disable CA1822 // Mark members as static
-        public bool PhonebookServiceSupported => false;
-#pragma warning restore CA1822 // Mark members as static
+        public bool PhonebookServiceSupported => _deviceManager.PhonebookService != null;
 
         #region Services State Overview
         [ObservableProperty]
@@ -98,6 +96,11 @@ namespace GoodTimeStudio.MyPhone.Pages
             {
                 SmsServiceInfo.State = _deviceManager.SmsService.State;
                 _deviceManager.SmsService.ServiceProdiverStateChanged += SmsService_ServiceProdiverStateChanged;
+            }
+            if (_deviceManager.PhonebookService != null)
+            {
+                PhonebookServiceInfo.State = _deviceManager.PhonebookService.State;
+                _deviceManager.PhonebookService.ServiceProdiverStateChanged += PhonebookService_ServiceProdiverStateChanged;
             }
         }
 
@@ -208,6 +211,17 @@ namespace GoodTimeStudio.MyPhone.Pages
             _dispatcherQueue.TryEnqueue(() =>
             {
                 UpdateServiceInfo(smsService, SmsServiceInfo);
+            });
+        }
+
+        private void PhonebookService_ServiceProdiverStateChanged(object? sender, DeviceServiceProviderState e)
+        {
+            var phonebookService = _deviceManager.PhonebookService;
+            Debug.Assert(phonebookService != null);
+
+            _dispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateServiceInfo(phonebookService, PhonebookServiceInfo);
             });
         }
 

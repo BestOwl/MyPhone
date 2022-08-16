@@ -1,11 +1,12 @@
 ﻿using GoodTimeStudio.MyPhone.OBEX.Headers;
+using GoodTimeStudio.MyPhone.OBEX.Pbap;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GoodTimeStudio.MyPhone.OBEX.Pbap.Extensions
+namespace GoodTimeStudio.MyPhone.OBEX.Extensions
 {
     public static class PbapSupportedFeaturesExtensions
     {

@@ -7,17 +7,19 @@ using System.Threading.Tasks;
 
 namespace GoodTimeStudio.MyPhone.Device.Services
 {
-    public interface IDataStore<TData, TDataHandle>
+    public interface IDataStore<TData, TKey> where TData : IIdentifiable<TKey>
     {
-        Task SaveAsync(TData data);
+        Task AddAsync(TData data);
 
-        Task SaveAsync(IEnumerable<TData> datas);
+        Task AddRangeAsync(IEnumerable<TData> datas);
 
-        Task<TData?> GetAsync(TDataHandle handle);
+        Task<TData?> GetByIdAsync(TKey dataId);
 
         Task<IEnumerable<TData>> GetAsync(int pageIndex, int pageSize);
 
-        Task<bool> Contains(TDataHandle handle);
+        Task<bool> ContainsAsync(TKey dataId);
+
+        Task ClearStoreAsync();
     }
 
     public interface IMessageStore : IDataStore<Message, string>

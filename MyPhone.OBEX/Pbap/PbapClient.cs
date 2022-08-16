@@ -45,9 +45,9 @@ namespace GoodTimeStudio.MyPhone.OBEX.Pbap
         public async Task<string> PullPhoneBookAsync(string phoneBookObjectPath)
         {
             ObexPacket request = new ObexPacket(new ObexOpcode(ObexOperation.Get, true),
+                _connectionIdHeader!,
                 new ObexHeader(HeaderId.Name, phoneBookObjectPath, true, Encoding.BigEndianUnicode),
-                new ObexHeader(HeaderId.Type, "x-bt/phonebook", true, Encoding.UTF8),
-                _connectionIdHeader!
+                new ObexHeader(HeaderId.Type, "x-bt/phonebook", true, Encoding.UTF8)
                 );
 
             ObexPacket response = await RunObexRequestAsync(request);

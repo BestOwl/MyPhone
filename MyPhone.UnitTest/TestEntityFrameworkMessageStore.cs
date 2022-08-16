@@ -25,7 +25,7 @@ namespace MyPhone.UnitTest
         {
             Message message = new Message
             {
-                MessageHandle = "1",
+                Id = "1",
                 Status = MessageStatus.Unread,
                 Type = "SMS/MNS",
                 Folder = "/telecom/msg/inbox",
@@ -36,17 +36,17 @@ namespace MyPhone.UnitTest
                 }.ToContact(),
                 Body = "Hello world"
             };
-            await _messageStore.SaveMessageAsync(message);
+            await _messageStore.AddAsync(message);
         }
 
         [Fact]
         public async Task TestGetMessage()
         {
-            Assert.Null(await _messageStore.GetMessageAsync("10"));
+            Assert.Null(await _messageStore.GetByIdAsync("10"));
 
             Message message = new Message
             {
-                MessageHandle = "2022",
+                Id = "2022",
                 Status = MessageStatus.Unread,
                 Type = "SMS/MNS",
                 Folder = "/telecom/msg/inbox",
@@ -57,9 +57,9 @@ namespace MyPhone.UnitTest
                 }.ToContact(),
                 Body = "Hello world"
             };
-            await _messageStore.SaveMessageAsync(message);
+            await _messageStore.AddAsync(message);
 
-            Message? msg = await _messageStore.GetMessageAsync("2022");
+            Message? msg = await _messageStore.GetByIdAsync("2022");
             Assert.NotNull(msg);
             Assert.Equal(message, msg);
         }

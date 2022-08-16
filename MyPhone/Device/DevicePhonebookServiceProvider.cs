@@ -1,7 +1,9 @@
-﻿using GoodTimeStudio.MyPhone.Device.Services;
+﻿using GoodTimeStudio.MyPhone.Data;
+using GoodTimeStudio.MyPhone.Device.Services;
 using GoodTimeStudio.MyPhone.OBEX.Bluetooth;
 using GoodTimeStudio.MyPhone.OBEX.Pbap;
 using Microsoft.Extensions.Logging;
+using MixERP.Net.VCards;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,6 +20,7 @@ namespace GoodTimeStudio.MyPhone.Device
 
         private readonly BluetoothDevice _device;
         private readonly IContactStore _contactStore;
+        private readonly IDeviceConfiguration _deviceConfiguration;
         private readonly ILogger<DevicePhonebookServiceProvider> _logger;
 
         private BluetoothPbapClientSession? _pbapClientSession;
@@ -25,10 +28,12 @@ namespace GoodTimeStudio.MyPhone.Device
         public DevicePhonebookServiceProvider(
             BluetoothDevice bluetoothDevice, 
             IContactStore contactStore,
+            IDeviceConfiguration deviceConfiguration,
             ILogger<DevicePhonebookServiceProvider> logger) : base(bluetoothDevice)
         {
             _device = bluetoothDevice;
             _contactStore = contactStore;
+            _deviceConfiguration = deviceConfiguration;
             _logger = logger;
         }
 
@@ -41,6 +46,11 @@ namespace GoodTimeStudio.MyPhone.Device
                 _logger.LogInformation(AppLogEvents.PhonebookServiceConnect, "Starting PbapClient");
                 await _pbapClientSession.ConnectAsync();
                 _logger.LogInformation(AppLogEvents.PhonebookServiceConnect, "PbapClient connected to server.");
+
+                if (!_deviceConfiguration.PhonebookServiceSyncedTime.HasValue)
+                {
+                    _ = SyncPhonebookAsync();
+                }
 
                 return true;
             }
@@ -62,15 +72,34 @@ namespace GoodTimeStudio.MyPhone.Device
 
         public async Task SyncPhonebookAsync()
         {
+            _logger.LogInformation("Synchronizing Phonebook...");
             if (_pbapClientSession == null)
             {
                 throw new InvalidOperationException("PhonebookService has not been initialized.");
             }
             Debug.Assert(_pbapClientSession.ObexClient != null);
-            var contacts = (await _pbapClientSession.ObexClient.GetAllContactsAsync()).ToList();
+            var contactVCards = await _pbapClientSession.ObexClient.GetAllContactsAsync();
+            await _contactStore.ClearStoreAsync();
 
-            // TODO: implement vCard UUID
-            throw new NotImplementedException();
+            List<Contact> contacts = new List<Contact>();
+            foreach (VCard card in contactVCards)
+            {
+                contacts.Add(new Contact
+                {
+                    MiddleName = card.MiddleName ?? string.Empty,
+                    NickName = card.NickName ?? string.Empty,
+                    FirstName = card.FirstName ?? string.Empty,
+                    LastName = card.LastName ?? string.Empty,
+                    FormattedName = card.FormattedName ?? string.Empty,
+                    Organization = card.Organization ?? string.Empty,
+                    OrganizationalUnit = card.OrganizationalUnit ?? string.Empty,
+                    Detail = card
+                });
+            }
+            await _contactStore.AddRangeAsync(contacts);
+            DateTime now = DateTime.Now;
+            _deviceConfiguration.PhonebookServiceSyncedTime = now;
+            _logger.LogInformation("Synced {ContactsCount} contacts at {Time}", contacts.Count, now);
         }
 
         protected override void OnDisconnected()

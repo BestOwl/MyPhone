@@ -1,5 +1,6 @@
 ﻿using GoodTimeStudio.MyPhone.Data;
 using GoodTimeStudio.MyPhone.Device.Services;
+using GoodTimeStudio.MyPhone.Extensions;
 using GoodTimeStudio.MyPhone.Helpers;
 using GoodTimeStudio.MyPhone.Services;
 using GoodTimeStudio.MyPhone.Utilities;
@@ -25,6 +26,7 @@ namespace GoodTimeStudio.MyPhone.Device
         public BluetoothDevice CurrentDevice { get; private set; }
         public DeviceCallServiceProvider? CallService { get; private set; }
         public DeviceSmsServiceProvider? SmsService { get; private set; }
+        public DevicePhonebookServiceProvider? PhonebookService { get; private set; }
 
         /// <summary>
         /// Gets the <see cref="IServiceProvider"/> instance to resolve device-specific services.
@@ -43,26 +45,40 @@ namespace GoodTimeStudio.MyPhone.Device
             _started = false;
             CurrentDevice = bluetoothDevice;
             _logger = App.Current.Services.GetRequiredService<ILogger<DeviceManager>>();
-            Services = ConfigureDeviceServices().BuildServiceProvider();
+            FileInfo dbFile = new FileInfo(
+                Path.Join(
+                    ApplicationData.Current.LocalFolder.Path,
+                    "DeviceData",
+                    CurrentDevice.BluetoothAddress.ToHexString() + ".db")
+                );
+            _logger.LogInformation("DeviceDatabasePath: {DbPath}", dbFile.FullName);
+            if (dbFile.Directory == null)
+            {
+                throw new InvalidOperationException("Device database directory should not be null.");
+            }
+            if (!dbFile.Directory.Exists) 
+            {
+                _logger.LogInformation("The directory of DeviceDatabasePath does not exists, creating.");
+                dbFile.Directory.Create();
+                _logger.LogInformation("The directory of DeviceDatabasePath created successfully.");
+            }
+            Services = ConfigureDeviceServices(dbFile).BuildServiceProvider();
             using (var scope = Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
                 var context = services.GetRequiredService<DeviceDbContext>();
                 context.Database.EnsureCreated();
             }
+            Services.GetRequiredService<IDeviceConfiguration>().DeviceId = bluetoothDevice.DeviceId;
         }
 
-        private IServiceCollection ConfigureDeviceServices()
+        private static IServiceCollection ConfigureDeviceServices(FileInfo deviceDatabaseFile)
         {
-            FileInfo dbFile = new FileInfo(
-                Path.Join(
-                    ApplicationData.Current.LocalFolder.Path, 
-                    "DeviceData", 
-                    CurrentDevice.BluetoothAddress.ToHexString() + ".db")
-                );
             return new ServiceCollection()
-                .AddDbContext<DeviceDbContext>(options => options.UseSqlite($"Data Source=\"{dbFile.FullName}\""))
-                .AddEntityFrameworkMessageStore();
+                .AddDbContext<DeviceDbContext>(options => options.UseSqlite($"Data Source=\"{deviceDatabaseFile.FullName}\""))
+                .AddEntityFrameworkDeviceConfiguration()
+                .AddEntityFrameworkMessageStore()
+                .AddEntityFrameworkContactStore();
         }
 
         /// <summary>
@@ -110,9 +126,14 @@ namespace GoodTimeStudio.MyPhone.Device
             SmsService = new DeviceSmsServiceProvider(CurrentDevice, 
                 App.Current.Services.GetRequiredService<ILogger<DeviceSmsServiceProvider>>(),
                 App.Current.Services.GetRequiredService<IMessageNotificationService>(),
-                Services.GetRequiredService<IMessageStore>(),
-                App.Current.Services.GetRequiredService<ILogger<MessageSynchronizer>>());
+                Services.GetRequiredService<IMessageStore>());
             _logger.LogInformation("SmsService initialized.");
+
+            PhonebookService = new DevicePhonebookServiceProvider(CurrentDevice,
+                Services.GetRequiredService<IContactStore>(),
+                Services.GetRequiredService<IDeviceConfiguration>(),
+                App.Current.Services.GetRequiredService<ILogger<DevicePhonebookServiceProvider>>());
+            _logger.LogInformation("PhonebookService initialized.");
         }
 
         /// <summary>
@@ -128,12 +149,12 @@ namespace GoodTimeStudio.MyPhone.Device
                 throw new InvalidOperationException("You must first call ConnectAsync or TryReconnect (return true).");
             }
 
-            bool connected = true;
+            bool callServiceConnected = false;
             if (CallService != null)
             {
                 _logger.LogInformation("Connecting to CallService.");
-                connected = await CallService.ConnectAsync() && connected;
-                if (connected)
+                callServiceConnected = await CallService.ConnectAsync();
+                if (callServiceConnected)
                 {
                     _logger.LogInformation("CallService connected.");
                 }
@@ -148,8 +169,8 @@ namespace GoodTimeStudio.MyPhone.Device
             }
 
             _logger.LogInformation("Connecting to SmsService.");
-            connected = await SmsService!.ConnectAsync() && connected;
-            if (connected)
+            bool smsServiceConnected = await SmsService!.ConnectAsync();
+            if (smsServiceConnected)
             {
                 _logger.LogInformation("SmsService connected.");
             }
@@ -158,11 +179,26 @@ namespace GoodTimeStudio.MyPhone.Device
                 _logger.LogWarning("Unable to connect SmsService, state: {State}.", SmsService.State);
                 if (SmsService.StopReason != null)
                 {
-                    _logger.LogWarning(SmsService.StopReason, "SmsService stopped.");
+                    _logger.LogWarning(SmsService.StopReason, "SmsService stopped because of exceptions.");
                 }
             }
 
-            return connected;
+            _logger.LogInformation("Connecting to PhonebookService.");
+            bool phonebookServiceConnected = await PhonebookService!.ConnectAsync();
+            if (phonebookServiceConnected)
+            {
+                _logger.LogInformation("PhonebookService connected.");
+            }
+            else
+            {
+                _logger.LogWarning("Unable to connect PhonebookService, state: {State.}", PhonebookService.State);
+                if (PhonebookService.StopReason != null)
+                {
+                    _logger.LogWarning(PhonebookService.StopReason, "PhonebookService stopped because of exceptions.");
+                }
+            }
+
+            return callServiceConnected && smsServiceConnected && phonebookServiceConnected;
         }
 
         public void Dispose()

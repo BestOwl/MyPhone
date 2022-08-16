@@ -16,43 +16,71 @@ namespace GoodTimeStudio.MyPhone.Device.Services
             _context = context;
         }
 
-        public string DeviceId 
+        private DeviceConfiguration EnsureFirstEntryExists()
+        {
+            DeviceConfiguration? configuration = _context.Configurations.FirstOrDefault();
+            if (configuration == null)
+            {
+                configuration = new DeviceConfiguration();
+                _context.Configurations.Add(configuration);
+                _context.SaveChanges();
+            }
+            return configuration;
+        }
+
+        public string? DeviceId 
         { 
-            get => _context.Configurations.First().DeviceId;
+            get => _context.Configurations.FirstOrDefault()?.DeviceId;
             set
             {
-                _context.Configurations.First().DeviceId = value;
-                _context.SaveChanges();
+                DeviceConfiguration configuration = EnsureFirstEntryExists();
+                if (configuration.DeviceId != value)
+                {
+                    configuration.DeviceId = value;
+                    _context.SaveChanges();
+                }
             }
         }
 
-        public DateTime SmsServiceLastSyncedTime 
+        public DateTime? SmsServiceLastSyncedTime 
         {
-            get => _context.Configurations.First().SmsServiceLastSyncedTime;
+            get => _context.Configurations.FirstOrDefault()?.SmsServiceLastSyncedTime;
             set
             {
-                _context.Configurations.First().SmsServiceLastSyncedTime = value;
-                _context.SaveChanges();
+                DeviceConfiguration configuration = EnsureFirstEntryExists();
+                if (configuration.SmsServiceLastSyncedTime != value)
+                {
+                    configuration.SmsServiceLastSyncedTime = value;
+                    _context.SaveChanges();
+                }
             } 
         }
 
-        public DateTime PhonebookServiceSyncedTime 
+        public DateTime? PhonebookServiceSyncedTime 
         {
-            get => _context.Configurations.First().PhonebookServiceLastSyncedTime;
+            get => _context.Configurations.FirstOrDefault()?.PhonebookServiceLastSyncedTime;
             set
             {
-                _context.Configurations.First().PhonebookServiceLastSyncedTime = value;
-                _context.SaveChanges();
+                DeviceConfiguration configuration = EnsureFirstEntryExists();
+                if (configuration.PhonebookServiceLastSyncedTime != value)
+                {
+                    configuration.PhonebookServiceLastSyncedTime = value;
+                    _context.SaveChanges();
+                }
             } 
         }
 
-        public TimeSpan SyncTimeSpan 
+        public TimeSpan? SyncTimeSpan 
         {
-            get => _context.Configurations.First().SyncTimeSpan;
+            get => _context.Configurations.FirstOrDefault()?.SyncTimeSpan;
             set
             {
-                _context.Configurations.First().SyncTimeSpan = value;
-                _context.SaveChanges();
+                DeviceConfiguration configuration = EnsureFirstEntryExists();
+                if (configuration.SyncTimeSpan != value)
+                {
+                    configuration.SyncTimeSpan = value;
+                    _context.SaveChanges();
+                }
             } 
         }
     }

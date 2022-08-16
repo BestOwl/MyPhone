@@ -8,12 +8,14 @@ namespace GoodTimeStudio.MyPhone.Data
 {
     public class DeviceConfiguration
     {
-        public string DeviceId { get; set; } = null!;
+        public int Id { get; set; }
 
-        public DateTime SmsServiceLastSyncedTime { get; set; }
+        public string? DeviceId { get; set; } = null!;
 
-        public DateTime PhonebookServiceLastSyncedTime { get; set; }
+        public DateTime? SmsServiceLastSyncedTime { get; set; }
 
-        public TimeSpan SyncTimeSpan { get; set; }
+        public DateTime? PhonebookServiceLastSyncedTime { get; set; }
+
+        public TimeSpan? SyncTimeSpan { get; set; }
     }
 }

@@ -11,12 +11,12 @@ namespace GoodTimeStudio.MyPhone.Device.Services
     /// </summary>
     public interface IDeviceConfiguration
     {
-        string DeviceId { get; set; }
+        string? DeviceId { get; set; }
 
-        DateTime SmsServiceLastSyncedTime { get; set; }
+        DateTime? SmsServiceLastSyncedTime { get; set; }
 
-        DateTime PhonebookServiceSyncedTime { get; set; }
+        DateTime? PhonebookServiceSyncedTime { get; set; }
 
-        TimeSpan SyncTimeSpan { get; set; }
+        TimeSpan? SyncTimeSpan { get; set; }
     }
 }

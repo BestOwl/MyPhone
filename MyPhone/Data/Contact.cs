@@ -9,24 +9,24 @@ using System.Threading.Tasks;
 
 namespace GoodTimeStudio.MyPhone.Data
 {
-    public class Contact
+    public class Contact : IIdentifiable<string>
     {
         [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public string Id { get; set; } = null!;
 
-        public string MiddleName { get; set; } = string.Empty;
+        public string MiddleName { get; set; } = null!;
 
-        public string NickName { get; set; } = string.Empty;
+        public string NickName { get; set; } = null!;
 
-        public string FirstName { get; set; } = string.Empty;
+        public string FirstName { get; set; } = null!;
 
-        public string LastName { get; set; } = string.Empty;
+        public string LastName { get; set; } = null!;
 
-        public string FormattedName { get; set; } = string.Empty;
+        public string FormattedName { get; set; } = null!;
 
-        public string Organization { get; set; } = string.Empty;
+        public string Organization { get; set; } = null!;
 
-        public string OrganizationalUnit { get; set; } = string.Empty;
+        public string OrganizationalUnit { get; set; } = null!;
 
         public VCard Detail { get; set; } = null!;
     }

@@ -29,7 +29,6 @@ namespace GoodTimeStudio.MyPhone.Data
                 .HasConversion(new ValueConverter<VCard, string>(
                     v => v.Serialize(),
                     v => Deserializer.GetVCard(v)));
-
         }
     }
 }

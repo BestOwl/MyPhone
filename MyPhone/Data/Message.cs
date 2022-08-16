@@ -4,16 +4,17 @@ using MixERP.Net.VCards;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace GoodTimeStudio.MyPhone.Data
 {
-    public class Message
+    public class Message : IIdentifiable<string>
     {
-        [Key]
-        public string MessageHandle { get; set; } = null!;
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public string Id { get; set; } = null!;
 
         public MessageStatus Status { get; set; }
 
@@ -29,7 +30,6 @@ namespace GoodTimeStudio.MyPhone.Data
         {
             return new Message
             {
-                MessageHandle = messageHandle,
                 Body = b.Body,
                 Status = b.Status == BMessageStatus.READ ? MessageStatus.Read : MessageStatus.Unread,
                 Folder = b.Folder,
