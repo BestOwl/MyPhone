@@ -55,7 +55,8 @@
                     </StackPanel>
                 </Expander.Header>
 
-                <Grid Style="{ThemeResource DeviceInfoGridStyle}">
+                <Grid Style="{ThemeResource DeviceInfoGridStyle}"
+                      Padding="{ThemeResource DeviceInfoExpanderPadding}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="{ThemeResource DeviceInfoGridHeaderColumnWidth}" />
                         <ColumnDefinition Width="*" />
@@ -104,7 +105,8 @@
                        Margin="0, 15, 0, 0"/>
             <Expander 
                 IsEnabled="{x:Bind ViewModel.CallServiceSupported}"
-                Style="{StaticResource DiagnosisPageExpanderStyle}">
+                Style="{StaticResource DiagnosisPageExpanderStyle}"
+                IsExpanded="{x:Bind ViewModel.CallServiceSupported}">
                 <Expander.Header>
                     <controls:DeviceServiceProviderOverview 
                         ServiceName="Calling"
@@ -193,7 +195,7 @@
             <Expander 
                 IsEnabled="{x:Bind ViewModel.SmsServiceSupported}"
                 Style="{StaticResource DiagnosisPageExpanderStyle}" 
-                IsExpanded="False">
+                IsExpanded="{x:Bind ViewModel.SmsServiceSupported}">
                 <Expander.Header>
                     <controls:DeviceServiceProviderOverview 
                         ProviderState="{x:Bind ViewModel.SmsServiceInfo.State, Mode=OneWay}"
@@ -202,24 +204,37 @@
                         GlyphIcon="&#xE8BD;" />
                 </Expander.Header>
                 <StackPanel Spacing="10">
-                    <StackPanel Spacing="10" Padding="{ThemeResource DeviceInfoExpanderPadding}">
-                        <TextBox Width="200" HorizontalAlignment="Left"
-                            Text="{x:Bind ViewModel.MessageHandleInputString, Mode=TwoWay}" />
-                        <Button Content="GetMessageByHandle" Command="{x:Bind ViewModel.GetMessageByHandleCommand}" />
-                    </StackPanel>
-
-                    <Border Style="{ThemeResource SeparatorBorderStyle}" />
-
-                    <community:WrapPanel Padding="{ThemeResource DeviceInfoExpanderPadding}" Orientation="Horizontal">
-                        <Button Content="GetMessagesListing" Command="{x:Bind ViewModel.GetMessagesListingCommand}" />
-                    </community:WrapPanel>
+                    <Grid
+                        Padding="{ThemeResource DeviceInfoExpanderPadding}"
+                        Style="{ThemeResource DeviceInfoGridStyle}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{ThemeResource DeviceInfoGridHeaderColumnWidth}" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Text="ProfileVersion" />
+                        <TextBlock
+                            Text="{x:Bind ViewModel.MapProfileVersion, Mode=OneWay}"
+                            Grid.Column="1" 
+                            Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+                        
+                        <TextBlock Text="MapSupportedFeatures" Grid.Row="1" />
+                        <TextBlock
+                            Text="{x:Bind ViewModel.MapSupportedFeatures, Mode=OneWay}"
+                            Grid.Column="1" Grid.Row="1"
+                            Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+                    </Grid>
                 </StackPanel>
             </Expander>
 
             <Expander 
                 IsEnabled="{x:Bind ViewModel.PhonebookServiceSupported}"
                 Style="{StaticResource DiagnosisPageExpanderStyle}" 
-                IsExpanded="False">
+                IsExpanded="{x:Bind ViewModel.PhonebookServiceSupported}">
                 <Expander.Header>
                     <controls:DeviceServiceProviderOverview
                         ServiceName="Phonebook Access"
@@ -229,8 +244,38 @@
                 </Expander.Header>
 
                 <StackPanel>
-                    <ProgressRing Width="20" Height="20" ToolTipService.ToolTip="123" IsHitTestVisible="True"/>
-                    
+                    <Grid
+                        Padding="{ThemeResource DeviceInfoExpanderPadding}"
+                        Style="{ThemeResource DeviceInfoGridStyle}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{ThemeResource DeviceInfoGridHeaderColumnWidth}" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="ProfileVersion" />
+                        <TextBlock
+                            Text="{x:Bind ViewModel.PbapProfileVersion, Mode=OneWay}"
+                            Grid.Column="1" 
+                            Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+
+                        <TextBlock Text="PbapSupportedFeatures" Grid.Row="1"/>
+                        <TextBlock 
+                            Text="{x:Bind ViewModel.PbapSupportedFeatures, Mode=OneWay}"
+                            Grid.Column="1" Grid.Row="1"
+                            Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+
+                        <TextBlock Text="LastSyncTime" Grid.Row="2" />
+                        <TextBlock 
+                            Text="{x:Bind ViewModel.PbapLastSyncTime, Mode=OneWay}"
+                            Grid.Column="1" Grid.Row="2"
+                            Style="{ThemeResource DeviceInfoTextBlockStyle}" />
+
+                    </Grid>
                 </StackPanel>
             </Expander>
         </StackPanel>

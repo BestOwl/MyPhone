@@ -16,12 +16,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Pbap
 
         public PbapSupportedFeatures SupportedFeatures { get; private set; }
 
-        private Version? _profileVersion;
-        public Version ProfileVersion
-        {
-            get => _profileVersion ?? throw new InvalidOperationException("Session not connected");
-            set => _profileVersion = value;
-        }
+        public Version? ProfileVersion { get; private set;}
 
         public BluetoothPbapClientSession(BluetoothDevice bluetoothDevice) : base(bluetoothDevice, PHONE_BOOK_ACCESS_ID, ObexServiceUuid.PhonebookAccess)
         {
@@ -33,8 +28,8 @@ namespace GoodTimeStudio.MyPhone.OBEX.Pbap
 
             {
                 if (SdpRecords.TryGetValue(0x9, out IReadOnlyCollection<byte>? rawAttributeValue)
-                && rawAttributeValue != null
-                && rawAttributeValue.Count >= 10)
+                    && rawAttributeValue != null
+                    && rawAttributeValue.Count >= 10)
                 {
                     ProfileVersion = new Version(rawAttributeValue.ElementAt(8), rawAttributeValue.ElementAt(9));
                 }
@@ -62,6 +57,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Pbap
 
         public override PbapClient CreateObexClient(StreamSocket socket)
         {
+            Debug.Assert(ProfileVersion != null);
             return new PbapClient(socket.InputStream, socket.OutputStream, SupportedFeatures, ProfileVersion);
         }
     }

@@ -24,6 +24,9 @@ namespace GoodTimeStudio.MyPhone
     {
         public MasClient? MasClient => _masClientSession?.ObexClient;
 
+        public Version? ProfileVersion { get => _masClientSession?.ProfileVersion; }
+        public MapSupportedFeatures? MapSupportedFeatures { get => _masClientSession?.SupportedFeatures; }
+
         private readonly BluetoothDevice _device;
         private readonly ILogger<DeviceSmsServiceProvider> _logger;
         private readonly IMessageNotificationService _notificationService;

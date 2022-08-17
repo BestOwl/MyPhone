@@ -25,6 +25,10 @@ namespace GoodTimeStudio.MyPhone.Device
 
         private BluetoothPbapClientSession? _pbapClientSession;
 
+        public Version? ProfileVersion { get => _pbapClientSession?.ProfileVersion; }
+        public PbapSupportedFeatures? PbapSupportedFeatures { get => _pbapClientSession?.SupportedFeatures; }
+        public DateTime? LastSyncTime { get => _deviceConfiguration.PhonebookServiceSyncedTime; }
+
         public DevicePhonebookServiceProvider(
             BluetoothDevice bluetoothDevice, 
             IContactStore contactStore,

@@ -3,6 +3,8 @@ using CommunityToolkit.Mvvm.Input;
 using GoodTimeStudio.MyPhone.Device;
 using GoodTimeStudio.MyPhone.Models;
 using GoodTimeStudio.MyPhone.OBEX;
+using GoodTimeStudio.MyPhone.OBEX.Map;
+using GoodTimeStudio.MyPhone.OBEX.Pbap;
 using GoodTimeStudio.MyPhone.Utilities;
 using Microsoft.UI.Dispatching;
 using System;
@@ -59,7 +61,21 @@ namespace GoodTimeStudio.MyPhone.Pages
 
         #region SMS Service Additional Properties
         [ObservableProperty]
-        private string? _messageHandleInputString;
+        private Version? _mapProfileVersion;
+
+        [ObservableProperty]
+        private MapSupportedFeatures? _mapSupportedFeatures;
+        #endregion
+
+        #region Phonebook Service Additional Properties
+        [ObservableProperty]
+        private Version? _pbapProfileVersion;
+
+        [ObservableProperty]
+        private PbapSupportedFeatures? _pbapSupportedFeatures;
+
+        [ObservableProperty]
+        private DateTime? _pbapLastSyncTime;
         #endregion
 
         private readonly DeviceManager _deviceManager;
@@ -96,11 +112,13 @@ namespace GoodTimeStudio.MyPhone.Pages
             {
                 SmsServiceInfo.State = _deviceManager.SmsService.State;
                 _deviceManager.SmsService.ServiceProdiverStateChanged += SmsService_ServiceProdiverStateChanged;
+                UpdateSmsServiceInfo();
             }
             if (_deviceManager.PhonebookService != null)
             {
                 PhonebookServiceInfo.State = _deviceManager.PhonebookService.State;
                 _deviceManager.PhonebookService.ServiceProdiverStateChanged += PhonebookService_ServiceProdiverStateChanged;
+                UpdatePhonebookServiceInfo();
             }
         }
 
@@ -139,6 +157,23 @@ namespace GoodTimeStudio.MyPhone.Pages
             {
                 _autoSelectedPhoneLineId = pl.Id.ToString();
             }
+        }
+
+        private void UpdateSmsServiceInfo()
+        {
+            var smsService = _deviceManager.SmsService;
+            Debug.Assert(smsService != null);
+            MapProfileVersion = smsService.ProfileVersion;
+            MapSupportedFeatures = smsService.MapSupportedFeatures;
+        }
+
+        private void UpdatePhonebookServiceInfo()
+        {
+            var phonebookService = _deviceManager.PhonebookService;
+            Debug.Assert(phonebookService != null);
+            PbapProfileVersion = phonebookService.ProfileVersion;
+            PbapSupportedFeatures = phonebookService.PbapSupportedFeatures;
+            PbapLastSyncTime = phonebookService.LastSyncTime;
         }
 
         #region PhoneLineWatcher events
@@ -211,6 +246,7 @@ namespace GoodTimeStudio.MyPhone.Pages
             _dispatcherQueue.TryEnqueue(() =>
             {
                 UpdateServiceInfo(smsService, SmsServiceInfo);
+                UpdateSmsServiceInfo();
             });
         }
 
@@ -218,10 +254,10 @@ namespace GoodTimeStudio.MyPhone.Pages
         {
             var phonebookService = _deviceManager.PhonebookService;
             Debug.Assert(phonebookService != null);
-
             _dispatcherQueue.TryEnqueue(() =>
             {
                 UpdateServiceInfo(phonebookService, PhonebookServiceInfo);
+                UpdatePhonebookServiceInfo();
             });
         }
 
@@ -231,25 +267,6 @@ namespace GoodTimeStudio.MyPhone.Pages
             if (SelectedPhoneLine != null && !string.IsNullOrEmpty(PhoneNumberBoxInputString))
             {
                 SelectedPhoneLine.PhoneLine.Dial(PhoneNumberBoxInputString, PhoneNumberBoxInputString);
-            }
-        }
-
-        [ICommand]
-        private async Task GetMessagesListing()
-        {
-            var handles = await _deviceManager.SmsService!.MasClient!.GetMessagesListingAsync(0, 1024, "telecom");
-            Debug.WriteLine($"Handle count: {handles.Count}");
-        }
-
-        [ICommand]
-        private async Task GetMessageByHandle()
-        {
-            if (!string.IsNullOrEmpty(MessageHandleInputString))
-            {
-                BMessage message = await _deviceManager.SmsService!.MasClient!.GetMessageAsync(MessageHandleInputString);
-                Debug.WriteLine($"Sender: {message.Sender.FormattedName}");
-                Debug.WriteLine("Body: ");
-                Debug.WriteLine(message.Body);
             }
         }
     }
