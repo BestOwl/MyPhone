@@ -46,6 +46,11 @@ namespace GoodTimeStudio.MyPhone.Device.Services
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<TData>> GetAsync()
+        {
+            return await Datas.ToListAsync();
+        }
+
         public async Task AddAsync(TData data)
         {
             await Datas.AddAsync(data);

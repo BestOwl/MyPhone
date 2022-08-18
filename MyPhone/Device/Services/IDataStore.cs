@@ -17,6 +17,8 @@ namespace GoodTimeStudio.MyPhone.Device.Services
 
         Task<IEnumerable<TData>> GetAsync(int pageIndex, int pageSize);
 
+        Task<IEnumerable<TData>> GetAsync();
+
         Task<bool> ContainsAsync(TKey dataId);
 
         Task ClearStoreAsync();

@@ -1,0 +1,51 @@
+﻿<Page
+    x:Class="GoodTimeStudio.MyPhone.Pages.ContactsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:GoodTimeStudio.MyPhone.Pages"
+    xmlns:data="using:GoodTimeStudio.MyPhone.Data"
+    xmlns:model="using:GoodTimeStudio.MyPhone.Models"
+    xmlns:controls="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <Grid>
+        <controls:ListDetailsView
+            BackButtonBehavior="Automatic"
+            NoSelectionContent="Select an item to view"
+            CompactModeThresholdWidth="720"
+            ItemsSource="{x:Bind ViewModel.Contacts, Mode=OneWay}"
+            Background="Transparent">
+            <!--<controls:ListDetailsView.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate></DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </controls:ListDetailsView.GroupStyle>-->
+            <controls:ListDetailsView.ItemTemplate>
+                <DataTemplate x:DataType="data:Contact">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+
+                        <PersonPicture DisplayName="{x:Bind FormattedName}" 
+                                       Width="25" Margin="0,0,10,0" />
+                        <TextBlock Text="{x:Bind FormattedName}"
+                                   VerticalAlignment="Center"
+                                   Grid.Column="1"/>
+
+                    </Grid>
+                </DataTemplate>
+            </controls:ListDetailsView.ItemTemplate>
+
+            <controls:ListDetailsView.ListHeader>
+                <ProgressBar IsIndeterminate="True" Visibility="{x:Bind ViewModel.Loading, Mode=OneWay}" />
+            </controls:ListDetailsView.ListHeader>
+        </controls:ListDetailsView>
+    </Grid>
+</Page>

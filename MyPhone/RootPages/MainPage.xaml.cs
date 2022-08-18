@@ -31,6 +31,9 @@ namespace GoodTimeStudio.MyPhone.RootPages
                 case "Message":
                     contentFrame.Navigate(typeof(MessagePage));
                     break;
+                case "Contacts":
+                    contentFrame.Navigate(typeof(ContactsPage));
+                    break;
                 case "Debug":
                     contentFrame.Navigate(typeof(DiagnosisPage));
                     break;

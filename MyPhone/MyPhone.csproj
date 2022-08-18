@@ -38,6 +38,7 @@
   <ItemGroup>
     <None Remove="appsettings.json" />
     <None Remove="Controls\DevicePairDialog.xaml" />
+    <None Remove="Pages\ContactsPage.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -84,6 +85,11 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="appsettings.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\ContactsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\MessagePage.xaml">

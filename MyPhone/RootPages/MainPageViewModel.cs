@@ -18,6 +18,7 @@ namespace GoodTimeStudio.MyPhone.RootPages
             {
                 new NavigationMenu(name:"Call", glyphIcon: "\uE717"),
                 new NavigationMenu(name:"Message", glyphIcon: "\uE8BD"),
+                new NavigationMenu(name: "Contacts", glyphIcon: "\uE77B"),
                 new NavigationMenu(name:"Debug", glyphIcon: "\uEBE8"),
             };
 
