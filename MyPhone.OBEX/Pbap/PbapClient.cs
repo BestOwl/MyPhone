@@ -47,7 +47,9 @@ namespace GoodTimeStudio.MyPhone.OBEX.Pbap
             ObexPacket request = new ObexPacket(new ObexOpcode(ObexOperation.Get, true),
                 _connectionIdHeader!,
                 new ObexHeader(HeaderId.Name, phoneBookObjectPath, true, Encoding.BigEndianUnicode),
-                new ObexHeader(HeaderId.Type, "x-bt/phonebook", true, Encoding.UTF8)
+                new ObexHeader(HeaderId.Type, "x-bt/phonebook", true, Encoding.UTF8),
+                new AppParameterHeaderBuilder(
+                    new AppParameter((byte)PbapAppParamTagId.Format, (byte)1)).Build()
                 );
 
             ObexPacket response = await RunObexRequestAsync(request);

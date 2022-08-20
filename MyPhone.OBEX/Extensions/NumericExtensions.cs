@@ -17,5 +17,10 @@ namespace GoodTimeStudio.MyPhone.OBEX.Extensions
             BinaryPrimitives.WriteUInt16BigEndian(ret, us);
             return ret;
         }
+
+        public static byte[] ToBigEndianBytes(this byte b)
+        {
+            return new byte[] { BinaryPrimitives.ReverseEndianness(b) };
+        }
     }
 }

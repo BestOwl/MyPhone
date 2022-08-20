@@ -26,7 +26,7 @@ namespace GoodTimeStudio.MyPhone.OBEX.Headers
             Buffer = buf ?? throw new ArgumentNullException(nameof(buf));
         }
 
-        public AppParameter(byte tagId, byte b) : this(tagId, new byte[] { b }) { }
+        public AppParameter(byte tagId, byte b) : this(tagId, b.ToBigEndianBytes()) { }
 
         public AppParameter(byte tagId, ushort value) : this(tagId, value.ToBigEndianBytes()) { }
 
