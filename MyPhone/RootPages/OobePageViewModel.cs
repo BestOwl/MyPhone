@@ -22,11 +22,11 @@ namespace GoodTimeStudio.MyPhone.RootPages
         }
 
         [ObservableProperty]
-        [AlsoNotifyChangeFor(nameof(EnableConnectButton))]
+        [NotifyPropertyChangedFor(nameof(EnableConnectButton))]
         private ObservableDeviceInformation? selectedDevice;
 
         [ObservableProperty]
-        [AlsoNotifyChangeFor(nameof(EnableConnectButton))]
+        [NotifyPropertyChangedFor(nameof(EnableConnectButton))]
         private bool connecting;
 
         public bool EnableConnectButton
@@ -35,7 +35,7 @@ namespace GoodTimeStudio.MyPhone.RootPages
         }
 
         [ObservableProperty]
-        [AlsoNotifyChangeFor(nameof(ErrorTextVisbility))]
+        [NotifyPropertyChangedFor(nameof(ErrorTextVisbility))]
         private string? errorText;
 
         public bool ErrorTextVisbility

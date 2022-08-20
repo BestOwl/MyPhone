@@ -49,7 +49,7 @@ namespace GoodTimeStudio.MyPhone.Pages
         [ObservableProperty]
         private string _autoSelectedPhoneLineId;
 
-        [AlsoNotifyChangeFor(nameof(SelectedPhoneLineId))]
+        [NotifyPropertyChangedFor(nameof(SelectedPhoneLineId))]
         [ObservableProperty]
         private ObservablePhoneLine? _selectedPhoneLine;
 
@@ -261,7 +261,7 @@ namespace GoodTimeStudio.MyPhone.Pages
             });
         }
 
-        [ICommand]
+        [RelayCommand]
         private void Call()
         {
             if (SelectedPhoneLine != null && !string.IsNullOrEmpty(PhoneNumberBoxInputString))

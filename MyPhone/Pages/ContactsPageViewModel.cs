@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using GoodTimeStudio.MyPhone.Data;
 using GoodTimeStudio.MyPhone.Device.Services;
+using GoodTimeStudio.MyPhone.Models;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,16 +15,19 @@ namespace GoodTimeStudio.MyPhone.Pages
     public partial class ContactsPageViewModel : ObservableObject
     {
         private readonly IContactStore _contactStore;
+        private readonly ILogger<ContactViewModel> _loggerContactViewModel;
 
-        public ContactsPageViewModel(IContactStore contactStore)
+        public ContactsPageViewModel(IContactStore contactStore,
+            ILogger<ContactViewModel> loggerContactViewModel)
         {
             _contactStore = contactStore;
-            _contacts = new ObservableCollection<Contact>();
+            _contacts = new ObservableCollection<ContactViewModel>();
+            _loggerContactViewModel = loggerContactViewModel;
             _ = LoadContactsAsync();
         }
 
         [ObservableProperty]
-        private ObservableCollection<Contact> _contacts;
+        private ObservableCollection<ContactViewModel> _contacts;
 
         [ObservableProperty]
         private bool _loading;
@@ -33,7 +38,9 @@ namespace GoodTimeStudio.MyPhone.Pages
             try
             {
                 Loading = true;
-                Contacts = new ObservableCollection<Contact>(await _contactStore.GetAsync());
+                var contacts = await _contactStore.GetAsync();
+                Contacts = new ObservableCollection<ContactViewModel>(
+                    contacts.Select(c => new ContactViewModel(c, _loggerContactViewModel)));
             }
             finally
             {

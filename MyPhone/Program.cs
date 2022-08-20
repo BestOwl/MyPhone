@@ -15,10 +15,14 @@ namespace GoodTimeStudio.MyPhone
     internal class Program
     {
         [STAThread]
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             WinRT.ComWrappersSupport.InitializeComWrappers();
-            bool isRedirect = await DecideRedirect();
+
+            // As of Windows App SDK 1.1.4, async main will causes Clipboard API not working
+            // https://docs.microsoft.com/en-us/answers/questions/780749/winui-3-clipboard-api-not-working.html
+            bool isRedirect = DecideRedirect().Result;
+
             if (!isRedirect)
             {
                 Launch();

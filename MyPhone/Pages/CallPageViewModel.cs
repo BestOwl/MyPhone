@@ -22,7 +22,7 @@ namespace GoodTimeStudio.MyPhone.Pages
         /// </summary>
         public event EventHandler<EventArgs>? PhoneNumberInputFocus;
 
-        [ICommand]
+        [RelayCommand]
         public void PressDigit(string digit)
         {
             PhoneNumberInputFocus?.Invoke(this, new EventArgs());
@@ -48,7 +48,7 @@ namespace GoodTimeStudio.MyPhone.Pages
             SelectionStart += 1;
         }
 
-        [ICommand]
+        [RelayCommand]
         public void PressBackSpace()
         {
             PhoneNumberInputFocus?.Invoke(this, new EventArgs());
@@ -76,7 +76,7 @@ namespace GoodTimeStudio.MyPhone.Pages
             }
         }
 
-        [ICommand]
+        [RelayCommand]
         public async Task Call()
         {
             Debug.Assert(App.Current.DeviceManager != null);
