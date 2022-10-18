@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using Windows.ApplicationModel.Resources;
 using Windows.Graphics.Imaging;
 
 namespace GoodTimeStudio.MyPhone.Models
@@ -33,6 +34,7 @@ namespace GoodTimeStudio.MyPhone.Models
             _logger = logger;
             Contact = contact;
             Info = new ObservableCollection<ContactDetialInformation>();
+            ResourceLoader resourceLoader = ResourceLoader.GetForViewIndependentUse("Resources");
 
             if (contact.Detail.Telephones != null)
             {
@@ -40,12 +42,12 @@ namespace GoodTimeStudio.MyPhone.Models
                 {
                     Info.Add(new ContactDetialInformation(
                         "\uE717", phone.Number,
-                        $"Phone ({phone.Type})", 
+                        resourceLoader.GetString("Contact_Phone"), 
                         primaryAction: Call,
-                        primaryActionTooltip: $"Call {phone.Number}",
+                        primaryActionTooltip: resourceLoader.GetString("Contact_Call") + phone.Number,
                         secondaryAction: (i) => { /* TODO: Navigate to message page */ },
                         secondaryActionIcon: "\uE8BD",
-                        secondaryActionTooltip: $"Send message to {phone.Number}"));
+                        secondaryActionTooltip: resourceLoader.GetString("Contact_SendMessage") + phone.Number));
                 }
             }
             
@@ -55,7 +57,7 @@ namespace GoodTimeStudio.MyPhone.Models
                 {
                     Info.Add(new ContactDetialInformation(
                         "\uE715", email.EmailAddress,
-                        "Email"));
+                        resourceLoader.GetString("Contact_Email")));
                 }
             }
 
@@ -63,14 +65,14 @@ namespace GoodTimeStudio.MyPhone.Models
             {
                 Info.Add(new ContactDetialInformation(
                     "\uE821", contact.Detail.Organization,
-                    "Organization"));
+                    resourceLoader.GetString("Contact_Phone")));
             }
 
             if (!string.IsNullOrWhiteSpace(contact.Detail.OrganizationalUnit))
             {
                 Info.Add(new ContactDetialInformation(
                     "\uE821", contact.Detail.OrganizationalUnit,
-                    "Organizational Unit"));
+                    resourceLoader.GetString("Contact_Organizational_Unit")));
             }
 
             _ = LoadPhotoAsync();

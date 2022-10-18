@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en-US" target-language="qps-ploc" original="MYPHONE/STRINGS/EN-US/RESOURCES.RESW" tool-id="MultilingualAppToolkit" product-name="n/a" product-version="n/a" build-num="n/a">
+    <header>
+      <tool tool-id="MultilingualAppToolkit" tool-name="Multilingual App Toolkit" tool-version="1.0.0.0" tool-company="Microsoft" />
+    </header>
+    <body>
+      <group id="MYPHONE/STRINGS/EN-US/RESOURCES.RESW" datatype="resx">
+        <trans-unit id="AppDisplayName" translate="yes" xml:space="preserve">
+          <source>My Phone Assistant</source>
+          <target state="new">My Phone Assistant</target>
+        </trans-unit>
+        <trans-unit id="AppTitleText.Text" translate="yes" xml:space="preserve">
+          <source>My Phone Assistant</source>
+          <target state="new">My Phone Assistant</target>
+        </trans-unit>
+        <trans-unit id="Failed_Connect_Error_Front" translate="yes" xml:space="preserve">
+          <source>Failed to pair "</source>
+          <target state="new">Failed to pair "</target>
+        </trans-unit>
+        <trans-unit id="Failed_Connect_Error_Second" translate="yes" xml:space="preserve">
+          <source>". Reason:</source>
+          <target state="new">". Reason:</target>
+        </trans-unit>
+        <trans-unit id="Item_Call" translate="yes" xml:space="preserve">
+          <source>Call</source>
+          <target state="new">Call</target>
+        </trans-unit>
+        <trans-unit id="Item_Contacts" translate="yes" xml:space="preserve">
+          <source>Contacts</source>
+          <target state="new">Contacts</target>
+        </trans-unit>
+        <trans-unit id="Item_Debug" translate="yes" xml:space="preserve">
+          <source>Debug</source>
+          <target state="new">Debug</target>
+        </trans-unit>
+        <trans-unit id="Item_Message" translate="yes" xml:space="preserve">
+          <source>Message</source>
+          <target state="new">Message</target>
+        </trans-unit>
+        <trans-unit id="Item_Settings" translate="yes" xml:space="preserve">
+          <source>Settings</source>
+          <target state="new">Settings</target>
+        </trans-unit>
+        <trans-unit id="MenuItem_Call" translate="yes" xml:space="preserve">
+          <source>Call</source>
+          <target state="new">Call</target>
+        </trans-unit>
+        <trans-unit id="MenuItem_Contacts" translate="yes" xml:space="preserve">
+          <source>Contacts</source>
+          <target state="new">Contacts</target>
+        </trans-unit>
+        <trans-unit id="MenuItem_Debug" translate="yes" xml:space="preserve">
+          <source>Debug</source>
+          <target state="new">Debug</target>
+        </trans-unit>
+        <trans-unit id="MenuItem_Message" translate="yes" xml:space="preserve">
+          <source>Message</source>
+          <target state="new">Message</target>
+        </trans-unit>
+        <trans-unit id="MenuItem_Settings" translate="yes" xml:space="preserve">
+          <source>Settings</source>
+          <target state="new">Settings</target>
+        </trans-unit>
+        <trans-unit id="Oobe_Connect.Text" translate="yes" xml:space="preserve">
+          <source>Connect</source>
+          <target state="new">Connect</target>
+        </trans-unit>
+        <trans-unit id="Oobe_Describe.Text" translate="yes" xml:space="preserve">
+          <source>Make phone calls and send/receive SMS on your PC</source>
+          <target state="new">Make phone calls and send/receive SMS on your PC</target>
+        </trans-unit>
+        <trans-unit id="Oobe_Tip.Text" translate="yes" xml:space="preserve">
+          <source>Before we get started, we need to connect to your phone</source>
+          <target state="new">Before we get started, we need to connect to your phone</target>
+        </trans-unit>
+        <trans-unit id="Oobe_Welcome.Text" translate="yes" xml:space="preserve">
+          <source>Welcome to
+My Phone Assistant</source>
+          <target state="new">Welcome to
+My Phone Assistant</target>
+        </trans-unit>
+        <trans-unit id="Permission_Error" translate="yes" xml:space="preserve">
+          <source>Sorry, but we do not have the permission to connect your phone.</source>
+          <target state="new">Sorry, but we do not have the permission to connect your phone.</target>
+        </trans-unit>
+        <trans-unit id="TaskBarIcon.ToolTipText" translate="yes" xml:space="preserve">
+          <source>My Phone Assistant</source>
+          <target state="new">My Phone Assistant</target>
+        </trans-unit>
+      </group>
+    </body>
+  </file>
+</xliff>

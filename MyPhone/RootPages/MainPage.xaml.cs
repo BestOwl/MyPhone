@@ -1,4 +1,5 @@
-﻿using GoodTimeStudio.MyPhone.Pages;
+﻿using CommunityToolkit.WinUI;
+using GoodTimeStudio.MyPhone.Pages;
 using Microsoft.UI.Xaml.Controls;
 
 
@@ -23,21 +24,21 @@ namespace GoodTimeStudio.MyPhone.RootPages
         private void NavigationViewControl_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             NavigationMenu item = (NavigationMenu)args.SelectedItem;
-            switch (item.Name)
+            switch (item.Id)
             {
-                case "Call":
+                case "call":
                     contentFrame.Navigate(typeof(CallPage));
                     break;
-                case "Message":
+                case "message":
                     contentFrame.Navigate(typeof(MessagePage));
                     break;
-                case "Contacts":
+                case "contacts":
                     contentFrame.Navigate(typeof(ContactsPage));
                     break;
-                case "Debug":
+                case "debug":
                     contentFrame.Navigate(typeof(DiagnosisPage));
                     break;
-                case "Settings":
+                case "settings":
                     break;
             }
         }

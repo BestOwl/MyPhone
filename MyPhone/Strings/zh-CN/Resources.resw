@@ -1,0 +1,265 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AppDisplayName" xml:space="preserve">
+    <value>我的手机助手</value>
+  </data>
+  <data name="BluetoothDeviceList_Paired.Text" xml:space="preserve">
+    <value>已连接</value>
+  </data>
+  <data name="BluetoothDeviceList_SearchingTip.Text" xml:space="preserve">
+    <value>正在搜索附近的蓝牙设备...</value>
+  </data>
+  <data name="Contacts_List.NoSelectionContent" xml:space="preserve">
+    <value>未选择</value>
+  </data>
+  <data name="Contact_Call" xml:space="preserve">
+    <value>打电话给</value>
+  </data>
+  <data name="Contact_Email" xml:space="preserve">
+    <value>电子邮箱</value>
+  </data>
+  <data name="Contact_Organization" xml:space="preserve">
+    <value>单位</value>
+  </data>
+  <data name="Contact_Organizational_Unit" xml:space="preserve">
+    <value>部门</value>
+  </data>
+  <data name="Contact_Phone" xml:space="preserve">
+    <value>手机号</value>
+  </data>
+  <data name="Contact_Phone_Text" xml:space="preserve">
+    <value>手机号</value>
+  </data>
+  <data name="Contact_SendMessage" xml:space="preserve">
+    <value>发短信给</value>
+  </data>
+  <data name="Diagnosis_AutoSelectedPhoneLineId.Text" xml:space="preserve">
+    <value>自动选择电话ID</value>
+  </data>
+  <data name="Diagnosis_AvailablePhoneLine.Text" xml:space="preserve">
+    <value>可用设备: </value>
+  </data>
+  <data name="Diagnosis_Call.Content" xml:space="preserve">
+    <value>拨号</value>
+  </data>
+  <data name="Diagnosis_Calling.ServiceName" xml:space="preserve">
+    <value>电话</value>
+  </data>
+  <data name="Diagnosis_ClassOfDevice.Text" xml:space="preserve">
+    <value>设备类型</value>
+  </data>
+  <data name="Diagnosis_ConnectionStatus.Text" xml:space="preserve">
+    <value>连接状态</value>
+  </data>
+  <data name="Diagnosis_DeviceId.Text" xml:space="preserve">
+    <value>设备ID</value>
+  </data>
+  <data name="Diagnosis_DeviceServiceProviders.Text" xml:space="preserve">
+    <value>设备服务提供</value>
+  </data>
+  <data name="Diagnosis_Device_Overview.Text" xml:space="preserve">
+    <value>设备概览</value>
+  </data>
+  <data name="Diagnosis_Dial.Text" xml:space="preserve">
+    <value>拨号</value>
+  </data>
+  <data name="Diagnosis_IsRegistered.Text" xml:space="preserve">
+    <value>注册</value>
+  </data>
+  <data name="Diagnosis_Phonebook.ServiceName" xml:space="preserve">
+    <value>通讯录</value>
+  </data>
+  <data name="Diagnosis_Phonebook_LastSyncTime.Text" xml:space="preserve">
+    <value>上次同步时间</value>
+  </data>
+  <data name="Diagnosis_Phonebook_PbapSupportedFeatures.Text" xml:space="preserve">
+    <value>功能支持</value>
+  </data>
+  <data name="Diagnosis_Phonebook_ProfileVersion.Text" xml:space="preserve">
+    <value>配置文件版本</value>
+  </data>
+  <data name="Diagnosis_PhoneLineTransportDeviceId.Text" xml:space="preserve">
+    <value>电话ID</value>
+  </data>
+  <data name="Diagnosis_RetryScheduled" xml:space="preserve">
+    <value>准备重试: </value>
+  </data>
+  <data name="Diagnosis_ServiceCapabilities.Text" xml:space="preserve">
+    <value>可用服务</value>
+  </data>
+  <data name="Diagnosis_SMS.ServiceName" xml:space="preserve">
+    <value>短信</value>
+  </data>
+  <data name="Diagnosis_SMS_MapSupportedFeatures.Text" xml:space="preserve">
+    <value>功能支持</value>
+  </data>
+  <data name="Diagnosis_SMS_ProfileVersion.Text" xml:space="preserve">
+    <value>配置文件版本</value>
+  </data>
+  <data name="Diagnosis_ViaSelectedPhoneLine.Text" xml:space="preserve">
+    <value>通过指定的电话ID</value>
+  </data>
+  <data name="Diagnosis_WasSecureConnectionUsedForPairing.Text" xml:space="preserve">
+    <value>安全的连接</value>
+  </data>
+  <data name="Failed_Connect_Error_Front" xml:space="preserve">
+    <value>与设备配对失败"</value>
+  </data>
+  <data name="Failed_Connect_Error_Second" xml:space="preserve">
+    <value>". 原因: </value>
+  </data>
+  <data name="Item_Call" xml:space="preserve">
+    <value>电话</value>
+  </data>
+  <data name="Item_Contacts" xml:space="preserve">
+    <value>通讯录</value>
+  </data>
+  <data name="Item_Debug" xml:space="preserve">
+    <value>调试</value>
+  </data>
+  <data name="Item_Message" xml:space="preserve">
+    <value>短信</value>
+  </data>
+  <data name="Item_Settings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="Message_List.NoSelectionContent" xml:space="preserve">
+    <value>未选择</value>
+  </data>
+  <data name="Oobe_Connect.Text" xml:space="preserve">
+    <value>连接</value>
+  </data>
+  <data name="Oobe_Describe.Text" xml:space="preserve">
+    <value>在您的电脑上打电话和发短信</value>
+  </data>
+  <data name="Oobe_Tip.Text" xml:space="preserve">
+    <value>首先,我们需要连接到您的手机</value>
+  </data>
+  <data name="Oobe_Welcome.Text" xml:space="preserve">
+    <value>欢迎使用
+你的手机助手</value>
+  </data>
+  <data name="Permission_Error" xml:space="preserve">
+    <value>抱歉,我们没有获得许可连接到您的手机.</value>
+  </data>
+  <data name="TaskBarIcon.ToolTipText" xml:space="preserve">
+    <value>我的手机助手</value>
+  </data>
+</root>

@@ -12,6 +12,7 @@
 
     <Grid>
         <controls:ListDetailsView
+            x:Uid="Contacts_List"
             BackButtonBehavior="Automatic"
             NoSelectionContent="Select an item to view"
             CompactModeThresholdWidth="720"

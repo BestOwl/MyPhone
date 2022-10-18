@@ -25,7 +25,8 @@
   </Dependencies>
 
   <Resources>
-    <Resource Language="x-generate"/>
+	  <Resource Language="en-US"/>
+	  <Resource Language="zh-CN"/>
   </Resources>
 
   <Applications>
@@ -33,7 +34,7 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="My Phone Assistant"
+        DisplayName="ms-resource:AppDisplayName"
         Description="MyPhone"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"

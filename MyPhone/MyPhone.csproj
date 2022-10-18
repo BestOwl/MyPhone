@@ -1,3 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -38,9 +39,9 @@
   <ItemGroup>
     <None Remove="appsettings.json" />
     <None Remove="Controls\DevicePairDialog.xaml" />
+    <None Remove="MultilingualResources\MyPhone.qps-ploc.xlf" />
     <None Remove="Pages\ContactsPage.xaml" />
   </ItemGroup>
-
   <ItemGroup>
     <Content Include="appsettings.json" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -50,7 +51,6 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
     <PackageReference Include="CommunityToolkit.WinUI" Version="7.1.2" />
@@ -73,7 +73,6 @@
     <PackageReference Include="Shiny.Logging.AppCenter" Version="2.5.5" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
-
   <!-- Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
        Tools extension to be activated for this project even if the Windows App SDK Nuget
        package has not yet been restored -->
@@ -85,6 +84,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="appsettings.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <XliffResource Include="MultilingualResources\MyPhone.qps-ploc.xlf" />
   </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\ContactsPage.xaml">
