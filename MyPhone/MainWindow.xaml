@@ -15,11 +15,13 @@
 
         <Grid.Resources>
             <XamlUICommand
+                x:Uid="Taskbar_Menu_OpenApp"
                 x:Key="OpenAppCommand"
                 ExecuteRequested="OpenAppCommand_ExecuteRequested"
                 Label="Open My Phone"
                 Description="Open My Phone" />
             <XamlUICommand 
+                x:Uid="Taskbar_Menu_Exit"
                 x:Key="ExitCommand"
                 ExecuteRequested="ExitCommand_ExecuteRequested"
                 Label="Exit"

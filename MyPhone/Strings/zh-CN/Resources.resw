@@ -262,4 +262,10 @@
   <data name="TaskBarIcon.ToolTipText" xml:space="preserve">
     <value>我的手机助手</value>
   </data>
+  <data name="Taskbar_Menu_Exit.Label" xml:space="preserve">
+    <value>退出</value>
+  </data>
+  <data name="Taskbar_Menu_OpenApp.Label" xml:space="preserve">
+    <value>打开我的手机助手</value>
+  </data>
 </root>

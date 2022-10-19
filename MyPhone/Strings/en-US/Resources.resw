@@ -262,4 +262,10 @@ My Phone Assistant</value>
   <data name="TaskBarIcon.ToolTipText" xml:space="preserve">
     <value>My Phone Assistant</value>
   </data>
+  <data name="Taskbar_Menu_Exit.Label" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="Taskbar_Menu_OpenApp.Label" xml:space="preserve">
+    <value>Open My Phone</value>
+  </data>
 </root>
