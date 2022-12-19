@@ -35,7 +35,7 @@
 ### Hands-Free Profile (HFP)
 This app use Windows Runtime APIs: `Windows.ApplicationModel.Calls` , `Windows.Devices.Bluetooth` and `Windows.Devices.Enumeration` to make the HFP works.
 
-1. Use ``Windows.Devices.Enumeration` API to enumerate available `PhoneLineTransportDevice` (i.e. paired Bluetooth devices that support HFP),
+1. Use `Windows.Devices.Enumeration` API to enumerate available `PhoneLineTransportDevice` (i.e. paired Bluetooth devices that support HFP),
 2. Call `PhoneLineTransportDevice.RegisterApp` to register the device for HFP
 3. Call `PhoneLineTransportDevice.Connect` to connect to the deivice (establishes HFP Service Level Connection).
 4. Now you can receive and answer phone calls on your PC.
