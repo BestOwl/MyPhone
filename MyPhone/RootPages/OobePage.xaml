@@ -20,16 +20,19 @@
         <StackPanel MinWidth="350" MaxWidth="450" Spacing="10"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
-            <TextBlock Style="{StaticResource HeaderTextBlockStyle}"
+            <TextBlock x:Uid="Oobe_Welcome"
+                       Style="{StaticResource HeaderTextBlockStyle}"
                        HorizontalAlignment="Center"
                        TextWrapping="Wrap"
                        Text="Welcome to&#x0a;My Phone Assistant" 
                        TextAlignment="Center" />
-            <TextBlock Text="Make phone calls and send/receive SMS on your PC"
+            <TextBlock x:Uid="Oobe_Describe"
+                       Text="Make phone calls and send/receive SMS on your PC"
                        Style="{StaticResource BaseTextBlockStyle}"
                        TextAlignment="Center"/>
 
-            <TextBlock Text="Before we get started, we need to connect to your phone"
+            <TextBlock x:Uid="Oobe_Tip"
+                       Text="Before we get started, we need to connect to your phone"
                        TextAlignment="Center"
                        Style="{ThemeResource TitleTextBlockStyle}" Margin="0,20,0,10"/>
 
@@ -50,7 +53,8 @@
                     Command="{x:Bind ViewModel.DeviceConnectCommand}"
                     IsEnabled="{x:Bind ViewModel.EnableConnectButton, Mode=OneWay}">
                 <Grid>
-                    <TextBlock Text="Connect" 
+                    <TextBlock x:Uid="Oobe_Connect"
+                               Text="Connect" 
                                Visibility="{x:Bind ViewModel.Connecting, Mode=OneWay, Converter={StaticResource BoolNegationToVisibility}}"/>
                     <ProgressRing Foreground="White" Height="20" Width="20"
                                   Visibility="{x:Bind ViewModel.Connecting, Mode=OneWay, Converter={StaticResource BoolToVisibility}}"/>

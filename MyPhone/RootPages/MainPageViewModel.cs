@@ -1,6 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI;
+using Microsoft.UI.Xaml;
 using System;
 using System.Collections.ObjectModel;
+using Windows.ApplicationModel.Resources;
 
 namespace GoodTimeStudio.MyPhone.RootPages
 {
@@ -14,17 +17,18 @@ namespace GoodTimeStudio.MyPhone.RootPages
 
         public MainPageViewModel()
         {
+            ResourceLoader resourceLoader = ResourceLoader.GetForViewIndependentUse("Resources");
             navigationMenus = new ObservableCollection<NavigationMenu>()
             {
-                new NavigationMenu(name:"Call", glyphIcon: "\uE717"),
-                new NavigationMenu(name:"Message", glyphIcon: "\uE8BD"),
-                new NavigationMenu(name: "Contacts", glyphIcon: "\uE77B"),
-                new NavigationMenu(name:"Debug", glyphIcon: "\uEBE8"),
+                new NavigationMenu(name:resourceLoader.GetString("Item_Call"), glyphIcon: "\uE717", id: "call"),
+                new NavigationMenu(name:resourceLoader.GetString("Item_Message"), glyphIcon: "\uE8BD", id: "message"),
+                new NavigationMenu(name:resourceLoader.GetString("Item_Contacts"), glyphIcon: "\uE77B", id : "contacts"),
+                new NavigationMenu(name:resourceLoader.GetString("Item_Debug"), glyphIcon: "\uEBE8", id : "debug"),
             };
 
             navigationFooterMenus = new ObservableCollection<NavigationMenu>()
             {
-                new NavigationMenu(name: "Settings", glyphIcon: "\uE713")
+                new NavigationMenu(name: resourceLoader.GetString("Item_Settings"), glyphIcon: "\uE713", id : "settings")
             };
         }
     }
@@ -35,8 +39,11 @@ namespace GoodTimeStudio.MyPhone.RootPages
 
         public string GlyphIcon { get; set; }
 
-        public NavigationMenu(string name, string glyphIcon)
+        public string Id { get; set; }
+
+        public NavigationMenu(string name, string glyphIcon, string id)
         {
+            Id = id ?? throw new ArgumentNullException(nameof(id));
             Name = name ?? throw new ArgumentNullException(nameof(name));
             GlyphIcon = glyphIcon ?? throw new ArgumentNullException(nameof(glyphIcon));
         }

@@ -15,7 +15,8 @@
         <local:MessagePageViewModel x:Name="ViewModel" />
     </Page.DataContext>
     <Grid>
-        <controls:ListDetailsView BackButtonBehavior="Automatic"
+        <controls:ListDetailsView x:Uid="Message_List"
+                                  BackButtonBehavior="Automatic"
                                   NoSelectionContent="Select an item to view"
                                   CompactModeThresholdWidth="720"
                                   ItemsSource="{x:Bind ViewModel.Conversations}"

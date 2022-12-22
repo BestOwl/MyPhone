@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.WinUI;
 using GoodTimeStudio.MyPhone.Device;
 using GoodTimeStudio.MyPhone.Models;
 using GoodTimeStudio.MyPhone.Services;
@@ -7,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-
+using Windows.ApplicationModel.Resources;
 
 namespace GoodTimeStudio.MyPhone.RootPages
 {
@@ -53,6 +54,7 @@ namespace GoodTimeStudio.MyPhone.RootPages
 
             Connecting = true;
             ErrorText = null;
+            ResourceLoader resourceLoader = ResourceLoader.GetForViewIndependentUse("Resources");
             try
             {
                 await App.Current.SetupDevice(selectedDevice.DeviceInformation, true);
@@ -61,12 +63,12 @@ namespace GoodTimeStudio.MyPhone.RootPages
             catch (UnauthorizedAccessException ex)
             {
                 _logger.LogWarning(AppLogEvents.DeviceSetup, ex, "Failed to setup this device.");
-                ErrorText = "Sorry, but we do not have the permission to connect your phone. " + ex.Message;
+                ErrorText = resourceLoader.GetString("Permission_Error") + ex.Message;
             }
             catch (DevicePairingException ex)
             {
                 _logger.LogWarning(AppLogEvents.DeviceSetup, ex, "Failed to setup this device.");
-                ErrorText = "Failed to pair \"" + selectedDevice!.Name + " \". Reason: "
+                ErrorText = resourceLoader.GetString("Failed_Connect_Error_Front") + selectedDevice!.Name + resourceLoader.GetString("Failed_Connect_Error_Second")
                        + ex.PairingResult.Status.ToString();
             }
 

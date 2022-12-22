@@ -15,11 +15,13 @@
 
         <Grid.Resources>
             <XamlUICommand
+                x:Uid="Taskbar_Menu_OpenApp"
                 x:Key="OpenAppCommand"
                 ExecuteRequested="OpenAppCommand_ExecuteRequested"
                 Label="Open My Phone"
                 Description="Open My Phone" />
             <XamlUICommand 
+                x:Uid="Taskbar_Menu_Exit"
                 x:Key="ExitCommand"
                 ExecuteRequested="ExitCommand_ExecuteRequested"
                 Label="Exit"
@@ -44,7 +46,8 @@
                     Source="Assets/Square44x44Logo.png" 
                     Width="16" 
                     Height="16"/>
-                <TextBlock x:Name="AppTitle"
+                <TextBlock x:Uid="AppTitleText"
+                    x:Name="AppTitle"
                     Text="{x:Bind local:MainWindow.AppTitleDisplayName}"
                     VerticalAlignment="Center"
                     Margin="12,0,0,0"
@@ -56,6 +59,7 @@
                Canvas.ZIndex="0"/>
 
         <tb:TaskbarIcon
+            x:Uid="TaskBarIcon"
             ToolTipText="{x:Bind local:MainWindow.AppTitleDisplayName}"
             IconSource="/Assets/Icon.ico"
             MenuActivation="LeftOrRightClick"

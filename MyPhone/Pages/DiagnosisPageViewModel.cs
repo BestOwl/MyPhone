@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.WinUI;
 using GoodTimeStudio.MyPhone.Device;
 using GoodTimeStudio.MyPhone.Models;
 using GoodTimeStudio.MyPhone.OBEX;
@@ -14,6 +15,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Calls;
+using Windows.ApplicationModel.Resources;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
 
@@ -197,7 +199,7 @@ namespace GoodTimeStudio.MyPhone.Pages
 
         private static string GetNextRetryTimeDescriptionText(DateTime? nextRetryTime)
         {
-            return $"Retry scheduled: {nextRetryTime}";
+            return (ResourceLoader.GetForViewIndependentUse("Resources").GetString("Diagnosis_RetryScheduled") + nextRetryTime);
         }
 
         private static void UpdateServiceInfo(BaseDeviceServiceProvider serviceProvider, DeviceServiceProviderInformation info)

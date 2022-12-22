@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Diagnostics;
+using Windows.ApplicationModel.Resources;
 using Windows.Win32;
 using WinRT;
 
@@ -26,7 +27,7 @@ namespace GoodTimeStudio.MyPhone
     {
         public static XamlRoot XamlRoot { get => _instance.windowRoot.XamlRoot; }
         public static DispatcherQueue WindowDispatcher { get => _instance.DispatcherQueue; }
-        public static string AppTitleDisplayName { get => Windows.ApplicationModel.Package.Current.DisplayName; }
+        public static string AppTitleDisplayName { get => ResourceLoader.GetForViewIndependentUse("Resources").GetString("AppDisplayName"); }
 
         private readonly ISettingsService _settingsService;
 

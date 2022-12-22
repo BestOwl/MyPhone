@@ -43,7 +43,7 @@
 
     <ScrollViewer>
         <StackPanel Padding="40, 20" Spacing="10">
-            <TextBlock Text="Device Overview" Style="{StaticResource BaseTextBlockStyle}"/>
+            <TextBlock x:Uid="Diagnosis_Device_Overview" Text="Device Overview" Style="{StaticResource BaseTextBlockStyle}"/>
             <Expander Style="{StaticResource DiagnosisPageExpanderStyle}">
                 <Expander.Header>
                     <StackPanel 
@@ -69,31 +69,31 @@
                         <RowDefinition />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Text="DeviceId" />
+                    <TextBlock x:Uid="Diagnosis_DeviceId" Text="DeviceId" />
                     <TextBlock 
                         Text="{x:Bind ViewModel.BluetoothDevice.DeviceId}" 
                         Grid.Column="1" 
                         Style="{ThemeResource DeviceInfoTextBlockStyle}" />
 
-                    <TextBlock Text="ClassOfDevice" Grid.Row="1" />
+                    <TextBlock x:Uid="Diagnosis_ClassOfDevice" Text="ClassOfDevice" Grid.Row="1" />
                     <TextBlock 
                         Text="{x:Bind ViewModel.BluetoothDevice.ClassOfDeviceDescription}" 
                         Grid.Column="1" Grid.Row="1"
                         Style="{ThemeResource DeviceInfoTextBlockStyle}" />
 
-                    <TextBlock Text="ServiceCapabilities" Grid.Row="2" />
+                    <TextBlock x:Uid="Diagnosis_ServiceCapabilities" Text="ServiceCapabilities" Grid.Row="2" />
                     <TextBlock 
                         Text="{x:Bind ViewModel.BluetoothDevice.ClassOfDevice.ServiceCapabilities}" 
                         Grid.Column="1" Grid.Row="2"
                         Style="{ThemeResource DeviceInfoTextBlockStyle}" />
 
-                    <TextBlock Text="WasSecureConnectionUsedForPairing" Grid.Row="3" />
+                    <TextBlock x:Uid="Diagnosis_WasSecureConnectionUsedForPairing" Text="WasSecureConnectionUsedForPairing" Grid.Row="3" />
                     <TextBlock 
                         Text="{x:Bind ViewModel.BluetoothDevice.WasSecureConnectionUsedForPairing}" 
                         Grid.Column="1" Grid.Row="3"
                         Style="{ThemeResource DeviceInfoTextBlockStyle}" />
 
-                    <TextBlock Text="ConnectionStatus" Grid.Row="4" />
+                    <TextBlock x:Uid="Diagnosis_ConnectionStatus" Text="ConnectionStatus" Grid.Row="4" />
                     <TextBlock 
                         Text="{x:Bind ViewModel.BluetoothDevice.ConnectionStatus, Mode=OneWay}" 
                         Grid.Column="1" Grid.Row="4"
@@ -101,7 +101,7 @@
                 </Grid>
             </Expander>
 
-            <TextBlock Text="Device Service Providers" Style="{ThemeResource BaseTextBlockStyle}"
+            <TextBlock x:Uid="Diagnosis_DeviceServiceProviders" Text="Device Service Providers" Style="{ThemeResource BaseTextBlockStyle}"
                        Margin="0, 15, 0, 0"/>
             <Expander 
                 IsEnabled="{x:Bind ViewModel.CallServiceSupported}"
@@ -109,6 +109,7 @@
                 IsExpanded="{x:Bind ViewModel.CallServiceSupported}">
                 <Expander.Header>
                     <controls:DeviceServiceProviderOverview 
+                        x:Uid="Diagnosis_Calling"
                         ServiceName="Calling"
                         ProviderState="{x:Bind ViewModel.CallServiceInfo.State, Mode=OneWay}"
                         StatusMessage="{x:Bind ViewModel.CallServiceInfo.StatusMessage, Mode=OneWay}"
@@ -129,19 +130,19 @@
                             <RowDefinition />
                         </Grid.RowDefinitions>
 
-                        <TextBlock Text="PhoneLineTransportDeviceId" />
+                        <TextBlock x:Uid="Diagnosis_PhoneLineTransportDeviceId" Text="PhoneLineTransportDeviceId" />
                         <TextBlock 
                             Text="{x:Bind ViewModel.PhoneLineTransportDeviceId}" 
                             Grid.Column="1" 
                             Style="{ThemeResource DeviceInfoTextBlockStyle}" />
 
-                        <TextBlock Text="IsRegistered" Grid.Row="1" />
+                        <TextBlock x:Uid="Diagnosis_IsRegistered" Text="IsRegistered" Grid.Row="1" />
                         <TextBlock 
                             Text="{x:Bind ViewModel.IsPhoneLineRegistered, Mode=OneWay}" 
                             Grid.Column="1" Grid.Row="1"
                             Style="{ThemeResource DeviceInfoTextBlockStyle}" />
 
-                        <TextBlock Text="AutoSelectedPhoneLineId" Grid.Row="2" />
+                        <TextBlock x:Uid="Diagnosis_AutoSelectedPhoneLineId" Text="AutoSelectedPhoneLineId" Grid.Row="2" />
                         <TextBlock 
                             Text="{x:Bind ViewModel.AutoSelectedPhoneLineId, Mode=OneWay}" 
                             Grid.Column="1" Grid.Row="2"
@@ -156,7 +157,7 @@
                             <RowDefinition MaxHeight="400" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock Text="Available PhoneLine:" Style="{ThemeResource BaseTextBlockStyle}" />
+                        <TextBlock x:Uid="Diagnosis_AvailablePhoneLine" Text="Available PhoneLine:" Style="{ThemeResource BaseTextBlockStyle}" />
                         <controls:CustomDataGrid 
                             ItemsSource="{x:Bind ViewModel.PhoneLines}"
                             SelectedItem="{x:Bind ViewModel.SelectedPhoneLine, Mode=TwoWay}"
@@ -174,10 +175,10 @@
                             </community:DataGrid.Columns>
                         </controls:CustomDataGrid>
                         <StackPanel Grid.Row="2" Spacing="10" HorizontalAlignment="Left">
-                            <TextBlock Text="Dial" Style="{ThemeResource BaseTextBlockStyle}" />
+                            <TextBlock x:Uid="Diagnosis_Dial" Text="Dial" Style="{ThemeResource BaseTextBlockStyle}" />
                             <RichTextBlock>
                                 <Paragraph>
-                                    <Run Text="via selected PhoneLine " />
+                                    <Run x:Uid="Diagnosis_ViaSelectedPhoneLine" Text="via selected PhoneLine " />
                                     <Run Text="{x:Bind ViewModel.SelectedPhoneLineId, Mode=OneWay}" 
                                         Foreground="{ThemeResource SystemBaseMediumColor}" />
                                 </Paragraph>
@@ -186,7 +187,7 @@
                                 Width="250" 
                                 Text="{x:Bind ViewModel.PhoneNumberBoxInputString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                 HorizontalAlignment="Left" />
-                            <Button Content="Call" Command="{x:Bind ViewModel.CallCommand}" />
+                            <Button x:Uid="Diagnosis_Call" Content="Call" Command="{x:Bind ViewModel.CallCommand}" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>
@@ -198,6 +199,7 @@
                 IsExpanded="{x:Bind ViewModel.SmsServiceSupported}">
                 <Expander.Header>
                     <controls:DeviceServiceProviderOverview 
+                        x:Uid="Diagnosis_SMS"
                         ProviderState="{x:Bind ViewModel.SmsServiceInfo.State, Mode=OneWay}"
                         ServiceName="SMS Messaging"
                         StatusMessage="{x:Bind ViewModel.SmsServiceInfo.StatusMessage, Mode=OneWay}"
@@ -215,14 +217,14 @@
                             <RowDefinition />
                             <RowDefinition />
                         </Grid.RowDefinitions>
-                        
-                        <TextBlock Text="ProfileVersion" />
+
+                        <TextBlock x:Uid="Diagnosis_SMS_ProfileVersion" Text="ProfileVersion" />
                         <TextBlock
                             Text="{x:Bind ViewModel.MapProfileVersion, Mode=OneWay}"
                             Grid.Column="1" 
                             Style="{ThemeResource DeviceInfoTextBlockStyle}" />
-                        
-                        <TextBlock Text="MapSupportedFeatures" Grid.Row="1" />
+
+                        <TextBlock x:Uid="Diagnosis_SMS_MapSupportedFeatures" Text="MapSupportedFeatures" Grid.Row="1" />
                         <TextBlock
                             Text="{x:Bind ViewModel.MapSupportedFeatures, Mode=OneWay}"
                             Grid.Column="1" Grid.Row="1"
@@ -237,6 +239,7 @@
                 IsExpanded="{x:Bind ViewModel.PhonebookServiceSupported}">
                 <Expander.Header>
                     <controls:DeviceServiceProviderOverview
+                        x:Uid="Diagnosis_Phonebook"
                         ServiceName="Phonebook Access"
                         ProviderState="{x:Bind ViewModel.PhonebookServiceInfo.State, Mode=OneWay}"
                         GlyphIcon="&#xE780;"
@@ -257,19 +260,19 @@
                             <RowDefinition />
                         </Grid.RowDefinitions>
 
-                        <TextBlock Text="ProfileVersion" />
+                        <TextBlock x:Uid="Diagnosis_Phonebook_ProfileVersion" Text="ProfileVersion" />
                         <TextBlock
                             Text="{x:Bind ViewModel.PbapProfileVersion, Mode=OneWay}"
                             Grid.Column="1" 
                             Style="{ThemeResource DeviceInfoTextBlockStyle}" />
 
-                        <TextBlock Text="PbapSupportedFeatures" Grid.Row="1"/>
+                        <TextBlock x:Uid="Diagnosis_Phonebook_PbapSupportedFeatures" Text="PbapSupportedFeatures" Grid.Row="1"/>
                         <TextBlock 
                             Text="{x:Bind ViewModel.PbapSupportedFeatures, Mode=OneWay}"
                             Grid.Column="1" Grid.Row="1"
                             Style="{ThemeResource DeviceInfoTextBlockStyle}" />
 
-                        <TextBlock Text="LastSyncTime" Grid.Row="2" />
+                        <TextBlock x:Uid="Diagnosis_Phonebook_LastSyncTime" Text="LastSyncTime" Grid.Row="2" />
                         <TextBlock 
                             Text="{x:Bind ViewModel.PbapLastSyncTime, Mode=OneWay}"
                             Grid.Column="1" Grid.Row="2"
